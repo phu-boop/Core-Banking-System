@@ -21,6 +21,7 @@ Tài liệu kiến trúc tổng quan. Bounded Contexts, nghiệp vụ, API, even
 | [ADR-007](../adr/ADR-007-configurable-corporate-approval.md) | ACCEPTED | Corporate approval có cấu hình |
 | [ADR-008](../adr/ADR-008-loan-excluded-from-mvp.md) | ACCEPTED / DEFERRED | Loan ngoài MVP, dự kiến giai đoạn sau |
 | [ADR-009](../adr/ADR-009-multi-branch-banking.md) | ACCEPTED | Hỗ trợ nhiều chi nhánh |
+| [ADR-010](../adr/ADR-010-phase-1-technical-baseline.md) | ACCEPTED | Java 21, Spring Boot 3, Maven Wrapper, monorepo, Kubernetes local + production, Flyway |
 
 Ngày phê duyệt lịch sử không được cung cấp; xem từng ADR. Công nghệ và chi tiết thiết kế bên dưới không phải quyết định đã chốt trừ khi ghi rõ ACCEPTED.
 
@@ -117,10 +118,10 @@ Gateway, broker, cache usage, deployment topology và các kết nối giữa se
 
 ```mermaid
 flowchart TB
-  subgraph Runtime["Runtime topology — PROPOSED"]
+  subgraph Runtime["Kubernetes runtime — topology PROPOSED"]
     CLIENTS[Internet Banking / Admin / Teller]
     GATEWAY[API Gateway<br/>technology OPEN]
-    subgraph Workloads["Service workloads"]
+    subgraph Workloads["Kubernetes workloads"]
       SVC[12 independently deployable service workloads]
     end
     DB[(PostgreSQL cluster<br/>separate schema per service)]
@@ -137,7 +138,7 @@ flowchart TB
   SVC -. Payment integration .-> EXT
 ```
 
-Đây là sơ đồ logic, không xác nhận số replica, network zones, cloud, container orchestrator hoặc availability topology. Docker/Kubernetes là hướng công nghệ; rollout strategy còn OPEN.
+Đây là sơ đồ logic. Kubernetes đã được chấp nhận cho local và production; distribution, cluster provider, network zones, replica strategy, availability topology và rollout chi tiết còn OPEN.
 
 ## Giao tiếp nội bộ và bên ngoài
 
@@ -150,12 +151,14 @@ flowchart TB
 
 | Công nghệ / lựa chọn | Trạng thái |
 |---|---|
-| Java 21, Spring Boot 3 | PROPOSED |
+| Java 21, Spring Boot 3 | ACCEPTED; minor/patch versions not fixed |
+| Maven Wrapper | ACCEPTED |
 | PostgreSQL dùng chung, schema-per-service | ACCEPTED về topology dữ liệu; phiên bản chưa xác định |
-| Flyway | PROPOSED |
+| Flyway | ACCEPTED; migration structure remains service-owned |
 | Kafka | PROPOSED; lựa chọn Kafka vs RabbitMQ OPEN |
 | Redis | PROPOSED; không phải nguồn chuẩn số dư |
-| Docker, Kubernetes | PROPOSED; rollout strategy OPEN |
+| Kubernetes | ACCEPTED for local development and production orchestration |
+| Kubernetes distribution / provider / cluster topology / rollout details | OPEN |
 | Spring Security, OAuth2/OIDC, JWT | PROPOSED |
 | JUnit 5, Mockito, Testcontainers | PROPOSED |
 | Prometheus, Grafana, OpenTelemetry | PROPOSED |
@@ -180,8 +183,8 @@ flowchart TB
 ## Deployment Strategy
 
 - Mỗi bounded context được thiết kế để deploy độc lập (**PROPOSED**, phù hợp ADR-001).
-- Docker/Kubernetes là định hướng, chưa phải lựa chọn triển khai cuối cùng.
-- Docker Compose vs Kubernetes rollout, môi trường, HA/DR, scaling, release/rollback và migration coordination còn **OPEN**.
+- Kubernetes được ACCEPTED cho local development và production orchestration.
+- Kubernetes distribution, local cluster tooling, production provider/topology, HA/DR, scaling, release/rollback và migration coordination còn **OPEN**.
 - Mọi thay đổi schema tương lai phải thuộc service sở hữu schema; tài liệu này không tạo hoặc phê duyệt migration.
 
 ## Liên kết liên quan

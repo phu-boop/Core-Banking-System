@@ -11,7 +11,7 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 | 5 | Identity Provider | OPEN |
 | 6 | Kafka hay RabbitMQ | OPEN |
 | 7 | REST hay gRPC cho internal communication | OPEN |
-| 8 | Docker Compose hay Kubernetes rollout | OPEN |
+| 8 | Kubernetes distribution, cluster topology and rollout details | OPEN |
 | 9 | Transaction limits và business-day rules | OPEN |
 | 10 | Interbank settlement, timeout, reversal và reconciliation rules | OPEN |
 
@@ -73,12 +73,12 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 - **Recommendation (PROPOSED):** Dùng asynchronous event cho decoupled notifications; đánh giá sync protocol theo interoperability và operational support.
 - **Status:** OPEN.
 
-### 8. Deployment rollout
+### 8. Kubernetes distribution, cluster topology and rollout details
 
-- **Mô tả:** Docker Compose vs Kubernetes rollout chưa quyết định.
+- **Mô tả:** Kubernetes đã được chấp nhận cho local và production theo ADR-010; local cluster tooling, production provider/topology và rollout details chưa được chọn.
 - **Ảnh hưởng:** Deployment topology, scaling, health checks, service discovery, rollback và operational effort.
-- **Lựa chọn:** Docker Compose hoặc Kubernetes; môi trường mục tiêu và scale chưa xác định.
-- **Recommendation (PROPOSED):** Chốt môi trường/availability requirement trước khi chọn orchestration.
+- **Lựa chọn:** Các distribution/local cluster tools và managed/self-hosted production environments cần được đánh giá; chưa có vendor/platform cụ thể được xác nhận.
+- **Recommendation (PROPOSED):** Chốt môi trường và availability requirements trước khi chọn distribution/provider, topology và rollout strategy.
 - **Status:** OPEN.
 
 ### 9. Transaction limits and business-day rules

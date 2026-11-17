@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Các ADR dưới đây ghi nhận quyết định đã được chủ dự án xác nhận. Ngày phê duyệt lịch sử không được cung cấp nên được ghi là **Not recorded**, không suy đoán.
+Các ADR dưới đây ghi nhận quyết định đã được chủ dự án xác nhận. Ngày của ADR-001 đến ADR-009 không được cung cấp nên được ghi là **Not recorded** trong từng ADR; ADR-010 ghi ngày quyết định được xác nhận.
 
 | ADR | Title | Status |
 |---|---|---|
@@ -13,6 +13,7 @@ Các ADR dưới đây ghi nhận quyết định đã được chủ dự án x
 | [ADR-007](./ADR-007-configurable-corporate-approval.md) | Configurable Corporate Approval | ACCEPTED |
 | [ADR-008](./ADR-008-loan-excluded-from-mvp.md) | Loan Excluded from MVP | ACCEPTED; scope DEFERRED |
 | [ADR-009](./ADR-009-multi-branch-banking.md) | Multi-branch Banking | ACCEPTED |
+| [ADR-010](./ADR-010-phase-1-technical-baseline.md) | Phase 1 Technical Baseline | ACCEPTED |
 
 Decision details remain intentionally bounded by the recorded decision. Implementation options are not approved merely because they appear in design documents.
 
