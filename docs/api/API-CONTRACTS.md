@@ -1,6 +1,6 @@
 # API Contracts
 
-**Status:** tất cả endpoint dưới đây là **PROPOSED** design contracts, không phải API đã tồn tại. Không có source code để xác minh implementation. REST is proposed; gateway, Identity Provider and internal REST-vs-gRPC are OPEN. Request/response examples are schematic; enum values, limits and detailed field rules require domain review.
+**Status:** tất cả endpoint nghiệp vụ dưới đây là **PROPOSED** design contracts, không phải API đã tồn tại. Repository hiện chỉ có service template kỹ thuật với health endpoints, chưa có business API implementation. REST is proposed; gateway, Identity Provider and internal REST-vs-gRPC are OPEN. Request/response examples are schematic; enum values, limits and detailed field rules require domain review.
 
 ## Conventions
 

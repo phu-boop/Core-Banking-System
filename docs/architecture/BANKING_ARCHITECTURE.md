@@ -4,7 +4,7 @@ Tài liệu kiến trúc tổng quan. Bounded Contexts, nghiệp vụ, API, even
 
 ## Trạng thái và mục tiêu
 
-- Dự án đang ở giai đoạn **Architecture Design**; chưa có triển khai nào được xác minh từ source code.
+- Dự án đang ở **Phase 1 — Technical Foundation**. Đã có service template kỹ thuật tối thiểu; chưa triển khai bounded context hoặc nghiệp vụ banking.
 - Phạm vi: Core Banking cho Retail và Corporate Banking, hỗ trợ Internet Banking, Admin và Teller.
 - Trạng thái của nội dung: **ACCEPTED** là quyết định chủ dự án xác nhận; **PROPOSED** là thiết kế cần duyệt; **OPEN** là chưa quyết định; **DEFERRED** là để giai đoạn sau.
 

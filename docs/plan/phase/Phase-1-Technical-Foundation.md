@@ -8,11 +8,12 @@ Thiết lập nền tảng kỹ thuật có thể lặp lại cho các microserv
 
 ## Trạng thái nền
 
-- Dự án được ghi nhận đang ở Architecture Design; chưa xác minh có implementation.
+- Dự án đang ở Phase 1 — Technical Foundation; service template tối thiểu đã được tạo, chưa có banking domain implementation.
 - **ACCEPTED:** microservices; PostgreSQL dùng chung với schema-per-service.
 - **ACCEPTED:** Java 21, Spring Boot 3, Maven Wrapper, monorepo với thư mục service độc lập, Kubernetes cho local và production, và Flyway cho migration thuộc sở hữu từng service. Xem [ADR-010](../../adr/ADR-010-phase-1-technical-baseline.md).
-- **PROPOSED:** JUnit 5, Mockito, Testcontainers, Prometheus, Grafana và OpenTelemetry.
-- **OPEN:** PostgreSQL major version, Kubernetes distribution/provider/topology/rollout details, broker, API Gateway, Identity Provider, REST vs gRPC và một số chi tiết observability.
+- **PROPOSED:** JUnit 5, Mockito, Prometheus, Grafana và OpenTelemetry là định hướng chung.
+- **ACCEPTED riêng cho kiểm thử mục 1.3:** PostgreSQL 17.12 qua Testcontainers để tương thích với Flyway do Spring Boot quản lý; không quyết định PostgreSQL production hoặc chính sách test cho các service sau.
+- **OPEN:** PostgreSQL major version production, Kubernetes distribution/provider/topology/rollout details, broker, API Gateway, Identity Provider, REST vs gRPC và một số chi tiết observability.
 - Phase này không được tự biến PROPOSED/OPEN thành quyết định đã chốt. Xem [Architecture](../../architecture/BANKING_ARCHITECTURE.md) và [Open Decisions](../../architecture/OPEN-DECISIONS.md).
 
 ## Phạm vi
@@ -43,7 +44,7 @@ Thiết lập nền tảng kỹ thuật có thể lặp lại cho các microserv
 | Java 21 và Spring Boot 3 | ACCEPTED | Minor/patch version và dependency policy cần chốt khi tạo service template |
 | Maven Wrapper | ACCEPTED | Pin wrapper và xác định dependency policy |
 | Monorepo, thư mục độc lập theo service | ACCEPTED | Tên thư mục/build module strategy cần chốt khi tạo template |
-| PostgreSQL major version | OPEN | Chọn version được hỗ trợ; local environment chạy trên Kubernetes |
+| PostgreSQL production major version | OPEN | Chọn version được hỗ trợ; PostgreSQL 17.12 chỉ được chọn riêng làm test image cho mục 1.3 |
 | Migration tool | Flyway ACCEPTED | Migration files vẫn phải thuộc service; chưa có migration nào được duyệt |
 | Broker | Kafka vs RabbitMQ OPEN | Chỉ cần chốt trước khi triển khai publisher/consumer adapter |
 | Kubernetes cho local và production | ACCEPTED | Distribution, provider, topology và rollout details vẫn OPEN |
@@ -74,6 +75,8 @@ Technical baseline đã được chủ dự án duyệt và ghi tại [Phase 1.1
 
 **Đầu ra:** service mẫu build và khởi động được; cấu hình thiếu/sai được báo lỗi rõ ràng, không fallback thành cấu hình thành công giả.
 
+**Trạng thái:** Đã triển khai service template, correlation ID, health probes, container image và Kubernetes local manifest. Build/test và container smoke test thành công. Chưa apply manifest vì Kubernetes context chưa được cấu hình.
+
 ### 1.3 — Thiết lập database ownership
 
 - Tạo cách cấp schema/role riêng cho service mẫu trên shared PostgreSQL.
@@ -83,6 +86,8 @@ Technical baseline đã được chủ dự án duyệt và ghi tại [Phase 1.1
 - Tạo kiểm thử hoặc kiểm tra tự động chứng minh ranh giới quyền; không chỉ dựa vào quy ước tài liệu.
 
 **Đầu ra:** kiểm chứng được quyền đúng/sai trên schema; không tạo migration nghiệp vụ hoặc schema cho các service chưa triển khai.
+
+**Trạng thái:** Hoàn tất cho service template. Bootstrap SQL tạo migration/runtime roles và schema riêng; Flyway chỉ chạy explicit bằng migration role. PostgreSQL 17.12/Testcontainers integration tests xác nhận quyền runtime, quyền migration, Flyway history trong schema sở hữu và không có cross-schema foreign keys. Đây là kiểm thử nền tảng, chưa phải cấu hình kết nối DB cho ứng dụng hay production provisioning.
 
 ### 1.4 — Cấu hình, secrets và security boundary
 
@@ -146,7 +151,7 @@ Broker adapter là nhánh có điều kiện; phần database outbox pattern và
 
 - [ ] Technical choices cần cho service mẫu đã được chủ dự án duyệt; đề xuất chưa được duyệt được ghi rõ và chưa triển khai.
 - [ ] Service mẫu build/run/test lặp lại được theo hướng dẫn.
-- [ ] Database owner của service mẫu chỉ có quyền phù hợp trên schema của mình; không cross-schema table access/FK.
+- [x] Database owner của service mẫu chỉ có quyền phù hợp trên schema của mình; không cross-schema table access/FK.
 - [ ] Cấu hình bắt buộc được validate; secrets không có trong source hoặc logs.
 - [ ] Health/readiness và correlation ID hoạt động trong local/test.
 - [ ] CI chạy build, unit/static checks và integration checks cần thiết; lỗi được hiển thị rõ.

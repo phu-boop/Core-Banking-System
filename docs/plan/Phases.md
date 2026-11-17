@@ -1,6 +1,6 @@
 # Banking Clone — Lộ trình triển khai đề xuất
 
-Lộ trình dưới đây chia dự án thành các giai đoạn có thể kiểm chứng, từ thiết kế đến MVP và mở rộng. Đây là **đề xuất về thứ tự triển khai**, không thay đổi ADR đã được chấp nhận và không tự bổ sung business requirement. Dự án hiện được ghi nhận ở giai đoạn **Architecture Design**; chưa xác minh có implementation.
+Lộ trình dưới đây chia dự án thành các giai đoạn có thể kiểm chứng, từ thiết kế đến MVP và mở rộng. Đây là **đề xuất về thứ tự triển khai**, không thay đổi ADR đã được chấp nhận và không tự bổ sung business requirement. Hiện dự án đang ở **Phase 1 — Technical Foundation**; service template tối thiểu đã được tạo, chưa có nghiệp vụ banking.
 
 ## Nguyên tắc chia giai đoạn
 
@@ -29,7 +29,7 @@ Lộ trình dưới đây chia dự án thành các giai đoạn có thể kiể
 
 ### Phase 0 — Hoàn tất thiết kế và quyết định MVP
 
-**Trạng thái hiện tại theo tài liệu:** Architecture Design.
+**Trạng thái:** Hoàn tất tài liệu kiến trúc nền tảng; các quyết định OPEN không chặn việc tạo service template được giữ nguyên.
 
 - Review [Bounded Contexts](../domain/BOUNDED_CONTEXTS.md), [ERD](../database/ERD.md), [API Contracts](../api/API-CONTRACTS.md), [Event Contracts](../architecture/EVENT-CONTRACTS.md) và [Business Rules](../domain/BUSINESS-RULES.md).
 - Xác nhận các API/event cần cho luồng MVP, ownership của status và vị trí idempotency record.
