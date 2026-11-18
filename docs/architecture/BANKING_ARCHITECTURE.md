@@ -181,7 +181,8 @@ flowchart TB
 
 ## Observability
 
-- **PROPOSED:** metrics, structured logs và distributed traces; OpenTelemetry, Prometheus, Grafana là ứng viên.
+- **PROPOSED:** metrics, structured logs và distributed traces; Prometheus/Grafana/OpenTelemetry là ứng viên.
+- Service template hiện có structured JSON request logs và local Micrometer `/actuator/metrics`/`/actuator/prometheus`; đây là foundation, chưa chọn production collector hoặc backend.
 - Dùng correlation/causation identifiers xuyên suốt request và event; không ghi credentials, token hoặc dữ liệu thanh toán nhạy cảm vào log.
 - Theo dõi trạng thái giao dịch, posting, retry, outbox backlog và external outcome; không dùng telemetry/cache thay dữ liệu nghiệp vụ.
 - Retention, alert thresholds, SLOs và backend observability chưa được quyết định.

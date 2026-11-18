@@ -22,7 +22,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,metrics,prometheus
   endpoint:
     health:
       probes:
@@ -31,6 +31,12 @@ management:
         readiness:
           include: readinessState,db
       show-details: never
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   structured:

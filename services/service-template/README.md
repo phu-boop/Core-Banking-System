@@ -31,6 +31,12 @@ Supply credentials outside the script using the deployment's approved secret-man
 
 The integration test provisions an ephemeral PostgreSQL database, runs the bootstrap and test-only Flyway migration, then verifies owned-schema DML, denied cross-schema access and DDL, service-local Flyway history, and absence of cross-schema foreign keys. It does not create production schemas or business migrations.
 
+## Reliability foundation proof
+
+The test migration adds infrastructure-only `reliability_probe`, `outbox_event`, and `processed_event` tables. It does not add a banking domain migration or event producer/consumer. Integration tests prove that an outbox record and a domain-change probe can commit or roll back together, and that `(event_id, consumer_name)` prevents a consumer from applying the same event twice.
+
+The proof deliberately does not select a broker. Delivery retry, backoff, dead-letter behavior and broker-specific ordering remain open until an event broker and operational policy are approved.
+
 ## Run locally
 
 The application requires all three database settings; it fails at startup if any are missing. To run the JVM directly on the host, first provide `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD` through a local secret source and ensure PostgreSQL is reachable (for example, forward the Minikube database port). Do not put real values in command history.
@@ -46,6 +52,12 @@ Useful endpoints:
 - `GET /actuator/health/readiness`
 
 Readiness includes the database connection; liveness does not depend on database availability. Only the health actuator endpoint is exposed over HTTP. Health details are hidden.
+
+## Logging and local observability
+
+The console uses Spring structured JSON logs. Request logs include `serviceName`, correlation ID, HTTP method, path, response status and elapsed milliseconds. The filter excludes the query string and removes its MDC values after each request. Do not add request bodies, PII, secrets or tokens to log fields.
+
+The local actuator also exposes `/actuator/metrics` and `/actuator/prometheus` for minimal Micrometer/Prometheus metrics. This is a local foundation; Prometheus backend, Grafana dashboards, retention, SLOs and alert thresholds remain open. The event/trace backend is not selected or exported in production.
 
 For HTTP requests, the service accepts `X-Correlation-Id` containing 1–64 ASCII letters, digits, dots, underscores or hyphens. If omitted, it creates a UUID. A malformed supplied value receives `400 Bad Request`. The value is added to the response and logging MDC, then removed from the thread after request processing.
 

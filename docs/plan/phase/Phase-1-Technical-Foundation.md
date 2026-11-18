@@ -114,6 +114,8 @@ Technical baseline đã được chủ dự án duyệt và ghi tại [ADR-010](
 
 **Đầu ra:** tài liệu/pattern và test chứng minh tính nguyên tử trong database; broker adapter chỉ được làm sau khi công nghệ được duyệt. Không cần chạy broker cho service mẫu nếu chưa có quyết định.
 
+**Trạng thái:** Hoàn tất cho database foundation của service template. Pattern gồm `outbox_event` và `processed_event` trong schema sở hữu của service; test xác nhận commit/rollback cùng transaction, unique deduplication marker cho consumer và không tạo cross-service FK. Broker adapter và quyết định delivery/retry/dead-letter vẫn chưa triển khai.
+
 ### 1.6 — Logging và observability
 
 - Chuẩn hóa structured logs với timestamp, service name, severity và correlation ID.
@@ -122,6 +124,8 @@ Technical baseline đã được chủ dự án duyệt và ghi tại [ADR-010](
 - Chưa đặt SLO, alert threshold, retention hoặc production dashboard nếu chưa được thống nhất.
 
 **Đầu ra:** local/test environment có thể quan sát startup, request và lỗi cơ bản mà không làm lộ dữ liệu nhạy cảm.
+
+**Trạng thái:** Hoàn tất foundation cho service template. Log console là structured JSON; request log có service name, correlation ID, method, path, status và elapsed time; MDC được cleanup sau request. Micrometer expose `/actuator/metrics` và `/actuator/prometheus` làm local metrics foundation. Backend Prometheus/Grafana/OpenTelemetry production, trace exporter, retention, SLO và alert thresholds vẫn OPEN.
 
 ### 1.7 — CI và kiểm thử nền tảng
 
@@ -159,10 +163,11 @@ Broker adapter là nhánh có điều kiện; phần database outbox pattern và
 - [x] Database owner của service mẫu chỉ có quyền phù hợp trên schema của mình; không cross-schema table access/FK.
 - [x] Cấu hình bắt buộc được validate; secrets không có trong source hoặc logs.
 - [x] Health/readiness và correlation ID hoạt động trong local/test.
+- [x] Structured logs và local metrics foundation hoạt động trong local/test; production observability backend và policy vẫn OPEN.
 - [ ] CI chạy build, unit/static checks và integration checks cần thiết; lỗi được hiển thị rõ.
-- [ ] Outbox/consumer idempotency pattern được kiểm thử hoặc các giới hạn phụ thuộc broker được ghi nhận.
-- [ ] Không có banking feature hoặc migration nghiệp vụ được thêm trong phase nền tảng.
-- [ ] Tài liệu nền tảng và quyết định phát sinh được cập nhật, link và trạng thái nhất quán.
+- [x] Outbox/consumer idempotency pattern được kiểm thử hoặc các giới hạn phụ thuộc broker được ghi nhận.
+- [x] Không có banking feature hoặc migration nghiệp vụ được thêm trong phase nền tảng.
+- [x] Tài liệu nền tảng và quyết định phát sinh được cập nhật, link và trạng thái nhất quán.
 
 ## Rủi ro và cách kiểm soát
 

@@ -81,4 +81,15 @@ class ServiceTemplateApplicationTests {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
+    @Test
+    void exposesLocalPrometheusMetricsEndpoint() {
+        assertThat(restTemplate.getForEntity("/actuator/metrics", String.class).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(restTemplate.getForEntity("/actuator/prometheus", String.class).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(restTemplate.getForEntity(
+                "/actuator/metrics/http.server.requests", String.class).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+    }
 }

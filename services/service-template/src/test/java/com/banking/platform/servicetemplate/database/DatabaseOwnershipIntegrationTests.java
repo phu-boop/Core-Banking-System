@@ -112,9 +112,10 @@ class DatabaseOwnershipIntegrationTests {
             var ownedTables = statement.executeQuery(
                     "SELECT count(*) FROM information_schema.tables "
                             + "WHERE table_schema = '" + OWNED_SCHEMA
-                            + "' AND table_name IN ('flyway_schema_history', 'ownership_probe')");
+                            + "' AND table_name IN ('flyway_schema_history', 'ownership_probe', "
+                            + "'reliability_probe', 'outbox_event', 'processed_event')");
             assertThat(ownedTables.next()).isTrue();
-            assertThat(ownedTables.getLong(1)).isEqualTo(2);
+            assertThat(ownedTables.getLong(1)).isEqualTo(5);
 
             var result = statement.executeQuery(
                     "SELECT count(*) FROM pg_constraint constraint_row "
@@ -127,6 +128,132 @@ class DatabaseOwnershipIntegrationTests {
                             + "AND target_schema.nspname <> source_schema.nspname");
             assertThat(result.next()).isTrue();
             assertThat(result.getLong(1)).isZero();
+        }
+    }
+
+    @Test
+    void outboxAndDomainChangeCommitOrRollbackTogether() throws Exception {
+        UUID committedEvent = UUID.randomUUID();
+        try (Connection app = appConnection()) {
+            app.setAutoCommit(false);
+            try (var insertProbe = app.prepareStatement(
+                    "INSERT INTO " + OWNED_SCHEMA
+                            + ".reliability_probe (event_id, value) VALUES (?, 'committed')");
+                    var insertOutbox = app.prepareStatement(
+                            "INSERT INTO " + OWNED_SCHEMA + ".outbox_event "
+                                    + "(event_id, event_type, aggregate_type, aggregate_id, "
+                                    + "correlation_id, payload, occurred_at) "
+                                    + "VALUES (?, 'ReliabilityProbe', 'ReliabilityProbe', ?, "
+                                    + "'correlation-1', '{}'::jsonb, CURRENT_TIMESTAMP)")) {
+                insertProbe.setObject(1, committedEvent);
+                insertProbe.executeUpdate();
+                insertOutbox.setObject(1, committedEvent);
+                insertOutbox.setString(2, committedEvent.toString());
+                insertOutbox.executeUpdate();
+                app.commit();
+            }
+        }
+
+        UUID rolledBackEvent = UUID.randomUUID();
+        try (Connection app = appConnection()) {
+            app.setAutoCommit(false);
+            try (var insertProbe = app.prepareStatement(
+                    "INSERT INTO " + OWNED_SCHEMA
+                            + ".reliability_probe (event_id, value) VALUES (?, 'rolled-back')");
+                    var insertOutbox = app.prepareStatement(
+                            "INSERT INTO " + OWNED_SCHEMA + ".outbox_event "
+                                    + "(event_id, event_type, aggregate_type, aggregate_id, "
+                                    + "payload, occurred_at) "
+                                    + "VALUES (?, 'ReliabilityProbe', 'ReliabilityProbe', ?, "
+                                    + "'{}'::jsonb, CURRENT_TIMESTAMP)")) {
+                insertProbe.setObject(1, rolledBackEvent);
+                insertProbe.executeUpdate();
+                insertOutbox.setObject(1, rolledBackEvent);
+                insertOutbox.setString(2, rolledBackEvent.toString());
+                insertOutbox.executeUpdate();
+                app.rollback();
+            }
+        }
+
+        try (Connection app = appConnection(); Statement statement = app.createStatement()) {
+            var committed = statement.executeQuery(
+                    "SELECT count(*) FROM " + OWNED_SCHEMA
+                            + ".reliability_probe WHERE event_id = '" + committedEvent + "'");
+            assertThat(committed.next()).isTrue();
+            assertThat(committed.getInt(1)).isOne();
+
+            var committedOutbox = statement.executeQuery(
+                    "SELECT count(*) FROM " + OWNED_SCHEMA
+                            + ".outbox_event WHERE event_id = '" + committedEvent + "'");
+            assertThat(committedOutbox.next()).isTrue();
+            assertThat(committedOutbox.getInt(1)).isOne();
+
+            var rolledBackProbe = statement.executeQuery(
+                    "SELECT count(*) FROM " + OWNED_SCHEMA
+                            + ".reliability_probe WHERE event_id = '" + rolledBackEvent + "'");
+            assertThat(rolledBackProbe.next()).isTrue();
+            assertThat(rolledBackProbe.getInt(1)).isZero();
+
+            var rolledBackOutbox = statement.executeQuery(
+                    "SELECT count(*) FROM " + OWNED_SCHEMA
+                            + ".outbox_event WHERE event_id = '" + rolledBackEvent + "'");
+            assertThat(rolledBackOutbox.next()).isTrue();
+            assertThat(rolledBackOutbox.getInt(1)).isZero();
+        }
+    }
+
+    @Test
+    void processedEventMarkerPreventsDuplicateConsumerSideEffect() throws Exception {
+        UUID eventId = UUID.randomUUID();
+        try (Connection app = appConnection()) {
+            app.setAutoCommit(false);
+            try (var marker = app.prepareStatement(
+                    "INSERT INTO " + OWNED_SCHEMA + ".processed_event "
+                            + "(event_id, consumer_name, event_type) VALUES (?, 'reliability-test', "
+                            + "'ReliabilityProbe')");
+                    var sideEffect = app.prepareStatement(
+                            "INSERT INTO " + OWNED_SCHEMA
+                                    + ".reliability_probe (event_id, value) VALUES (?, 'applied-once')")) {
+                marker.setObject(1, eventId);
+                sideEffect.setObject(1, eventId);
+                sideEffect.executeUpdate();
+                marker.executeUpdate();
+                app.commit();
+            }
+        }
+
+        try (Connection app = appConnection()) {
+            app.setAutoCommit(false);
+            try (var marker = app.prepareStatement(
+                    "INSERT INTO " + OWNED_SCHEMA + ".processed_event "
+                            + "(event_id, consumer_name, event_type) VALUES (?, 'reliability-test', "
+                            + "'ReliabilityProbe')");
+                    var duplicateMarker = app.prepareStatement(
+                            "SELECT count(*) FROM " + OWNED_SCHEMA
+                                    + ".processed_event "
+                                    + "WHERE event_id = ? AND consumer_name = 'reliability-test'");
+                    var sideEffects = app.prepareStatement(
+                            "SELECT count(*) FROM " + OWNED_SCHEMA
+                                    + ".reliability_probe WHERE event_id = ?")) {
+                marker.setObject(1, eventId);
+                assertThatThrownBy(marker::executeUpdate)
+                        .isInstanceOf(PSQLException.class)
+                        .satisfies(exception ->
+                                assertThat(((SQLException) exception).getSQLState())
+                                        .isEqualTo("23505"));
+                app.rollback();
+
+                duplicateMarker.setObject(1, eventId);
+                try (var result = duplicateMarker.executeQuery()) {
+                    assertThat(result.next()).isTrue();
+                    assertThat(result.getInt(1)).isOne();
+                }
+                sideEffects.setObject(1, eventId);
+                try (var result = sideEffects.executeQuery()) {
+                    assertThat(result.next()).isTrue();
+                    assertThat(result.getInt(1)).isOne();
+                }
+            }
         }
     }
 

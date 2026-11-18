@@ -25,6 +25,7 @@ class CorrelationIdFilterTests {
     void restoresPreviousMdcValueAfterRequest() throws Exception {
         MDC.put("correlationId", "outer-request");
         MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setMethod("GET");
         request.addHeader(CorrelationIdFilter.HEADER_NAME, "inner-request");
         MockHttpServletResponse response = new MockHttpServletResponse();
         ListAppender<ILoggingEvent> appender = new ListAppender<>();
@@ -43,9 +44,19 @@ class CorrelationIdFilterTests {
         assertThat(response.getHeader(CorrelationIdFilter.HEADER_NAME)).isEqualTo("inner-request");
         assertThat(MDC.get("correlationId")).isEqualTo("outer-request");
         assertThat(appender.list)
+                .hasSize(2)
+                .allSatisfy(event -> {
+                    assertThat(event.getMDCPropertyMap().get("correlationId")).isEqualTo("inner-request");
+                    assertThat(event.getMDCPropertyMap().get("serviceName")).isEqualTo("service-template");
+                    assertThat(event.getMDCPropertyMap().get("httpMethod")).isEqualTo("GET");
+                });
+        assertThat(appender.list)
+                .filteredOn(event -> "HTTP request completed".equals(event.getMessage()))
                 .singleElement()
-                .extracting(event -> event.getMDCPropertyMap().get("correlationId"))
-                .isEqualTo("inner-request");
+                .satisfies(event -> {
+                    assertThat(event.getMDCPropertyMap().get("httpStatus")).isNotBlank();
+                    assertThat(event.getMDCPropertyMap().get("durationMs")).isNotBlank();
+                });
     }
 
     @Test
