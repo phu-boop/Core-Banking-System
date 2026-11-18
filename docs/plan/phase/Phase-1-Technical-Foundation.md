@@ -8,7 +8,7 @@ Thiết lập nền tảng kỹ thuật có thể lặp lại cho các microserv
 
 ## Trạng thái nền
 
-- Dự án đang ở Phase 1 — Technical Foundation; service template tối thiểu đã được tạo, chưa có banking domain implementation.
+- Phase 1 — Technical Foundation đã hoàn tất; service template và các nền tảng kỹ thuật đã được tạo, chưa có banking domain implementation.
 - **ACCEPTED:** microservices; PostgreSQL dùng chung với schema-per-service.
 - **ACCEPTED:** Java 21, Spring Boot 3, Maven Wrapper, monorepo với thư mục service độc lập, Kubernetes cho local và production, và Flyway cho migration thuộc sở hữu từng service. Xem [ADR-010](../../adr/ADR-010-phase-1-technical-baseline.md).
 - **PROPOSED:** JUnit 5, Mockito, Prometheus, Grafana và OpenTelemetry là định hướng chung.
@@ -160,8 +160,8 @@ Broker adapter là nhánh có điều kiện; phần database outbox pattern và
 
 ## Tiêu chí hoàn tất Phase 1
 
-- [ ] Technical choices cần cho service mẫu đã được chủ dự án duyệt; đề xuất chưa được duyệt được ghi rõ và chưa triển khai.
-- [ ] Service mẫu build/run/test lặp lại được theo hướng dẫn.
+- [x] Technical choices cần cho service mẫu đã được chủ dự án duyệt; đề xuất chưa được duyệt được ghi rõ và chưa triển khai.
+- [x] Service mẫu build/run/test lặp lại được theo hướng dẫn.
 - [x] Database owner của service mẫu chỉ có quyền phù hợp trên schema của mình; không cross-schema table access/FK.
 - [x] Cấu hình bắt buộc được validate; secrets không có trong source hoặc logs.
 - [x] Health/readiness và correlation ID hoạt động trong local/test.

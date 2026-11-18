@@ -1,6 +1,6 @@
 # Banking Clone — Lộ trình triển khai đề xuất
 
-Lộ trình dưới đây chia dự án thành các giai đoạn có thể kiểm chứng, từ thiết kế đến MVP và mở rộng. Đây là **đề xuất về thứ tự triển khai**, không thay đổi ADR đã được chấp nhận và không tự bổ sung business requirement. Hiện dự án đang ở **Phase 1 — Technical Foundation**; service template tối thiểu đã được tạo, chưa có nghiệp vụ banking.
+Lộ trình dưới đây chia dự án thành các giai đoạn có thể kiểm chứng, từ thiết kế đến MVP và mở rộng. Đây là **đề xuất về thứ tự triển khai**, không thay đổi ADR đã được chấp nhận và không tự bổ sung business requirement. **Phase 1 — Technical Foundation** đã hoàn tất; dự án chuyển sang **Phase 2 — Identity, Party, Corporate and Branch**; chưa triển khai nghiệp vụ banking.
 
 ## Nguyên tắc chia giai đoạn
 
@@ -50,6 +50,8 @@ Kế hoạch triển khai chi tiết: [Phase 1 — Technical Foundation](./phase
 **Hoàn tất khi:** một service mẫu có thể build/test/run; chứng minh được schema ownership, migration boundary theo service và telemetry cơ bản. Chưa triển khai nghiệp vụ tài chính.
 
 ### Phase 2 — Identity, Party, Corporate cơ bản và Branch
+
+Kế hoạch triển khai chi tiết: [Phase 2 — Identity, Party, Corporate and Branch](./phase/Phase-2-Identity-Party-Corporate-Branch.md).
 
 - Xây dựng authentication/authorization theo Identity Provider đã được chọn; identity không sở hữu tài khoản tiền gửi.
 - Tạo và quản lý Party/Customer cá nhân, doanh nghiệp.
