@@ -11,9 +11,10 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 | 5 | Identity Provider | OPEN |
 | 6 | Kafka hay RabbitMQ | OPEN |
 | 7 | REST hay gRPC cho internal communication | OPEN |
-| 8 | Kubernetes distribution, cluster topology and rollout details | OPEN |
+| 8 | Production Kubernetes provider, cluster topology and rollout details | OPEN |
 | 9 | Transaction limits và business-day rules | OPEN |
 | 10 | Interbank settlement, timeout, reversal và reconciliation rules | OPEN |
+| 11 | Production external secret store và workload identity details | OPEN |
 
 ## Chi tiết quyết định
 
@@ -73,11 +74,11 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 - **Recommendation (PROPOSED):** Dùng asynchronous event cho decoupled notifications; đánh giá sync protocol theo interoperability và operational support.
 - **Status:** OPEN.
 
-### 8. Kubernetes distribution, cluster topology and rollout details
+### 8. Production Kubernetes provider, cluster topology and rollout details
 
-- **Mô tả:** Kubernetes đã được chấp nhận cho local và production theo ADR-010; local cluster tooling, production provider/topology và rollout details chưa được chọn.
+- **Mô tả:** Kubernetes đã được chấp nhận cho local và production theo ADR-010. Local dùng Minikube trên Ubuntu 24.04 theo ADR-011; production provider/topology và rollout details chưa được chọn.
 - **Ảnh hưởng:** Deployment topology, scaling, health checks, service discovery, rollback và operational effort.
-- **Lựa chọn:** Các distribution/local cluster tools và managed/self-hosted production environments cần được đánh giá; chưa có vendor/platform cụ thể được xác nhận.
+- **Lựa chọn:** AWS EKS hoặc Kubernetes tương đương; production topology và rollout strategy cần được đánh giá.
 - **Recommendation (PROPOSED):** Chốt môi trường và availability requirements trước khi chọn distribution/provider, topology và rollout strategy.
 - **Status:** OPEN.
 
@@ -97,8 +98,17 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 - **Recommendation (PROPOSED):** Không coi timeout là failure; giữ trạng thái unresolved và chỉ quyết định posting/reversal theo contract được chủ dự án duyệt.
 - **Status:** OPEN.
 
+### 11. Production external secret store and workload identity
+
+- **Mô tả:** Hướng production đã thống nhất là external secret store qua External Secrets Operator. Chưa chọn AWS Secrets Manager hay Vault; workload identity và cách cấp quyền trên provider cụ thể cũng chưa được thiết kế.
+- **Ảnh hưởng:** Workload identity, secret synchronization, encryption at rest, IAM/RBAC, vận hành và chi phí.
+- **Lựa chọn:** AWS Secrets Manager hoặc Vault; cách tích hợp workload identity/RBAC phụ thuộc Kubernetes provider đã chọn trong quyết định 8.
+- **Recommendation (PROPOSED):** Chọn theo môi trường triển khai thực tế; trước production cần xác định encryption at rest, workload identity và policy truy cập tối thiểu.
+- **Status:** OPEN cho external store và chi tiết workload identity. Hướng tích hợp và yêu cầu IAM/RBAC đã được ghi nhận tại [ADR-011](../adr/ADR-011-phase-based-secret-management.md).
+
 ## Khác biệt cần giữ rõ
 
 - ACCEPTED: VND only, Internal + Interbank, configurable corporate approval, Loan excluded from MVP, multi-branch.
+- ACCEPTED cho local development: Ubuntu 24.04, Docker, Minikube, Kubernetes Secret và Spring Boot đọc secrets qua environment variables.
 - Các lựa chọn công nghệ hoặc policy ở trên vẫn OPEN/PROPOSED; không làm thay đổi các ADR đã xác nhận.
 - Xem [architecture overview](./BANKING_ARCHITECTURE.md) và [ADRs](../adr/README.md).

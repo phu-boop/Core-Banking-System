@@ -31,7 +31,7 @@ For the initial technical foundation:
 
 - Build setup and the service template should use Java 21, Spring Boot 3 and Maven Wrapper.
 - Monorepo structure must preserve independent service ownership and deployment; avoid shared domain models or coupling releases through common runtime code.
-- Kubernetes is selected for local and production orchestration, but this does not select a Kubernetes distribution, cloud/provider, cluster topology or rollout process.
+- Kubernetes is selected for local and production orchestration. Local development uses Minikube on Ubuntu 24.04 per [ADR-011](./ADR-011-phase-based-secret-management.md); production provider, cluster topology and rollout process remain open.
 - Flyway is selected as the migration tool, but this ADR does not authorize or define any database migration.
 - Exact Java/Spring Boot patch versions, PostgreSQL major version, directory names and dependency policy details remain to be pinned during implementation planning.
 
@@ -39,5 +39,5 @@ For the initial technical foundation:
 
 - ADR-001 establishes microservices architecture.
 - ADR-004 establishes shared PostgreSQL with schema-per-service.
-- [Phase 1 plan](../plan/phase/Phase-1-Technical-Foundation.md) and [technical baseline](../plan/phase/Phase-1.1-Technical-Baseline.md) guide implementation.
-- Kubernetes distribution/provider/topology, rollout details, broker, API Gateway, Identity Provider and internal communication choices remain OPEN.
+- [Phase 1 plan](../plan/phase/Phase-1-Technical-Foundation.md) guides implementation.
+- Production Kubernetes provider/topology and rollout details, broker, API Gateway, Identity Provider and internal communication choices remain OPEN. The local Kubernetes distribution and phase-based secret-management direction are recorded in [ADR-011](./ADR-011-phase-based-secret-management.md).

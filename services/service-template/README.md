@@ -1,6 +1,6 @@
 # Service Template
 
-Minimal, independently buildable Spring Boot service used to establish the Phase 1 foundation. It contains no banking domain, database, broker, authentication provider or business API.
+Minimal, independently buildable Spring Boot service used to establish the Phase 1 foundation. It contains no banking domain, business API or business migration. It connects to a local PostgreSQL database to demonstrate configuration and schema ownership.
 
 ## Baseline
 
@@ -21,17 +21,19 @@ Run from the repository root:
 ./mvnw -f services/service-template/pom.xml verify
 ```
 
-The tests include PostgreSQL 17.12 integration checks via Testcontainers and require Docker. PostgreSQL 17.12 is selected only for Phase 1.3 tests because it is within the PostgreSQL major versions supported by the Flyway version managed by Spring Boot; it does not select a PostgreSQL production version. The template uses `spring-boot-starter-test` for its own tests and does not select a project-wide testing policy for later services.
+The tests include PostgreSQL 17.12 integration checks via Testcontainers and require Docker. PostgreSQL 17.12 is selected for local development and foundation tests because it is within the PostgreSQL major versions supported by the Flyway version managed by Spring Boot; it does not select a PostgreSQL production version. The template uses `spring-boot-starter-test` for its own tests and does not select a project-wide testing policy for later services.
 
 ## Database ownership proof
 
-`database/bootstrap/service-template-ownership.sql` is a one-time DBA provisioning script for a fresh database. It creates the service migration/runtime roles and the `service_template_schema` owned by the migration role. It intentionally has no passwords and is not idempotent; do not rerun it against an already provisioned database.
+`database/bootstrap/service-template-ownership.sql` is a one-time provisioning script for a fresh database. It creates the service migration/runtime roles and the `service_template_schema` owned by the migration role. Passwords are read from process environment variables by `psql`; no password literals are stored in the script. It is not idempotent and only runs when PostgreSQL initializes a fresh data directory. Changing the Kubernetes Secret later does not rotate existing PostgreSQL role passwords automatically.
 
 Supply credentials outside the script using the deployment's approved secret-management process. Flyway migrations must run explicitly as `service_template_migrator`; the application connects as `service_template_app`. The runtime role receives `USAGE` on its schema and only the table/sequence privileges granted by each migration. It cannot access another service's schema, modify schema objects, or read Flyway history.
 
 The integration test provisions an ephemeral PostgreSQL database, runs the bootstrap and test-only Flyway migration, then verifies owned-schema DML, denied cross-schema access and DDL, service-local Flyway history, and absence of cross-schema foreign keys. It does not create production schemas or business migrations.
 
 ## Run locally
+
+The application requires all three database settings; it fails at startup if any are missing. To run the JVM directly on the host, first provide `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD` through a local secret source and ensure PostgreSQL is reachable (for example, forward the Minikube database port). Do not put real values in command history.
 
 ```sh
 ./mvnw -f services/service-template/pom.xml spring-boot:run
@@ -43,24 +45,68 @@ Useful endpoints:
 - `GET /actuator/health/liveness`
 - `GET /actuator/health/readiness`
 
-Only the health actuator endpoint is exposed over HTTP. Health details are hidden.
+Readiness includes the database connection; liveness does not depend on database availability. Only the health actuator endpoint is exposed over HTTP. Health details are hidden.
 
 For HTTP requests, the service accepts `X-Correlation-Id` containing 1–64 ASCII letters, digits, dots, underscores or hyphens. If omitted, it creates a UUID. A malformed supplied value receives `400 Bad Request`. The value is added to the response and logging MDC, then removed from the thread after request processing.
 
+## Configuration and secrets
+
+`SERVER_PORT` can be supplied as an environment variable; it defaults to `8080`. Local development uses Ubuntu 24.04, Docker and Minikube. PostgreSQL 17.12 runs in Minikube. Local database credentials are supplied through a Kubernetes Secret and injected as environment variables; never commit secret values or Secret manifests containing real credentials.
+
+The template's runtime database password comes from a Kubernetes Secret. The production direction is an external secret store integrated through External Secrets Operator, with least-privilege IAM/RBAC; the exact Kubernetes provider and choice between AWS Secrets Manager and Vault remain open. See [ADR-011](../../docs/adr/ADR-011-phase-based-secret-management.md).
+
 ## Build and run in local Kubernetes
+
+On Ubuntu 24.04, start the accepted Minikube local cluster with Docker:
+
+```sh
+minikube start --driver=docker
+```
+
+Create an ignored local credentials file and replace every example value with a unique random password:
+
+```sh
+cp .env.example .env.local
+```
+
+Create/update the Kubernetes Secret without printing its values or committing it:
+
+```sh
+kubectl create secret generic service-template-db-credentials \
+  --from-env-file=.env.local \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Create/update the bootstrap ConfigMap from the reviewed local bootstrap files:
+
+```sh
+kubectl create configmap service-template-db-bootstrap \
+  --from-file=00-validate-local-credentials.sh=services/service-template/database/bootstrap/00-validate-local-credentials.sh \
+  --from-file=service-template-ownership.sql=services/service-template/database/bootstrap/service-template-ownership.sql \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Start PostgreSQL and wait for its one-time initialization to complete:
+
+```sh
+kubectl apply -f services/service-template/deploy/kubernetes/postgres-local.yaml
+kubectl rollout status statefulset/service-template-postgres
+```
 
 Build the image after packaging:
 
 ```sh
 ./mvnw -f services/service-template/pom.xml package
 docker build -t service-template:local services/service-template
+minikube image load service-template:local
 ```
 
-Load the image into the local Kubernetes distribution if required, then apply the local-only manifest:
+Apply the service manifest and forward the service port:
 
 ```sh
 kubectl apply -f services/service-template/deploy/kubernetes/local.yaml
+kubectl rollout status deployment/service-template
 kubectl port-forward service/service-template 8080:8080
 ```
 
-The manifest does not create a cluster or choose a local Kubernetes distribution. Do not use the local image tag or manifest as a production deployment configuration.
+The manifest does not install or create Minikube. Do not use the local image tag or manifest as a production deployment configuration.

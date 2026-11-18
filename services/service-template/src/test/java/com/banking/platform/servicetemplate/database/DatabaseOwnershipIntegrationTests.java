@@ -3,8 +3,6 @@ package com.banking.platform.servicetemplate.database;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.UUID;
 import org.flywaydb.core.Flyway;
+import org.testcontainers.utility.MountableFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.postgresql.util.PSQLException;
@@ -35,7 +34,9 @@ class DatabaseOwnershipIntegrationTests {
             new PostgreSQLContainer<>("postgres:17.12")
                     .withDatabaseName("banking_test")
                     .withUsername("postgres")
-                    .withPassword(ADMIN_PASSWORD);
+                    .withPassword(ADMIN_PASSWORD)
+                    .withEnv("SERVICE_TEMPLATE_MIGRATOR_PASSWORD", MIGRATOR_PASSWORD)
+                    .withEnv("SERVICE_TEMPLATE_APP_PASSWORD", APP_PASSWORD);
 
     @BeforeAll
     static void provisionDatabaseAndRunFlyway() throws Exception {
@@ -46,7 +47,9 @@ class DatabaseOwnershipIntegrationTests {
                 "database",
                 "bootstrap",
                 "service-template-ownership.sql");
-        String bootstrapSql = Files.readString(bootstrapPath, StandardCharsets.UTF_8);
+        POSTGRES.copyFileToContainer(
+                MountableFile.forHostPath(bootstrapPath.toString()),
+                "/tmp/service-template-ownership.sql");
         var bootstrapResult = POSTGRES.execInContainer(
                 "psql",
                 "-v",
@@ -55,16 +58,14 @@ class DatabaseOwnershipIntegrationTests {
                 POSTGRES.getUsername(),
                 "--dbname",
                 POSTGRES.getDatabaseName(),
-                "-c",
-                bootstrapSql);
+                "-f",
+                "/tmp/service-template-ownership.sql");
         assertThat(bootstrapResult.getExitCode())
                 .withFailMessage("Database ownership bootstrap failed: %s", bootstrapResult.getStderr())
                 .isZero();
 
         try (Connection admin = adminConnection();
                 Statement statement = admin.createStatement()) {
-            statement.execute("ALTER ROLE " + MIGRATOR_ROLE + " PASSWORD '" + MIGRATOR_PASSWORD + "'");
-            statement.execute("ALTER ROLE " + APP_ROLE + " PASSWORD '" + APP_PASSWORD + "'");
             statement.execute("CREATE SCHEMA " + OTHER_SCHEMA + " AUTHORIZATION postgres");
             statement.execute("CREATE TABLE " + OTHER_SCHEMA + ".private_probe (id BIGINT PRIMARY KEY)");
         }

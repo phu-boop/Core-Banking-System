@@ -25,6 +25,16 @@ spec:
         - name: service-template
           image: service-template:local
           imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://service-template-postgres:5432/banking_test
+            - name: SPRING_DATASOURCE_USERNAME
+              value: service_template_app
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: service-template-db-credentials
+                  key: SERVICE_TEMPLATE_APP_PASSWORD
           ports:
             - name: http
               containerPort: 8080

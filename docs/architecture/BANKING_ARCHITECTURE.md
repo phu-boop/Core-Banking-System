@@ -22,6 +22,7 @@ Tài liệu kiến trúc tổng quan. Bounded Contexts, nghiệp vụ, API, even
 | [ADR-008](../adr/ADR-008-loan-excluded-from-mvp.md) | ACCEPTED / DEFERRED | Loan ngoài MVP, dự kiến giai đoạn sau |
 | [ADR-009](../adr/ADR-009-multi-branch-banking.md) | ACCEPTED | Hỗ trợ nhiều chi nhánh |
 | [ADR-010](../adr/ADR-010-phase-1-technical-baseline.md) | ACCEPTED | Java 21, Spring Boot 3, Maven Wrapper, monorepo, Kubernetes local + production, Flyway |
+| [ADR-011](../adr/ADR-011-phase-based-secret-management.md) | ACCEPTED; production provider OPEN | Local: Ubuntu 24.04, Docker, Minikube, Kubernetes Secret, Spring Boot đọc environment variables. Production: EKS hoặc tương đương, AWS Secrets Manager hoặc Vault qua External Secrets Operator, IAM/RBAC |
 
 Ngày phê duyệt lịch sử không được cung cấp; xem từng ADR. Công nghệ và chi tiết thiết kế bên dưới không phải quyết định đã chốt trừ khi ghi rõ ACCEPTED.
 
@@ -154,11 +155,14 @@ flowchart TB
 | Java 21, Spring Boot 3 | ACCEPTED; minor/patch versions not fixed |
 | Maven Wrapper | ACCEPTED |
 | PostgreSQL dùng chung, schema-per-service | ACCEPTED về topology dữ liệu; phiên bản chưa xác định |
+| PostgreSQL 17.12 | ACCEPTED cho local development và kiểm thử nền tảng; production version OPEN |
 | Flyway | ACCEPTED; migration structure remains service-owned |
 | Kafka | PROPOSED; lựa chọn Kafka vs RabbitMQ OPEN |
 | Redis | PROPOSED; không phải nguồn chuẩn số dư |
 | Kubernetes | ACCEPTED for local development and production orchestration |
-| Kubernetes distribution / provider / cluster topology / rollout details | OPEN |
+| Local Kubernetes distribution | ACCEPTED: Minikube on Ubuntu 24.04 |
+| Production Kubernetes provider / cluster topology / rollout details | OPEN |
+| Secret delivery | ACCEPTED direction per ADR-011; exact production provider OPEN |
 | Spring Security, OAuth2/OIDC, JWT | PROPOSED |
 | JUnit 5, Mockito, Testcontainers | PROPOSED |
 | Prometheus, Grafana, OpenTelemetry | PROPOSED |
@@ -171,7 +175,9 @@ flowchart TB
 - Maker–Checker phải được thực thi trong Corporate/approval workflow và được kiểm tra tại service xử lý lệnh, không tin cậy chỉ vào gateway.
 - Mỗi service kiểm tra authorization cho resource mà service sở hữu.
 - Audit các thao tác nhạy cảm, quyết định duyệt và kết quả financial operation; tránh ghi secret hoặc dữ liệu nhạy cảm không cần thiết.
-- Secret management là yêu cầu thiết kế; sản phẩm/cơ chế lưu secret **OPEN**.
+- **Local (ACCEPTED):** lưu secret trong Kubernetes Secret, inject vào service qua environment variables; không commit giá trị secret.
+- **Production (ACCEPTED direction):** external secret store qua External Secrets Operator, với quyền IAM/RBAC tối thiểu. AWS EKS hay Kubernetes tương đương và AWS Secrets Manager hay Vault vẫn là lựa chọn **OPEN**.
+- Service template dùng password PostgreSQL local qua Kubernetes Secret; chỉ thêm secret reference khi có consumer thực tế.
 
 ## Observability
 
@@ -184,13 +190,14 @@ flowchart TB
 
 - Mỗi bounded context được thiết kế để deploy độc lập (**PROPOSED**, phù hợp ADR-001).
 - Kubernetes được ACCEPTED cho local development và production orchestration.
-- Kubernetes distribution, local cluster tooling, production provider/topology, HA/DR, scaling, release/rollback và migration coordination còn **OPEN**.
+- Local cluster tooling là Minikube trên Ubuntu 24.04 theo ADR-011. Production provider/topology, HA/DR, scaling, release/rollback và migration coordination còn **OPEN**.
 - Mọi thay đổi schema tương lai phải thuộc service sở hữu schema; tài liệu này không tạo hoặc phê duyệt migration.
 
 ## Liên kết liên quan
 
 - [Open decisions](./OPEN-DECISIONS.md)
 - [ADR index](../adr/README.md)
+- [ADR-011 — Secret management](../adr/ADR-011-phase-based-secret-management.md)
 - [Bounded contexts](../domain/BOUNDED_CONTEXTS.md)
 - [Business rules](../domain/BUSINESS-RULES.md)
 - [Logical ERD](../database/ERD.md)

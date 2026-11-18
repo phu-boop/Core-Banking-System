@@ -14,6 +14,7 @@ Các ADR dưới đây ghi nhận quyết định đã được chủ dự án x
 | [ADR-008](./ADR-008-loan-excluded-from-mvp.md) | Loan Excluded from MVP | ACCEPTED; scope DEFERRED |
 | [ADR-009](./ADR-009-multi-branch-banking.md) | Multi-branch Banking | ACCEPTED |
 | [ADR-010](./ADR-010-phase-1-technical-baseline.md) | Phase 1 Technical Baseline | ACCEPTED |
+| [ADR-011](./ADR-011-phase-based-secret-management.md) | Phase-based Configuration and Secret Management | ACCEPTED; exact production providers OPEN |
 
 Decision details remain intentionally bounded by the recorded decision. Implementation options are not approved merely because they appear in design documents.
 

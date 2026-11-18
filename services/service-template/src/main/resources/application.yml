@@ -1,6 +1,18 @@
 spring:
   application:
     name: service-template
+  datasource:
+    url: ${service-template.database.url}
+    username: ${service-template.database.username}
+    password: ${service-template.database.password}
+  flyway:
+    enabled: false
+
+service-template:
+  database:
+    url: ${SPRING_DATASOURCE_URL:}
+    username: ${SPRING_DATASOURCE_USERNAME:}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -15,6 +27,9 @@ management:
     health:
       probes:
         enabled: true
+      group:
+        readiness:
+          include: readinessState,db
       show-details: never
 
 logging:

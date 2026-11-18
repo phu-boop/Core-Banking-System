@@ -12,8 +12,9 @@ Thiết lập nền tảng kỹ thuật có thể lặp lại cho các microserv
 - **ACCEPTED:** microservices; PostgreSQL dùng chung với schema-per-service.
 - **ACCEPTED:** Java 21, Spring Boot 3, Maven Wrapper, monorepo với thư mục service độc lập, Kubernetes cho local và production, và Flyway cho migration thuộc sở hữu từng service. Xem [ADR-010](../../adr/ADR-010-phase-1-technical-baseline.md).
 - **PROPOSED:** JUnit 5, Mockito, Prometheus, Grafana và OpenTelemetry là định hướng chung.
-- **ACCEPTED riêng cho kiểm thử mục 1.3:** PostgreSQL 17.12 qua Testcontainers để tương thích với Flyway do Spring Boot quản lý; không quyết định PostgreSQL production hoặc chính sách test cho các service sau.
-- **OPEN:** PostgreSQL major version production, Kubernetes distribution/provider/topology/rollout details, broker, API Gateway, Identity Provider, REST vs gRPC và một số chi tiết observability.
+- **ACCEPTED riêng cho local development và kiểm thử nền tảng:** PostgreSQL 17.12 trong Minikube và Testcontainers để tương thích với Flyway do Spring Boot quản lý; không quyết định PostgreSQL production hoặc chính sách test cho các service sau.
+- **ACCEPTED theo ADR-011:** local development dùng Ubuntu 24.04, Docker, Minikube, Kubernetes Secret và Spring Boot environment variables. Production theo hướng external store + External Secrets Operator + IAM/RBAC; EKS/Kubernetes provider và Secrets Manager/Vault cụ thể còn OPEN.
+- **OPEN:** PostgreSQL major version production, production Kubernetes provider/topology/rollout details, broker, API Gateway, Identity Provider, REST vs gRPC và một số chi tiết observability.
 - Phase này không được tự biến PROPOSED/OPEN thành quyết định đã chốt. Xem [Architecture](../../architecture/BANKING_ARCHITECTURE.md) và [Open Decisions](../../architecture/OPEN-DECISIONS.md).
 
 ## Phạm vi
@@ -44,10 +45,11 @@ Thiết lập nền tảng kỹ thuật có thể lặp lại cho các microserv
 | Java 21 và Spring Boot 3 | ACCEPTED | Minor/patch version và dependency policy cần chốt khi tạo service template |
 | Maven Wrapper | ACCEPTED | Pin wrapper và xác định dependency policy |
 | Monorepo, thư mục độc lập theo service | ACCEPTED | Tên thư mục/build module strategy cần chốt khi tạo template |
-| PostgreSQL production major version | OPEN | Chọn version được hỗ trợ; PostgreSQL 17.12 chỉ được chọn riêng làm test image cho mục 1.3 |
+| PostgreSQL production major version | OPEN | Chọn version được hỗ trợ; PostgreSQL 17.12 chỉ được chọn cho local development và kiểm thử nền tảng |
 | Migration tool | Flyway ACCEPTED | Migration files vẫn phải thuộc service; chưa có migration nào được duyệt |
 | Broker | Kafka vs RabbitMQ OPEN | Chỉ cần chốt trước khi triển khai publisher/consumer adapter |
-| Kubernetes cho local và production | ACCEPTED | Distribution, provider, topology và rollout details vẫn OPEN |
+| Kubernetes cho local và production | ACCEPTED | Local: Minikube; production provider, topology và rollout details OPEN |
+| Secret delivery | ADR-011 ACCEPTED | Local: Kubernetes Secret qua environment variables; production: External Secrets Operator + IAM/RBAC, nhưng provider/store cụ thể OPEN |
 | Security / Identity Provider | OAuth2/OIDC/JWT PROPOSED; provider OPEN | Phase 1 chỉ tạo integration boundary; không tự triển khai identity provider |
 | Observability stack | Prometheus/Grafana/OpenTelemetry PROPOSED | Chốt tối thiểu định dạng/collector/metrics cần để kiểm chứng |
 
@@ -57,7 +59,7 @@ Không nhất thiết phải chốt mọi quyết định tương lai trong Phas
 
 ### 1.1 — Chốt technical baseline
 
-Technical baseline đã được chủ dự án duyệt và ghi tại [Phase 1.1 — Technical Baseline](./Phase-1.1-Technical-Baseline.md) và [ADR-010](../../adr/ADR-010-phase-1-technical-baseline.md).
+Technical baseline đã được chủ dự án duyệt và ghi tại [ADR-010](../../adr/ADR-010-phase-1-technical-baseline.md).
 
 - Lập quyết định ngắn cho Java/framework, build tool, repository layout và môi trường chạy local.
 - Ghi rõ version policy, dependency update policy, cấu hình profile và cách quản lý secrets.
@@ -87,17 +89,20 @@ Technical baseline đã được chủ dự án duyệt và ghi tại [Phase 1.1
 
 **Đầu ra:** kiểm chứng được quyền đúng/sai trên schema; không tạo migration nghiệp vụ hoặc schema cho các service chưa triển khai.
 
-**Trạng thái:** Hoàn tất cho service template. Bootstrap SQL tạo migration/runtime roles và schema riêng; Flyway chỉ chạy explicit bằng migration role. PostgreSQL 17.12/Testcontainers integration tests xác nhận quyền runtime, quyền migration, Flyway history trong schema sở hữu và không có cross-schema foreign keys. Đây là kiểm thử nền tảng, chưa phải cấu hình kết nối DB cho ứng dụng hay production provisioning.
+**Trạng thái:** Hoàn tất cho service template. Bootstrap SQL tạo migration/runtime roles và schema riêng; Flyway chỉ chạy explicit bằng migration role. PostgreSQL 17.12/Testcontainers integration tests xác nhận quyền runtime, quyền migration, Flyway history trong schema sở hữu và không có cross-schema foreign keys. Cấu hình kết nối runtime được triển khai ở mục 1.4; chưa có migration nghiệp vụ hoặc production provisioning.
 
 ### 1.4 — Cấu hình, secrets và security boundary
 
-- Xác định cấu hình không nhạy cảm theo môi trường và cơ chế inject secret đã được duyệt.
+- Dùng cấu hình environment variables cho local và Kubernetes workloads; local secret source theo [ADR-011](../../adr/ADR-011-phase-based-secret-management.md).
+- Production dùng external secret store qua External Secrets Operator; EKS/Kubernetes provider và AWS Secrets Manager/Vault cụ thể vẫn OPEN.
 - Không commit secret; không log secret, credential hoặc token.
 - Mặc định không mở endpoint nghiệp vụ chưa được bảo vệ.
 - Tạo interface/điểm tích hợp authentication nếu cần, nhưng không giả lập Identity Provider như production.
 - Ghi rõ khi nào cần quyết định Identity Provider trước Phase 2.
 
 **Đầu ra:** service khởi động với cấu hình được cung cấp; thiếu cấu hình bắt buộc thì fail fast; secrets không xuất hiện trong repository/log/test output.
+
+**Trạng thái:** Hoàn tất cho service template/local development. PostgreSQL URL, username và password được đọc từ environment variables; password local được cấp qua Kubernetes Secret. Thiếu biến bắt buộc làm ứng dụng fail fast; readiness kiểm tra kết nối database. Test xác nhận cấu hình được kiểm tra và giá trị nhạy cảm bị redacted khỏi `toString`; production secret-store integration và provider cụ thể vẫn OPEN.
 
 ### 1.5 — Reliability foundations
 
@@ -152,8 +157,8 @@ Broker adapter là nhánh có điều kiện; phần database outbox pattern và
 - [ ] Technical choices cần cho service mẫu đã được chủ dự án duyệt; đề xuất chưa được duyệt được ghi rõ và chưa triển khai.
 - [ ] Service mẫu build/run/test lặp lại được theo hướng dẫn.
 - [x] Database owner của service mẫu chỉ có quyền phù hợp trên schema của mình; không cross-schema table access/FK.
-- [ ] Cấu hình bắt buộc được validate; secrets không có trong source hoặc logs.
-- [ ] Health/readiness và correlation ID hoạt động trong local/test.
+- [x] Cấu hình bắt buộc được validate; secrets không có trong source hoặc logs.
+- [x] Health/readiness và correlation ID hoạt động trong local/test.
 - [ ] CI chạy build, unit/static checks và integration checks cần thiết; lỗi được hiển thị rõ.
 - [ ] Outbox/consumer idempotency pattern được kiểm thử hoặc các giới hạn phụ thuộc broker được ghi nhận.
 - [ ] Không có banking feature hoặc migration nghiệp vụ được thêm trong phase nền tảng.

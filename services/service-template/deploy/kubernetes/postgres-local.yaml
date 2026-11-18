@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-template-postgres
+  labels:
+    app.kubernetes.io/name: service-template-postgres
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: service-template-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: service-template-postgres
+  labels:
+    app.kubernetes.io/name: service-template-postgres
+spec:
+  serviceName: service-template-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: service-template-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: service-template-postgres
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres
+          image: postgres:17.12
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_DB
+              value: banking_test
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: service-template-db-credentials
+                  key: POSTGRES_ADMIN_PASSWORD
+            - name: SERVICE_TEMPLATE_APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: service-template-db-credentials
+                  key: SERVICE_TEMPLATE_APP_PASSWORD
+            - name: SERVICE_TEMPLATE_MIGRATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: service-template-db-credentials
+                  key: SERVICE_TEMPLATE_MIGRATOR_PASSWORD
+          startupProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+                - -d
+                - banking_test
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+                - -d
+                - banking_test
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+                - -d
+                - banking_test
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: bootstrap
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      volumes:
+        - name: bootstrap
+          configMap:
+            name: service-template-db-bootstrap
+            items:
+              - key: 00-validate-local-credentials.sh
+                path: 00-validate-local-credentials.sh
+              - key: service-template-ownership.sql
+                path: service-template-ownership.sql
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
