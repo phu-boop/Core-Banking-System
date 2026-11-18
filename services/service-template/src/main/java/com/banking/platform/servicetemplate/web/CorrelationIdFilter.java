@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,6 +19,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     public static final String HEADER_NAME = "X-Correlation-Id";
     private static final String MDC_KEY = "correlationId";
     private static final Pattern VALID_CORRELATION_ID = Pattern.compile("[A-Za-z0-9._-]{1,64}");
+    private static final Logger LOGGER = LoggerFactory.getLogger(CorrelationIdFilter.class);
 
     @Override
     protected void doFilterInternal(
@@ -37,6 +40,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         MDC.put(MDC_KEY, correlationId);
         response.setHeader(HEADER_NAME, correlationId);
         try {
+            LOGGER.info("HTTP request received");
             filterChain.doFilter(request, response);
         } finally {
             if (previousCorrelationId == null) {

@@ -2,9 +2,13 @@ package com.banking.platform.servicetemplate.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
+import org.slf4j.LoggerFactory;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -23,12 +27,25 @@ class CorrelationIdFilterTests {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(CorrelationIdFilter.HEADER_NAME, "inner-request");
         MockHttpServletResponse response = new MockHttpServletResponse();
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        Logger logger = (Logger) LoggerFactory.getLogger(CorrelationIdFilter.class);
+        appender.start();
+        logger.addAppender(appender);
 
-        filter.doFilter(request, response, (servletRequest, servletResponse) ->
-                assertThat(MDC.get("correlationId")).isEqualTo("inner-request"));
+        try {
+            filter.doFilter(request, response, (servletRequest, servletResponse) ->
+                    assertThat(MDC.get("correlationId")).isEqualTo("inner-request"));
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
 
         assertThat(response.getHeader(CorrelationIdFilter.HEADER_NAME)).isEqualTo("inner-request");
         assertThat(MDC.get("correlationId")).isEqualTo("outer-request");
+        assertThat(appender.list)
+                .singleElement()
+                .extracting(event -> event.getMDCPropertyMap().get("correlationId"))
+                .isEqualTo("inner-request");
     }
 
     @Test
