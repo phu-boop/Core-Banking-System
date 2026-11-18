@@ -136,6 +136,8 @@ Technical baseline đã được chủ dự án duyệt và ghi tại [ADR-010](
 
 **Đầu ra:** một lệnh CI chuẩn có thể tái lập; kết quả test là điều kiện merge theo quy trình được duyệt.
 
+**Trạng thái:** Hoàn tất cho service template. GitHub Actions chạy Maven verify bằng Java 21 trên Ubuntu, bao gồm unit tests và PostgreSQL 17.12 Testcontainers integration tests.
+
 ## Thứ tự và phụ thuộc
 
 ```mermaid
@@ -164,7 +166,7 @@ Broker adapter là nhánh có điều kiện; phần database outbox pattern và
 - [x] Cấu hình bắt buộc được validate; secrets không có trong source hoặc logs.
 - [x] Health/readiness và correlation ID hoạt động trong local/test.
 - [x] Structured logs và local metrics foundation hoạt động trong local/test; production observability backend và policy vẫn OPEN.
-- [ ] CI chạy build, unit/static checks và integration checks cần thiết; lỗi được hiển thị rõ.
+- [x] CI chạy build, unit/static checks và integration checks cần thiết; lỗi được hiển thị rõ.
 - [x] Outbox/consumer idempotency pattern được kiểm thử hoặc các giới hạn phụ thuộc broker được ghi nhận.
 - [x] Không có banking feature hoặc migration nghiệp vụ được thêm trong phase nền tảng.
 - [x] Tài liệu nền tảng và quyết định phát sinh được cập nhật, link và trạng thái nhất quán.

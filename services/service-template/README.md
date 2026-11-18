@@ -23,6 +23,8 @@ Run from the repository root:
 
 The tests include PostgreSQL 17.12 integration checks via Testcontainers and require Docker. PostgreSQL 17.12 is selected for local development and foundation tests because it is within the PostgreSQL major versions supported by the Flyway version managed by Spring Boot; it does not select a PostgreSQL production version. The template uses `spring-boot-starter-test` for its own tests and does not select a project-wide testing policy for later services.
 
+GitHub Actions runs the same Maven verification command on Java 21 for pushes to `main` and pull requests.
+
 ## Database ownership proof
 
 `database/bootstrap/service-template-ownership.sql` is a one-time provisioning script for a fresh database. It creates the service migration/runtime roles and the `service_template_schema` owned by the migration role. Passwords are read from process environment variables by `psql`; no password literals are stored in the script. It is not idempotent and only runs when PostgreSQL initializes a fresh data directory. Changing the Kubernetes Secret later does not rotate existing PostgreSQL role passwords automatically.
