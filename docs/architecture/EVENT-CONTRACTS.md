@@ -42,7 +42,7 @@ Payload fields dưới đây là tối thiểu đề xuất. `amount` dùng deci
 | Event | Producer → Consumers dự kiến | Payload đề xuất |
 |---|---|---|
 | `PartyCreated` | Party → Corporate, Account, Reporting | `partyId`, `partyType`, `createdAt` |
-| `AccountOpened` | Account → Transfer, Ledger, Notification, Reporting | `accountId`, `partyId`, `accountType`, `currency`, `managingBranchId` (nếu có), `openedAt` |
+| `AccountOpened` | Account → Transfer, Ledger, Notification, Reporting | `accountId`, `partyId`, `accountType`, `currency`, `openedAt` |
 | `AccountBlocked` | Account → Transfer, Ledger, Notification, Reporting | `accountId`, `reasonCode`, `blockedAt` |
 | `TransferRequested` | Transfer → Transaction, Corporate, Account, Payment | `transferId`, `transactionId`, `sourceAccountId`, `destination`, `amount`, `currency`, `channel`, `requestedBy` |
 | `TransferApproved` | Corporate → Transfer, Transaction, Audit | `transferId`, `approvalId`, `organizationId`, `approverId`, `decision`, `decidedAt` |

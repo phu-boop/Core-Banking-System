@@ -1,16 +1,16 @@
 # Open Decisions
 
-Các mục dưới đây chưa được chủ dự án quyết định. Recommendation là **PROPOSED**, không phải quyết định; không triển khai theo recommendation nếu chưa được duyệt.
+Các mục có trạng thái **OPEN** dưới đây chưa được chủ dự án quyết định. Những dòng **RESOLVED** được giữ lại để duy trì số tham chiếu và trỏ tới quyết định đã chấp nhận. Recommendation, nếu có, là **PROPOSED**, không phải quyết định.
 
 | # | Vấn đề | Status |
 |---|---|---|
 | 1 | External interbank network / provider / protocol | OPEN |
-| 2 | Một hay nhiều managing branch cho customer | OPEN |
+| 2 | Managing branch cardinality của customer | RESOLVED — ADR-012 |
 | 3 | Approval policy snapshot và policy change trong khi giao dịch chờ duyệt | OPEN |
 | 4 | API Gateway technology | OPEN |
-| 5 | Identity Provider | OPEN |
+| 5 | Identity Provider | RESOLVED — ADR-012 |
 | 6 | Kafka hay RabbitMQ | OPEN |
-| 7 | REST hay gRPC cho internal communication | OPEN |
+| 7 | REST hay gRPC cho synchronous internal API | RESOLVED — ADR-012 (first slice) |
 | 8 | Production Kubernetes provider, cluster topology and rollout details | OPEN |
 | 9 | Transaction limits và business-day rules | OPEN |
 | 10 | Interbank settlement, timeout, reversal và reconciliation rules | OPEN |
@@ -28,11 +28,9 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 
 ### 2. Customer managing branch
 
-- **Mô tả:** Chưa rõ mỗi customer có một managing branch hay có thể gắn nhiều branch.
-- **Ảnh hưởng:** Customer profile, servicing permissions, reporting và quy trình Teller.
-- **Lựa chọn:** Một branch chính; nhiều branch; hoặc một branch chính kèm các branch được phép phục vụ.
-- **Recommendation (PROPOSED):** Chốt cardinality và nghiệp vụ chuyển branch trước khi cố định model; không suy ra từ multi-branch decision.
-- **Status:** OPEN.
+- **Status:** RESOLVED by [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
+- Customer có một primary managing branch tại một thời điểm, khác transaction-processing branch. Reassignment là thao tác explicit và phải audit.
+- Thời điểm phải gán branch, reassignment workflow/effective date và cross-branch operations vẫn OPEN; xem mục 9.
 
 ### 3. Approval policy snapshot
 
@@ -52,11 +50,9 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 
 ### 5. Identity Provider
 
-- **Mô tả:** OAuth2/OIDC/JWT là technology proposal; chưa chọn Identity Provider.
-- **Ảnh hưởng:** Authentication, user lifecycle, token claims, MFA, federation và secret management.
-- **Lựa chọn:** Managed hoặc self-hosted provider; chưa có lựa chọn được xác nhận.
-- **Recommendation (PROPOSED):** Xác định channel, user populations và security requirements trước khi chọn.
-- **Status:** OPEN.
+- **Status:** RESOLVED by [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
+- Keycloak là Identity Provider ban đầu, dùng OIDC; Authorization Code + PKCE cho interactive users và Client Credentials cho service identities.
+- Keycloak hosting, deployment, environment configuration và production security/compliance review chưa được chốt ở đây.
 
 ### 6. Event broker
 
@@ -68,11 +64,8 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 
 ### 7. Internal communication
 
-- **Mô tả:** REST vs gRPC chưa chốt; event contracts cũng chưa xác định transport.
-- **Ảnh hưởng:** Synchronous API contracts, latency, tooling, compatibility và service coupling.
-- **Lựa chọn:** REST, gRPC, hoặc hỗn hợp theo use case.
-- **Recommendation (PROPOSED):** Dùng asynchronous event cho decoupled notifications; đánh giá sync protocol theo interoperability và operational support.
-- **Status:** OPEN.
+- **Synchronous APIs:** REST is ACCEPTED for the first implementation slice by [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md); gRPC is excluded from that slice.
+- Event transport is still OPEN under item 6; this decision does not choose Kafka/RabbitMQ or define delivery semantics.
 
 ### 8. Production Kubernetes provider, cluster topology and rollout details
 
@@ -106,9 +99,23 @@ Các mục dưới đây chưa được chủ dự án quyết định. Recommen
 - **Recommendation (PROPOSED):** Chọn theo môi trường triển khai thực tế; trước production cần xác định encryption at rest, workload identity và policy truy cập tối thiểu.
 - **Status:** OPEN cho external store và chi tiết workload identity. Hướng tích hợp và yêu cầu IAM/RBAC đã được ghi nhận tại [ADR-011](../adr/ADR-011-phase-based-secret-management.md).
 
+## Phase 2 implementation details still OPEN
+
+The decisions in [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md) establish approved boundaries, not complete service specifications. The following details remain open and are tracked in the [Phase 2 Decision Gate](../plan/phase/Phase-2-Decision-Gate.md):
+
+- Keycloak user population/provisioning flows, MFA/federation, hosting and environment-specific configuration.
+- Full role catalog, detailed permission vocabulary and grant inheritance.
+- Approved PII profile fields, duplicate-match attributes/weights/thresholds, and jurisdiction-specific legal identifiers/uniqueness.
+- Customer and organization onboarding workflows; managing-branch assignment and reassignment/effective-date rules.
+- Idempotency key format, storage and operation-specific business scopes.
+- Audit storage, tamper-evidence, read access matrix, retention enforcement and archival.
+- Exact API routes, DTOs, error codes, versioning and per-operation audit requirements.
+- Event broker/transport, `PartyCreated` payload and Outbox publication.
+- Approval execution/policy snapshot and all Account/Ledger/Transfer behavior.
+
 ## Khác biệt cần giữ rõ
 
 - ACCEPTED: VND only, Internal + Interbank, configurable corporate approval, Loan excluded from MVP, multi-branch.
 - ACCEPTED cho local development: Ubuntu 24.04, Docker, Minikube, Kubernetes Secret và Spring Boot đọc secrets qua environment variables.
-- Các lựa chọn công nghệ hoặc policy ở trên vẫn OPEN/PROPOSED; không làm thay đổi các ADR đã xác nhận.
+- Các mục còn trạng thái OPEN/PROPOSED vẫn cần quyết định trước phần việc phụ thuộc; các hàng 2, 5 và 7 đã được giải quyết trong ADR-012.
 - Xem [architecture overview](./BANKING_ARCHITECTURE.md) và [ADRs](../adr/README.md).

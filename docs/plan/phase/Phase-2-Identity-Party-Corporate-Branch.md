@@ -12,7 +12,8 @@ Triển khai các bounded context nền cho danh tính và dữ liệu chủ: Id
 - **ACCEPTED:** Java 21, Spring Boot 3, Maven Wrapper, monorepo, Kubernetes, PostgreSQL shared deployment và schema-per-service.
 - **ACCEPTED:** Retail + Corporate banking, VND-only, multi-channel, multi-branch và configurable Corporate approval.
 - **ACCEPTED:** managing branch và transaction processing branch là hai khái niệm riêng; Teller bị giới hạn bởi branch permission.
-- **OPEN:** Identity Provider, API Gateway, internal REST-vs-gRPC, customer managing-branch cardinality, approval policy snapshot và một số chi tiết PII/audit retention.
+- **ACCEPTED theo ADR-012:** Keycloak/OIDC, REST synchronous cho first slice, RBAC + scoped grants + owner-side authorization, customer có một primary managing branch tại một thời điểm, Organization:Party 1:1 logical reference, PII soft-match/human review, idempotency policy và audit baseline.
+- **OPEN:** API Gateway, broker/event transport, full role/permission catalog, PII fields/matching thresholds, branch reassignment workflow, operation-specific idempotency scope, audit storage/retention enforcement, approval policy snapshot và production compliance details.
 - Phase 2 không triển khai Account, Ledger, Transfer, Payment hoặc Loan.
 
 Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banking.md), [ADR-003](../../adr/ADR-003-multi-channel.md), [ADR-009](../../adr/ADR-009-multi-branch-banking.md), [ADR-010](../../adr/ADR-010-phase-1-technical-baseline.md), [Open Decisions](../../architecture/OPEN-DECISIONS.md).
@@ -21,7 +22,7 @@ Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banki
 
 ### Bao gồm
 
-- Chọn/thiết kế Identity integration boundary theo Identity Provider đã duyệt.
+- Tích hợp qua Keycloak/OIDC đã được duyệt; Keycloak owns login, password management và token issuance.
 - Thực hiện identity subject mapping, active/inactive lifecycle, RBAC và scoped grants.
 - Tạo Party/Customer cho cá nhân và dữ liệu customer tối thiểu được duyệt.
 - Tạo Organization, membership, mandate và approval policy cơ sở cho Corporate.
@@ -44,16 +45,17 @@ Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banki
 
 | Quyết định | Trạng thái | Điều kiện cần để tiếp tục |
 |---|---|---|
-| Identity Provider và grant/flow | OPEN | Chọn provider; xác nhận users, channels, MFA, federation, claims và client authentication |
-| OAuth2/OIDC/JWT token boundary | PROPOSED | Duyệt claim tối thiểu, claim-to-principal mapping và trust boundary |
+| Identity Provider và grant/flow | ACCEPTED — ADR-012 | Keycloak/OIDC; Authorization Code + PKCE cho interactive users, Client Credentials cho service identities; token issuance/password do Keycloak sở hữu |
+| Principal mapping và authorization boundary | ACCEPTED — ADR-012 | Unique `(issuer, subject)` mapping; optional `partyId`; RBAC + `SELF`/`ORGANIZATION`/`BRANCH` scoped grants; owner-side authorization |
 | API Gateway | OPEN | Chỉ cần trước khi triển khai public Internet Banking/Admin routing |
-| REST vs gRPC cho internal API | OPEN | Chọn trước khi tạo service-to-service contract cross-service |
-| Customer managing-branch cardinality | OPEN | Chốt một hay nhiều branch và quy tắc assignment/chuyển branch |
-| Organization và Party relationship | PROPOSED | Duyệt organization profile, party mapping và uniqueness của legal identity |
-| PII classification và data minimization | OPEN | Duyệt trường PII, encryption/retention/search requirements |
-| Role, permission và scope model | PROPOSED | Duyệt roles tối thiểu, resource scope và permission naming |
+| REST vs gRPC cho synchronous internal API | ACCEPTED — ADR-012 | REST cho synchronous commands/queries trong first slice; gRPC không nằm trong slice này |
+| Customer managing-branch cardinality | ACCEPTED — ADR-012 | Một primary branch tại một thời điểm; reassignment phải explicit/audited; workflow còn OPEN |
+| Organization và Party relationship | ACCEPTED — ADR-012 | Corporate-owned Organization 1:1 tới Party loại `ORGANIZATION`, logical reference; legal-identity uniqueness còn OPEN |
+| PII duplicate policy | ACCEPTED — ADR-012 | Soft match/human review; không mặc định unique National ID/phone/email, không auto-merge/delete; fields/thresholds còn OPEN |
+| Role, permission và scope model | ACCEPTED baseline — ADR-012 | RBAC + scoped grants + resource-level checks; full roles, permissions and inheritance remain OPEN |
+| Idempotency | ACCEPTED baseline — ADR-012 | Actor + operation + business scope, default retention 24h; per-operation scope/format/storage remain to be defined |
+| Audit policy | ACCEPTED baseline — ADR-012 | Required actor/action/resource/result/time/correlation; 7-year project baseline subject to legal review; storage/access design OPEN |
 | Approval policy snapshot | OPEN | Chốt policy áp dụng khi policy thay đổi trong khi request chờ duyệt |
-| Audit storage, retention và access | PROPOSED/OPEN | Duyệt trường bắt buộc, retention và quyền đọc audit |
 
 Không triển khai phần phụ thuộc vào quyết định OPEN trước khi quyết định đó được chủ dự án duyệt.
 
@@ -63,22 +65,24 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 
 - Xác nhận boundary: Identity không sở hữu customer/account/balance; Party không sở hữu organization credentials; Corporate không ghi Ledger.
 - Chốt entities, API, event và uniqueness rules cho service đầu tiên.
-- Chốt scope tối thiểu của actor/principal: user ID, party reference, organization, branch và channel.
-- Cập nhật `identity_schema`, `party_schema`, `corporate_schema`, `branch_schema` thành logical migrations được duyệt.
+- Chốt scope tối thiểu của actor/principal: validated user ID, optional Party reference, grants, organization, branch và channel.
+- Cập nhật logical schema/ERD contracts cho `identity_schema`, `party_schema`, `corporate_schema`, `branch_schema`; không tạo migrations trong work item 2.1.
 - Ghi nhận synthetic/test identities, không dùng credential/tài khoản thật trong test.
 
-**Đầu ra:** ADR hoặc approval record cho Identity Provider, authorization model và các contract blocking implementation.
+**Đầu ra:** ADR và contract baseline cho Identity Provider, authorization, idempotency, audit, branch cardinality, Party/Organization mapping và synchronous API protocol.
 
-**Trạng thái:** Chưa bắt đầu.
+**Bản phê duyệt:** [ADR-012](../../adr/ADR-012-phase-2-identity-party-corporate-branch.md) ghi nhận 9/9 quyết định đã được chủ dự án duyệt. Contract updates và các giới hạn OPEN của first slice được theo dõi trong [Phase 2 Decision Gate](./Phase-2-Decision-Gate.md).
+
+**Trạng thái:** Hoàn tất decision baseline và cập nhật contract-level docs cho các quyết định được duyệt. Các OPEN item vẫn chặn migration/implementation cụ thể nếu ảnh hưởng tới schema, security boundary hoặc API.
 
 ### 2.2 — Identity & Access
 
-- Tạo service hoặc module độc lập theo cấu trúc service template.
+- Tạo service hoặc module độc lập theo cấu trúc service template; tích hợp Keycloak/OIDC.
 - Tạo migration riêng trong `identity_schema`; không thêm bảng shared hay cross-schema FK.
-- Map external subject tới local `user_identity`.
-- Triển khai lifecycle active/inactive/locked theo provider integration đã duyệt.
+- Map validated `(issuer, subject)` duy nhất tới local opaque `userId`; Keycloak remains owner of authentication/token issuance.
+- Chốt user lifecycle states và đồng bộ/disable behavior với Keycloak trước migration; các trạng thái cụ thể hiện còn OPEN.
 - Triển khai role và scoped grant entities; kiểm tra organization/branch/account scope ở resource owner.
-- Cung cấp identity principal resolution cho API; không tự phát JWT/token khi provider chưa được chọn.
+- Cung cấp identity principal resolution cho API; token issuance luôn thuộc Keycloak, không tự phát token nội bộ.
 - Ghi audit cho identity lifecycle, role/grant thay đổi và authentication result theo policy.
 
 **Đầu ra:** identity subject và scoped authorization có thể kiểm thử; không lưu hoặc log secret/token.
@@ -88,11 +92,12 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 ### 2.3 — Party / Customer
 
 - Tạo migration và service trong `party_schema`.
-- Triển khai `Party`, `IndividualProfile` và các profile fields đã được duyệt cho retail/customer.
+- Triển khai `Party`, `IndividualProfile` và chỉ các profile fields đã được duyệt cho retail/customer.
 - Phân biệt individual và organization/corporate party; không nhân đôi organization data trong Party.
 - Thêm create/read/update API theo resource authorization.
 - Dùng optimistic version cho update; không cho lost-update silently.
-- Dùng create idempotency key nếu contract tạo record được duyệt.
+- Áp dụng soft-match duplicate candidates với human review; không tự merge/xóa hoặc tạo mặc định National ID/phone/email uniqueness.
+- Dùng create idempotency nếu contract yêu cầu; theo actor + operation + business scope, retention mặc định 24h.
 - Publish `PartyCreated` sau khi event transport/broker được duyệt; trước đó có thể triển khai contract và outbox pattern.
 
 **Đầu ra:** customer/party lifecycle tối thiểu, PII được giới hạn và audit/log không lộ dữ liệu nhạy cảm.
@@ -102,7 +107,7 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 ### 2.4 — Corporate
 
 - Tạo migration trong `corporate_schema`.
-- Triển khai Organization mapped tới Party bằng logical `partyId`, không dùng cross-schema FK.
+- Triển khai Organization mapped 1:1 tới một Party loại `ORGANIZATION` bằng logical `partyId`, không dùng cross-schema FK.
 - Triển khai Membership, Mandate, ApprovalPolicy và approval history.
 - Kiểm tra organization membership và mandate trong Corporate, không tin caller-supplied role.
 - Enforce Maker–Checker khi xử lý approval action; không cho maker tự duyệt nếu rule được duyệt.
@@ -119,7 +124,7 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 - Triển khai branch code/name/status và branch lifecycle tối thiểu được duyệt.
 - Phân biệt managing branch với transaction processing branch ở contract/reference.
 - Áp dụng branch visibility/permission theo Identity principal tại service sở hữu resource.
-- Thêm branch assignment rules sau khi customer managing-branch cardinality được chốt.
+- Customer có một primary managing branch tại một thời điểm; phân biệt với transaction-processing branch. Reassignment explicit và phải audit; workflow/effective date còn OPEN.
 - Không đưa Teller credential hay financial transaction vào Branch schema.
 
 **Đầu ra:** branch scope và status có thể dùng làm reference bởi Party/Account/Transfer ở phase sau.
@@ -142,7 +147,8 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 ### 2.7 — Audit foundation
 
 - Mở rộng audit contract cho identity/party/corporate/branch sensitive actions.
-- Ghi actor, action, resource, result, organization/branch scope, correlation ID và timestamp.
+- Ghi tối thiểu actor, action, resource type/ID, result, correlation ID và timestamp; organization/channel/branch khi áp dụng.
+- Áp dụng project retention baseline bảy năm subject to legal/compliance review trước production.
 - Redact secret/token/credential/PII không cần thiết.
 - Tách synchronous durable audit cho thao tác bắt buộc khỏi optional notification/audit event.
 - Test append-only behavior và denied audit access theo permission được duyệt.

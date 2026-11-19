@@ -144,7 +144,7 @@ flowchart TB
 ## Giao tiếp nội bộ và bên ngoài
 
 - **Channel → service:** REST API là lựa chọn thiết kế hiện tại (**PROPOSED**); gateway technology **OPEN**. Mỗi service vẫn tự xác thực quyền với resource của mình.
-- **Service → service:** REST hoặc event là hướng dự kiến. REST vs gRPC và broker Kafka vs RabbitMQ còn **OPEN**.
+- **Service → service:** REST cho synchronous commands/queries trong first implementation slice theo [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md). gRPC chưa thuộc slice này; broker và event transport vẫn **OPEN**.
 - **Event contracts:** envelope và payload dự kiến trong [EVENT-CONTRACTS.md](./EVENT-CONTRACTS.md), chưa khẳng định broker đã chọn.
 - **External interbank:** Payment là ranh giới tích hợp. Provider, protocol, settlement, retry và reconciliation chưa được xác định; không giả định cụ thể.
 
@@ -163,15 +163,15 @@ flowchart TB
 | Local Kubernetes distribution | ACCEPTED: Minikube on Ubuntu 24.04 |
 | Production Kubernetes provider / cluster topology / rollout details | OPEN |
 | Secret delivery | ACCEPTED direction per ADR-011; exact production provider OPEN |
-| Spring Security, OAuth2/OIDC, JWT | PROPOSED |
+| Keycloak + OIDC for initial identity integration | ACCEPTED by ADR-012; hosting/configuration remain implementation details |
 | JUnit 5, Mockito, Testcontainers | PROPOSED |
 | Prometheus, Grafana, OpenTelemetry | PROPOSED |
-| REST vs gRPC; API Gateway; Identity Provider | OPEN |
+| API Gateway technology; event broker/transport | OPEN |
 
 ## Security Architecture
 
-- OAuth2/OIDC và JWT là **PROPOSED**, chưa chốt Identity Provider.
-- Áp dụng RBAC cùng kiểm tra theo organization, account, branch và channel khi nghiệp vụ/resource yêu cầu; chi tiết role/policy là **PROPOSED**.
+- Keycloak/OIDC is the accepted initial Identity Provider; Authorization Code + PKCE is for interactive users and Client Credentials for machine identities. Keycloak owns login and token issuance; see [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
+- **ACCEPTED:** RBAC plus scoped grants and resource-level authorization; initial scopes are `SELF`, `ORGANIZATION` and `BRANCH`. Complete roles, grant inheritance and detailed permission vocabulary remain OPEN.
 - Maker–Checker phải được thực thi trong Corporate/approval workflow và được kiểm tra tại service xử lý lệnh, không tin cậy chỉ vào gateway.
 - Mỗi service kiểm tra authorization cho resource mà service sở hữu.
 - Audit các thao tác nhạy cảm, quyết định duyệt và kết quả financial operation; tránh ghi secret hoặc dữ liệu nhạy cảm không cần thiết.

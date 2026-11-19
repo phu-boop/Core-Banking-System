@@ -40,4 +40,4 @@ For the initial technical foundation:
 - ADR-001 establishes microservices architecture.
 - ADR-004 establishes shared PostgreSQL with schema-per-service.
 - [Phase 1 plan](../plan/phase/Phase-1-Technical-Foundation.md) guides implementation.
-- Production Kubernetes provider/topology and rollout details, broker, API Gateway, Identity Provider and internal communication choices remain OPEN. The local Kubernetes distribution and phase-based secret-management direction are recorded in [ADR-011](./ADR-011-phase-based-secret-management.md).
+- Production Kubernetes provider/topology and rollout details, broker and API Gateway remain OPEN. Keycloak/OIDC and REST for synchronous service calls in the initial Phase 2 slice are accepted by [ADR-012](./ADR-012-phase-2-identity-party-corporate-branch.md). The local Kubernetes distribution and phase-based secret-management direction are recorded in [ADR-011](./ADR-011-phase-based-secret-management.md).

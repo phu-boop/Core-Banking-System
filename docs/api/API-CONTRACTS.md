@@ -1,6 +1,6 @@
 # API Contracts
 
-**Status:** tất cả endpoint nghiệp vụ dưới đây là **PROPOSED** design contracts, không phải API đã tồn tại. Repository hiện chỉ có service template kỹ thuật với health endpoints, chưa có business API implementation. REST is proposed; gateway, Identity Provider and internal REST-vs-gRPC are OPEN. Request/response examples are schematic; enum values, limits and detailed field rules require domain review.
+**Status:** tất cả endpoint nghiệp vụ dưới đây là **PROPOSED** design contracts, không phải API đã tồn tại. Repository hiện chỉ có service template kỹ thuật với health endpoints, chưa có business API implementation. REST is accepted for synchronous service-to-service calls in the first implementation slice by [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md); API Gateway technology remains OPEN. Keycloak/OIDC is the initial Identity Provider. Request/response examples are schematic; enum values, limits, routes and detailed field rules require domain review.
 
 ## Conventions
 
@@ -19,30 +19,29 @@
 
 - Common HTTP errors: `400` invalid input, `401` unauthenticated, `403` unauthorized, `404` resource absent/not visible, `409` state or idempotency conflict, `422` business validation failure, `429` rate limit, `5xx` transient/system failure. Exact mapping is PROPOSED.
 - Each service enforces authorization for its own resource and business operation. API Gateway must not be the only authorization layer.
-- `Idempotency-Key` behavior requires a defined scope/retention policy; values are not yet specified. See [Open Decisions](../architecture/OPEN-DECISIONS.md).
+- For an API that uses idempotency, scope it by actor, operation and business scope; default retention is 24 hours. Same key/same payload replays the prior result; same key/different payload returns `409 Conflict`. Each command must state if idempotency applies and define its business scope; key format/storage are not prescribed. See [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
 
 ## Authentication — Identity & Access
 
 | Method / endpoint (PROPOSED) | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
-| `POST /v1/auth/token` | OAuth-style credential/grant request → `accessToken`, `expiresIn`, `tokenType`; exact protocol/provider OPEN | Validate grant/client and required fields at chosen IdP | Public client subject to client authentication and flow policy; Identity Provider TBD | invalid credentials/grant, locked user, invalid client, throttled provider | Not applicable to token issuance; provider replay/refresh controls TBD |
-| `GET /v1/identity/me` | none → `userId`, authorized scopes/claims | Validate active subject | Authenticated principal | unauthenticated, inactive identity | Not applicable |
+| `GET /v1/identity/me` | none → validated internal principal (`userId`, optional `partyId`, approved context) | Validate Keycloak OIDC token and resolve active `(issuer, subject)` mapping | Authenticated principal; only trusted grants/context returned | invalid/expired token, inactive identity, forbidden | Not applicable |
 
-These are illustrative app-facing contracts only. Do not implement custom credential storage or token issuance before Identity Provider decision.
+Keycloak owns login and token issuance. Use Authorization Code + PKCE for interactive user applications and Client Credentials for machine identities. Identity & Access must not expose a custom token-issuance endpoint or trust client-submitted permissions, organization or branch context. Exact claims and routes remain to be specified.
 
 ## Customer — Party / Customer
 
 | Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
-| `POST /v1/customers` | `partyType`, type-specific profile, optional contact data → `partyId`, status | Required fields by party type; format/duplicate checks depend on approved customer rules | Customer-creation permission for channel/actor; staff scope where relevant | invalid profile, duplicate identity, forbidden scope, unavailable verification | Key recommended for create; scope/retention OPEN |
+| `POST /v1/customers` | `partyType`, approved type-specific profile → `partyId`, status | Required fields depend on approved customer rules; duplicate candidates use soft matching and human review; no default National ID/phone/email uniqueness | Customer-creation permission for channel/actor; staff scope where relevant | invalid profile, duplicate candidate requiring review, forbidden scope, unavailable verification | If enabled, actor + operation + customer business scope; 24-hour default; exact scope and key storage are per-operation decisions |
 | `GET /v1/customers/{partyId}` | none → customer profile and status | Valid ID | Customer data permission plus organization/branch scope as applicable | not found/not visible, forbidden | Not applicable |
-| `PATCH /v1/customers/{partyId}` | allowed profile fields + version → updated profile/version | Only mutable fields; concurrency/version check | Same resource-scoped permission as read plus update grant | invalid field, stale version, forbidden, not found | Not applicable; use optimistic version to avoid lost update |
+| `PATCH /v1/customers/{partyId}` | allowed profile fields + version → updated profile/version | Only mutable fields; concurrency/version check; one primary managing branch at a time, reassignment is audited | Same resource-scoped permission as read plus update grant | invalid field, stale version, forbidden, not found | Optimistic version prevents lost update; if command idempotency is used, apply the ADR-012 scope/retention rule |
 
 ## Corporate
 
 | Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
-| `POST /v1/organizations` | `partyId`, organization profile → `organizationId`, status | Party exists/eligible via Party API; required legal data TBD | Corporate onboarding permission | invalid profile, party absent, duplicate organization, forbidden | Key recommended for create; scope/retention OPEN |
+| `POST /v1/organizations` | `partyId`, organization profile → `organizationId`, status | Party must be type `ORGANIZATION`; exactly one logical Party reference per Organization and one-to-one mapping; required legal data TBD | Corporate onboarding permission | invalid profile, party absent/wrong type, duplicate organization, forbidden | If enabled, actor + operation + organization business scope; 24-hour default; exact scope and key storage are per-operation decisions |
 | `POST /v1/organizations/{organizationId}/members` | `userId`, membership role/scope → `membershipId`, status | Organization/user active; role/scope allowed by policy | Organization admin/mandate grant, checked by Corporate | org/user absent, duplicate membership, insufficient mandate, forbidden | Key recommended |
 | `GET /v1/organizations/{organizationId}` | none → organization profile and status | Valid ID | Organization-level authorization | not found/not visible, forbidden | Not applicable |
 
@@ -58,9 +57,9 @@ These are illustrative app-facing contracts only. Do not implement custom creden
 
 | Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
-| `POST /v1/accounts` | `partyId`, `accountType=PAYMENT`, `currency=VND`, optional `managingBranchId` → `accountId`, status | Customer/branch references valid through owners; only payment account in MVP; VND only | Customer self-service or authorized Teller/Admin; enforce channel, party and branch scope | invalid/unsupported type or currency, customer/branch ineligible, duplicate request, forbidden | Required for account opening; retention/scope OPEN |
+| `POST /v1/accounts` | `partyId`, `accountType=PAYMENT`, `currency=VND` → `accountId`, status | Customer reference valid through its owner; only payment account in MVP; VND only | Customer self-service or authorized Teller/Admin; enforce channel, party and branch scope | invalid/unsupported type or currency, customer ineligible, duplicate request, forbidden | Required for account opening; actor + operation + business scope, 24-hour default; exact scope to define |
 | `GET /v1/accounts/{accountId}` | none → account metadata/status (no authoritative balance) | Valid ID | Account ownership/org/branch/channel scope | not found/not visible, forbidden | Not applicable |
-| `POST /v1/accounts/{accountId}/blocks` | `reasonCode`, `requestId` → account status/version | Valid transition and reason per approved policy | Account-block permission; branch/org scope checked | invalid transition, not found, forbidden, concurrency conflict | Required for retryable command; key scope OPEN |
+| `POST /v1/accounts/{accountId}/blocks` | `reasonCode`, `requestId` → account status/version | Valid transition and reason per approved policy | Account-block permission; branch/org scope checked | invalid transition, not found, forbidden, concurrency conflict | Required for retryable command; actor + operation + business scope, 24-hour default; exact scope to define |
 
 No endpoint may directly change an authoritative balance; financial posting belongs to Ledger.
 
@@ -68,7 +67,7 @@ No endpoint may directly change an authoritative balance; financial posting belo
 
 | Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
-| `POST /v1/transfers` | `sourceAccountId`, destination type/reference, `amount`, `currency=VND`, `channel`, optional requested processing branch → `transferId`, `transactionId`, status, correlation ID | Positive amount; VND only; account eligibility; internal/interbank route; limits/business-day rules remain OPEN | Account/org/channel/branch scope; Corporate policy/Maker–Checker when applicable | malformed/unsupported currency, ineligible account, approval required, duplicate key with different payload, conflict; external outcome may be unknown | Required; bind key to canonical payload and scope; retention OPEN |
+| `POST /v1/transfers` | `sourceAccountId`, destination type/reference, `amount`, `currency=VND`, `channel`, optional requested processing branch → `transferId`, `transactionId`, status, correlation ID | Positive amount; VND only; account eligibility; internal/interbank route; limits/business-day rules remain OPEN | Account/org/channel/branch scope; Corporate policy/Maker–Checker when applicable | malformed/unsupported currency, ineligible account, approval required, duplicate key with different payload, conflict; external outcome may be unknown | Required; actor + operation + business scope, 24-hour default; exact scope to define |
 | `GET /v1/transfers/{transferId}` | none → transfer/transaction status, timestamps, references | Valid ID | Source/destination account or organization/branch visibility scope | not found/not visible, forbidden | Not applicable |
 | `POST /v1/transfers/{transferId}/cancel-requests` | `reason` → cancellation request/status | Only if cancellation transition is permitted; cancellation rules OPEN | Same transaction scope plus cancel permission | already settled, unsupported transition, forbidden, outcome unknown | Required for command retries; scope OPEN |
 
@@ -92,7 +91,7 @@ Posting must be atomic inside Ledger. Posted entries are immutable; no update/de
 | `POST /internal/payments` | `transferId`, destination reference, `amount`, `currency=VND`, `correlationId` → `paymentId`, submission status | Transfer is eligible for external submission; external fields per provider contract (OPEN) | Transfer service identity; Payment validates caller and operation | invalid request, provider rejection, unavailable provider, timeout/outcome unknown | Required; dedupe by business operation/provider submission scope |
 | `GET /internal/payments/{paymentId}` | none → status, external reference if present, timestamps | Valid ID | Authorized internal caller and transfer scope | not found, forbidden, unresolved external outcome | Not applicable |
 
-Provider/protocol-specific routes, callbacks and reconciliation API are intentionally unspecified.
+Provider/protocol-specific routes, callbacks and reconciliation API are intentionally unspecified. REST is the synchronous internal API default for the first implementation slice; event transport remains OPEN.
 
 ## Approval — Corporate
 

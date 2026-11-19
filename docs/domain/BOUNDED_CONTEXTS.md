@@ -4,7 +4,7 @@
 
 | Context | Schema | Nguồn dữ liệu sở hữu |
 |---|---|---|
-| Identity & Access | `identity_schema` | User identities, credentials, roles, grants |
+| Identity & Access | `identity_schema` | External identity mappings, users and authorization grants; Keycloak owns credentials and tokens |
 | Party / Customer | `party_schema` | Party và hồ sơ cá nhân/customer |
 | Corporate | `corporate_schema` | Organization, membership, mandate, approval policy/history |
 | Branch | `branch_schema` | Branch và branch status |
@@ -17,35 +17,36 @@
 | Audit | `audit_schema` | Audit records |
 | Reporting | `reporting_schema` | Read-only reporting projections |
 
-Chi tiết API là **PROPOSED**; endpoint matrix ở [API-CONTRACTS.md](../api/API-CONTRACTS.md). Event names/schema ở [EVENT-CONTRACTS.md](../architecture/EVENT-CONTRACTS.md).
+Chi tiết endpoint/DTO vẫn **PROPOSED**; synchronous service-to-service API dùng REST trong first slice theo [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md), endpoint matrix ở [API-CONTRACTS.md](../api/API-CONTRACTS.md). Event names/schema và broker transport ở [EVENT-CONTRACTS.md](../architecture/EVENT-CONTRACTS.md) vẫn chưa được chốt.
 
 ## 1. Identity & Access
 
-- **Trách nhiệm:** đăng nhập, authentication, user lifecycle trong phạm vi identity, RBAC/grants và phát hành/kiểm tra quyền theo giải pháp identity được chọn.
-- **Entities sở hữu (PROPOSED):** `User`, `Credential`/external identity reference, `Role`, `Permission`, `UserRole`, scoped grant.
+- **Trách nhiệm:** tích hợp Keycloak qua OIDC, ánh xạ external identity, user lifecycle, RBAC/grants và principal resolution; Keycloak sở hữu login, password management và token issuance.
+- **Entities sở hữu (PROPOSED):** `UserIdentity` với external `(issuer, subject)` duy nhất, `Role`, `Permission`, `UserRole` và scoped grant. Principal có `partyId` optional; không lưu password hoặc token.
 - **Schema:** `identity_schema`; không sở hữu customer, account hay balance.
-- **API:** authentication/token-facing endpoints; quản lý user/role/grant theo quyền.
+- **API:** resolve validated identity principal; quản lý user/role/grant theo quyền. Login/token endpoints thuộc Keycloak, không thuộc service này.
 - **Publish:** chưa có domain event Identity nào được xác định; security audit input gửi tới Audit cần contract riêng, chưa định nghĩa.
 - **Consume:** `PartyCreated` nếu user-party linking được duyệt; branch/org events chỉ nếu policy cần local projection.
-- **Dependencies:** OIDC/Identity Provider chưa chọn; Party/Corporate/Branch/Account là resource owners được tham chiếu bằng ID.
+- **Dependencies:** Keycloak/OIDC theo ADR-012; Party/Corporate/Branch/Account là resource owners được tham chiếu bằng ID.
 - **Không được:** quản lý tài khoản tiền gửi, quyết định số dư, ghi Ledger, hoặc là authorization authority duy nhất thay service sở hữu resource.
 
 ## 2. Party / Customer
 
-- **Trách nhiệm:** định danh party và customer profile chung cho cá nhân/doanh nghiệp; Corporate quản lý organization, không Party.
-- **Entities sở hữu (PROPOSED):** `Party`, `IndividualProfile`, customer contact/profile phù hợp scope được duyệt.
+- **Trách nhiệm:** định danh party và customer profile chung cho cá nhân/doanh nghiệp; Corporate quản lý Organization aggregate.
+- **Entities sở hữu (PROPOSED):** `Party`, `IndividualProfile`, customer contact/profile phù hợp PII fields được duyệt; một customer có tối đa một primary `managingBranchId` tại một thời điểm theo ADR-012.
 - **Schema:** `party_schema`.
 - **API:** tạo/đọc/cập nhật customer/party profile theo policy; không cung cấp thao tác tiền.
 - **Publish:** `PartyCreated` (các profile update events chưa được xác định).
 - **Consume:** Identity/user events nếu cần liên kết; không consume để ghi ngược Party từ service khác.
-- **Dependencies:** Identity cho actor authorization; Corporate cho organization context; Branch cardinality của managing branch còn OPEN.
+- **Dependencies:** Identity cho actor authorization; Corporate cho organization context; Branch ID là logical reference. Assignment/reassignment workflow và thời điểm bắt buộc gán managing branch vẫn cần contract.
+- **Duplicate handling:** soft match và human review; không tự merge/xóa và không mặc định unique National ID, phone hoặc email. Matching fields/weights/thresholds còn OPEN.
 - **Không được:** sở hữu credentials, organization membership/approval policy, account lifecycle hoặc ledger entries.
 
 ## 3. Corporate
 
 - **Trách nhiệm:** quản lý organization, membership, mandate, quyền nghiệp vụ doanh nghiệp và configurable approval policy/workflow.
 - **Entities sở hữu (PROPOSED):** `Organization`, `Membership`, `Mandate`, `ApprovalPolicy`, `ApprovalRequest`, `ApprovalStep`, `ApprovalHistory`.
-- **Schema:** `corporate_schema`; `Organization.partyId` nếu có là reference tới Party, không phải FK.
+- **Schema:** `corporate_schema`; mỗi Organization tham chiếu đúng một Party loại `ORGANIZATION` qua logical `partyId` theo ADR-012, không phải FK.
 - **API:** quản lý organization/members/mandates/policy và approval/decision; kiểm tra người duyệt đủ điều kiện.
 - **Publish:** `TransferApproved` sau quyết định; denial/change events chưa được xác định.
 - **Consume:** `PartyCreated`, `TransferRequested`; có thể cần Identity grants/Branch refs qua API.
@@ -54,20 +55,20 @@ Chi tiết API là **PROPOSED**; endpoint matrix ở [API-CONTRACTS.md](../api/A
 
 ## 4. Branch
 
-- **Trách nhiệm:** quản lý multi-branch, branch status và phạm vi servicing; phân biệt managing branch với transaction processing branch.
+- **Trách nhiệm:** quản lý multi-branch, branch status và phạm vi servicing; managing branch và transaction-processing branch là hai khái niệm riêng.
 - **Entities sở hữu (PROPOSED):** `Branch`, branch configuration/status.
 - **Schema:** `branch_schema`.
 - **API:** tạo/đọc/quản lý chi nhánh và kiểm tra branch scope.
 - **Publish:** branch lifecycle events chưa được yêu cầu đặt tên.
 - **Consume:** Identity grants hoặc domain events nếu cần projection; contract chưa xác định.
-- **Dependencies:** Identity để authorization; Account/Transfer/Teller workflows tham chiếu branch ID.
+- **Dependencies:** Identity để authorization; Account/Transfer/Teller workflows tham chiếu branch ID. Teller access là branch-scoped; customer reassignment phải được audit.
 - **Không được:** sở hữu Teller credentials/roles, customer/account, hoặc ghi financial transaction.
 
 ## 5. Account
 
 - **Trách nhiệm:** quản lý vòng đời tài khoản thanh toán MVP, trạng thái mở/blocked/closed theo policy được xác nhận.
 - **Entities sở hữu (PROPOSED):** `Account`, account status/history, account-party ownership/relationship.
-- **Schema:** `account_schema`; account references `partyId` và `managingBranchId` nếu được xác định.
+- **Schema:** `account_schema`; account references `partyId`; customer managing branch thuộc Party, còn transaction-processing branch là context giao dịch riêng.
 - **API:** mở/đọc/block/unblock tài khoản theo quyền; cung cấp account eligibility/status cho Transfer/Ledger integration.
 - **Publish:** `AccountOpened`, `AccountBlocked`; các status events khác cần định nghĩa.
 - **Consume:** `PartyCreated` nếu customer validation qua projection được duyệt.
@@ -156,5 +157,6 @@ Chi tiết API là **PROPOSED**; endpoint matrix ở [API-CONTRACTS.md](../api/A
 - Cross-service references là IDs; mỗi service đọc resource qua API hoặc giữ projection riêng được xây từ event.
 - Không direct table access, shared ORM entities hay cross-schema foreign keys.
 - Event consumer phải idempotent; event contracts là đề xuất trong [EVENT-CONTRACTS.md](../architecture/EVENT-CONTRACTS.md).
+- Idempotency dùng actor + operation + business scope, mặc định retention 24 giờ khi API yêu cầu; xem [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md). Mỗi operation vẫn cần định nghĩa scope cụ thể.
 - Transaction vs Transfer ownership of lifecycle needs architecture review trước khi triển khai; không tạo hai nguồn trạng thái chuẩn.
-- Payment protocol, branch/customer cardinality, approval-policy snapshot và communication choices xem [OPEN-DECISIONS.md](../architecture/OPEN-DECISIONS.md).
+- Payment protocol, branch reassignment workflow, approval-policy snapshot và event transport xem [OPEN-DECISIONS.md](../architecture/OPEN-DECISIONS.md).

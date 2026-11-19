@@ -15,6 +15,23 @@ Status dưới đây phân biệt requirement được xác nhận với thiết
 - **PROPOSED boundary:** Account sở hữu vòng đời/status; Ledger sở hữu journal và số liệu tài chính.
 - Các rule mở/đóng tài khoản, số dư tối thiểu, phí và điều kiện block/close chưa được xác nhận.
 
+## Identity, authorization and customer data
+
+- **ACCEPTED:** Keycloak is the initial Identity Provider, using OIDC. Authorization Code + PKCE is for interactive users; Client Credentials is for service identities. Keycloak owns login and token issuance; local services do not store passwords or mint tokens.
+- **ACCEPTED:** Identity maps validated `(issuer, subject)` to a unique internal user identity. `partyId` is optional in the internal principal.
+- **ACCEPTED:** authorization combines RBAC, scoped grants and resource-level checks. Initial scopes are `SELF`, `ORGANIZATION` and `BRANCH`; each resource owner enforces access. Detailed roles, grant inheritance and permissions remain OPEN.
+- **ACCEPTED:** Party duplicate detection is soft-match with human review. Do not automatically merge/delete, or assume National ID, phone or email is globally unique. Match fields and thresholds remain OPEN.
+- **ACCEPTED:** each Organization maps 1:1 to one Corporate-owned Organization aggregate and one Party of type `ORGANIZATION`, by logical ID reference without cross-schema FK.
+- **OPEN:** approved PII profile fields, legal identity identifiers, jurisdiction-specific uniqueness and onboarding workflows.
+
+## Idempotency and audit
+
+- **ACCEPTED:** when an API uses idempotency, scope by actor, operation and business scope. Default retention is 24 hours. Same key/same payload returns the prior outcome; same key/different payload returns `409 Conflict`.
+- Each command API documents whether idempotency is required and defines its business scope. Key format, persistence schema and operation-specific scopes remain implementation decisions; no shared global idempotency table is implied.
+- **ACCEPTED:** sensitive-operation audit captures actor, action, resource type/ID, result, timestamp and correlation ID; add organization, channel and branch where applicable.
+- Audit records are not editable via ordinary business APIs and require separate authorization for reads. Do not record credentials/tokens or unnecessary PII.
+- Seven years is the project retention baseline, subject to jurisdiction-specific legal/compliance review before production. Storage, tamper-evidence and archival are not selected here.
+
 ## Transfer
 
 - **ACCEPTED:** hỗ trợ internal và interbank transfer.
@@ -32,7 +49,7 @@ Status dưới đây phân biệt requirement được xác nhận với thiết
 3. Transfer điều phối atomic posting thông qua Ledger; không ghi account balance trực tiếp.
 4. Ledger post double-entry journal trong transaction nguyên tử: tổng Debit = tổng Credit.
 5. Transfer chỉ báo settled/completed theo kết quả Ledger/operation contract đã được duyệt.
-6. Retry cùng idempotency key không được tạo financial operation thứ hai. Scope/retention của key còn cần chốt.
+6. Retry cùng idempotency key không được tạo financial operation thứ hai. Where idempotency is used, ADR-012 sets actor + operation + business scope and a 24-hour default retention; operation-specific scope remains to be defined.
 
 ### Interbank transfer — design constraints
 
@@ -56,9 +73,9 @@ Status dưới đây phân biệt requirement được xác nhận với thiết
 - **ACCEPTED:** hỗ trợ nhiều chi nhánh.
 - **ACCEPTED distinction:** `managingBranch` khác `transactionProcessingBranch`.
 - **ACCEPTED:** Teller bị giới hạn bởi branch permissions.
-- **OPEN:** customer có một hay nhiều managing branches.
+- **ACCEPTED:** customer có một primary managing branch tại một thời điểm; `managingBranchId` khác transaction-processing branch. Reassignment là thao tác explicit và phải audit.
 - **PROPOSED:** mọi branch reference dùng `branchId`; Branch service sở hữu branch data, service khác không query bảng Branch trực tiếp.
-- Assignment, transfer giữa branch, branch closure và timezone/cutoff chưa được xác định.
+- **OPEN:** thời điểm phải gán managing branch, reassignment workflow/effective date, cross-branch operation, branch closure và timezone/cutoff.
 
 ## Loan
 

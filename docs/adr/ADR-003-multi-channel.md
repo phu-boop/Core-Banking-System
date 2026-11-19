@@ -27,4 +27,4 @@ Support **Internet Banking, Admin and Teller** channels.
 
 - ADR-002 establishes Retail and Corporate audiences.
 - ADR-009 establishes multi-branch scope.
-- Identity Provider and gateway technology remain OPEN.
+- The initial Identity Provider and protocol are defined in [ADR-012](./ADR-012-phase-2-identity-party-corporate-branch.md); API Gateway technology remains OPEN.

@@ -14,7 +14,7 @@ Thiết lập nền tảng kỹ thuật có thể lặp lại cho các microserv
 - **PROPOSED:** JUnit 5, Mockito, Prometheus, Grafana và OpenTelemetry là định hướng chung.
 - **ACCEPTED riêng cho local development và kiểm thử nền tảng:** PostgreSQL 17.12 trong Minikube và Testcontainers để tương thích với Flyway do Spring Boot quản lý; không quyết định PostgreSQL production hoặc chính sách test cho các service sau.
 - **ACCEPTED theo ADR-011:** local development dùng Ubuntu 24.04, Docker, Minikube, Kubernetes Secret và Spring Boot environment variables. Production theo hướng external store + External Secrets Operator + IAM/RBAC; EKS/Kubernetes provider và Secrets Manager/Vault cụ thể còn OPEN.
-- **OPEN:** PostgreSQL major version production, production Kubernetes provider/topology/rollout details, broker, API Gateway, Identity Provider, REST vs gRPC và một số chi tiết observability.
+- **OPEN:** PostgreSQL major version production, production Kubernetes provider/topology/rollout details, broker, API Gateway và một số chi tiết observability. Identity Provider và synchronous internal API cho Phase 2 được chốt sau đó tại [ADR-012](../../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
 - Phase này không được tự biến PROPOSED/OPEN thành quyết định đã chốt. Xem [Architecture](../../architecture/BANKING_ARCHITECTURE.md) và [Open Decisions](../../architecture/OPEN-DECISIONS.md).
 
 ## Phạm vi
@@ -50,7 +50,7 @@ Thiết lập nền tảng kỹ thuật có thể lặp lại cho các microserv
 | Broker | Kafka vs RabbitMQ OPEN | Chỉ cần chốt trước khi triển khai publisher/consumer adapter |
 | Kubernetes cho local và production | ACCEPTED | Local: Minikube; production provider, topology và rollout details OPEN |
 | Secret delivery | ADR-011 ACCEPTED | Local: Kubernetes Secret qua environment variables; production: External Secrets Operator + IAM/RBAC, nhưng provider/store cụ thể OPEN |
-| Security / Identity Provider | OAuth2/OIDC/JWT PROPOSED; provider OPEN | Phase 1 chỉ tạo integration boundary; không tự triển khai identity provider |
+| Security / Identity Provider | Provider was OPEN during Phase 1; ACCEPTED for Phase 2 by ADR-012 | Phase 1 không triển khai Identity Provider; Phase 2 dùng Keycloak/OIDC theo quyết định được duyệt |
 | Observability stack | Prometheus/Grafana/OpenTelemetry PROPOSED | Chốt tối thiểu định dạng/collector/metrics cần để kiểm chứng |
 
 Không nhất thiết phải chốt mọi quyết định tương lai trong Phase 1. Mỗi lựa chọn chỉ cần được duyệt trước khi công việc phụ thuộc vào nó.
@@ -98,7 +98,7 @@ Technical baseline đã được chủ dự án duyệt và ghi tại [ADR-010](
 - Không commit secret; không log secret, credential hoặc token.
 - Mặc định không mở endpoint nghiệp vụ chưa được bảo vệ.
 - Tạo interface/điểm tích hợp authentication nếu cần, nhưng không giả lập Identity Provider như production.
-- Ghi rõ khi nào cần quyết định Identity Provider trước Phase 2.
+- Giữ integration boundary provider-neutral trong Phase 1; Identity Provider được duyệt trước implementation Phase 2 theo [ADR-012](../../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
 
 **Đầu ra:** service khởi động với cấu hình được cung cấp; thiếu cấu hình bắt buộc thì fail fast; secrets không xuất hiện trong repository/log/test output.
 
@@ -190,7 +190,7 @@ Phase 1 kết thúc ở nền tảng; không đồng nghĩa đã có Identity, P
 
 - Service template và database ownership pattern được kiểm chứng.
 - Authentication/authorization integration path đủ rõ để thiết kế Identity.
-- Quyết định Identity Provider được duyệt trước khi triển khai authentication.
+- Identity Provider và synchronous internal API được duyệt trước implementation Phase 2 tại [ADR-012](../../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
 - Logging, correlation ID, CI và môi trường phát triển sẵn sàng cho các service nghiệp vụ đầu tiên.
 
 ## Tài liệu liên quan

@@ -33,8 +33,8 @@ Lộ trình dưới đây chia dự án thành các giai đoạn có thể kiể
 
 - Review [Bounded Contexts](../domain/BOUNDED_CONTEXTS.md), [ERD](../database/ERD.md), [API Contracts](../api/API-CONTRACTS.md), [Event Contracts](../architecture/EVENT-CONTRACTS.md) và [Business Rules](../domain/BUSINESS-RULES.md).
 - Xác nhận các API/event cần cho luồng MVP, ownership của status và vị trí idempotency record.
-- Làm rõ transaction limits, business-day rules, approval policy snapshot, managing-branch cardinality và interbank settlement nếu các mục này chặn luồng định triển khai.
-- Duyệt lựa chọn kỹ thuật cần cho giai đoạn nền tảng: Identity Provider, gateway, broker, internal communication và rollout. Không cần chốt lựa chọn không ảnh hưởng phase hiện tại.
+- Làm rõ transaction limits, business-day rules, approval policy snapshot và interbank settlement nếu các mục này chặn luồng định triển khai.
+- Duyệt lựa chọn kỹ thuật cần cho từng implementation slice; Phase 2 identity, branch cardinality and synchronous REST baseline are recorded in [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md). Gateway, broker and production rollout remain open where not needed.
 
 **Hoàn tất khi:** các contract cho phase kế tiếp nhất quán; không biến đề xuất thành yêu cầu; các quyết định chặn được ghi nhận và duyệt.
 
@@ -53,10 +53,10 @@ Kế hoạch triển khai chi tiết: [Phase 1 — Technical Foundation](./phase
 
 Kế hoạch triển khai chi tiết: [Phase 2 — Identity, Party, Corporate and Branch](./phase/Phase-2-Identity-Party-Corporate-Branch.md).
 
-- Xây dựng authentication/authorization theo Identity Provider đã được chọn; identity không sở hữu tài khoản tiền gửi.
+- Xây dựng authentication/authorization theo Keycloak/OIDC và RBAC + scoped grants đã được duyệt tại [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md); identity không sở hữu tài khoản tiền gửi.
 - Tạo và quản lý Party/Customer cá nhân, doanh nghiệp.
 - Tạo Organization, membership và mandate tối thiểu cần cho corporate authorization.
-- Quản lý Branch; phân biệt managing branch với transaction processing branch.
+- Quản lý Branch; mỗi customer có một primary managing branch tại một thời điểm, phân biệt với transaction-processing branch.
 - Ghi audit cho thao tác nhạy cảm ngay từ các luồng đầu tiên.
 
 **Hoàn tất khi:** onboarding customer/organization và branch scope có thể kiểm thử; quyền user, organization và Teller/branch không dựa duy nhất vào API Gateway.
