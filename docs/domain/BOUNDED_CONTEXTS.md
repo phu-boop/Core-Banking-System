@@ -1,6 +1,6 @@
 # Bounded Contexts
 
-12 contexts dưới đây là service boundaries **PROPOSED** theo kiến trúc microservices ACCEPTED; chưa xác minh có service nào được triển khai. Mỗi service sở hữu schema tương ứng trong [ERD](../database/ERD.md). Mọi reference sang context khác là ID/API/event, không phải direct table access hay foreign key.
+12 contexts dưới đây là service boundaries **PROPOSED** theo kiến trúc microservices ACCEPTED. Identity & Access, Party / Customer và Branch đã có first-slice implementation; các context còn lại vẫn là thiết kế. Mỗi service sở hữu schema tương ứng trong [ERD](../database/ERD.md). Mọi reference sang context khác là ID/API/event, không phải direct table access hay foreign key.
 
 | Context | Schema | Nguồn dữ liệu sở hữu |
 |---|---|---|
@@ -58,10 +58,10 @@ Chi tiết endpoint/DTO vẫn **PROPOSED**; synchronous service-to-service API d
 - **Trách nhiệm:** quản lý multi-branch, branch status và phạm vi servicing; managing branch và transaction-processing branch là hai khái niệm riêng.
 - **Entities sở hữu (PROPOSED):** `Branch`, branch configuration/status.
 - **Schema:** `branch_schema`.
-- **API:** tạo/đọc/quản lý chi nhánh và kiểm tra branch scope.
+- **API:** first slice tạo/đọc/list branch và kiểm tra branch visibility; quản lý lifecycle/status transitions còn cần contract.
 - **Publish:** branch lifecycle events chưa được yêu cầu đặt tên.
 - **Consume:** Identity grants hoặc domain events nếu cần projection; contract chưa xác định.
-- **Dependencies:** Identity để authorization; Account/Transfer/Teller workflows tham chiếu branch ID. Teller access là branch-scoped; customer reassignment phải được audit.
+- **Dependencies:** Identity để authorization; Account/Transfer/Teller workflows tham chiếu branch ID. First slice nhận global permission và scoped branch-read grants từ validated JWT theo claim convention provisional; mapping chính thức với Identity/Keycloak còn OPEN. Teller access là branch-scoped; customer reassignment phải được audit.
 - **Không được:** sở hữu Teller credentials/roles, customer/account, hoặc ghi financial transaction.
 
 ## 5. Account

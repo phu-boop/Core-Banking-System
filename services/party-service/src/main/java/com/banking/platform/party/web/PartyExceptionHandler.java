@@ -4,6 +4,7 @@ import com.banking.platform.party.application.PartyService.InvalidPartyException
 import com.banking.platform.party.application.PartyService.PartyNotFoundException;
 import com.banking.platform.party.application.PartyService.StalePartyVersionException;
 import com.banking.platform.party.application.PartyService.IdempotencyConflictException;
+import com.banking.platform.party.application.PartyService.IdempotencyInProgressException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,12 @@ public class PartyExceptionHandler {
     public ResponseEntity<Map<String, Object>> idempotencyConflict(IdempotencyConflictException exception,
                                                           HttpServletRequest request) {
         return error(HttpStatus.CONFLICT, "IDEMPOTENCY_CONFLICT", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(IdempotencyInProgressException.class)
+    public ResponseEntity<Map<String, Object>> idempotencyInProgress(IdempotencyInProgressException exception,
+                                                             HttpServletRequest request) {
+        return error(HttpStatus.CONFLICT, "IDEMPOTENCY_IN_PROGRESS", exception.getMessage(), request);
     }
 
     private ResponseEntity<Map<String, Object>> error(HttpStatus status, String code,

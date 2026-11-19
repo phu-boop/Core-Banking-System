@@ -102,7 +102,7 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 
 **Đầu ra:** customer/party lifecycle tối thiểu, PII được giới hạn và audit/log không lộ dữ liệu nhạy cảm.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** First slice đã triển khai trong `party-service`; soft-match fields/thresholds, owner-side scoped-grant resolution với Identity, và `PartyCreated` broker/outbox vẫn còn OPEN.
 
 ### 2.4 — Corporate
 
@@ -129,7 +129,7 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 
 **Đầu ra:** branch scope và status có thể dùng làm reference bởi Party/Account/Transfer ở phase sau.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** First slice đã triển khai trong `branch-service` (create/read/list, `branch_schema`, case-insensitive unique code và scoped branch-read visibility). Identity/Keycloak claim mapping và status lifecycle transitions vẫn còn OPEN.
 
 ### 2.6 — Authorization và tích hợp cross-service
 

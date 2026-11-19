@@ -92,6 +92,12 @@ class PartyEndpointIntegrationTests {
                 .locations("classpath:db/migration")
                 .load()
                 .migrate();
+        try (Connection connection = DriverManager.getConnection(
+                POSTGRES.getJdbcUrl(), "postgres", "test-admin-password");
+                var statement = connection.createStatement()) {
+            statement.execute("CREATE SCHEMA other_service_schema AUTHORIZATION postgres");
+            statement.execute("CREATE TABLE other_service_schema.private_probe (id UUID PRIMARY KEY)");
+        }
     }
 
     @BeforeEach
@@ -168,9 +174,20 @@ class PartyEndpointIntegrationTests {
     }
 
     @Test
-    void runtimeRoleCannotModifyPartyOrAccessOtherSchema() {
+    void runtimeRoleCanMutateOwnedPartyButCannotAccessFlywayOrOtherSchema() {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM party_schema.party", Integer.class)).isZero();
+        UUID partyId = UUID.randomUUID();
+        jdbcTemplate.update("""
+                INSERT INTO party_schema.party
+                    (party_id, party_type, status, display_name, version)
+                VALUES (?, 'INDIVIDUAL', 'ACTIVE', 'Test', 0)
+                """, partyId);
+        assertThat(jdbcTemplate.update("""
+                UPDATE party_schema.party
+                SET display_name = 'Updated'
+                WHERE party_id = ?
+                """, partyId)).isEqualTo(1);
         assertThatThrownBy(() -> jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM party_schema.flyway_schema_history", Integer.class))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
@@ -178,7 +195,7 @@ class PartyEndpointIntegrationTests {
                 "SELECT count(*) FROM other_service_schema.private_probe", Integer.class))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM party_schema.party", Integer.class)).isZero();
+                "SELECT count(*) FROM party_schema.party", Integer.class)).isEqualTo(1);
     }
 
     private HttpHeaders bearerHeaders(String token, String idempotencyKey) {

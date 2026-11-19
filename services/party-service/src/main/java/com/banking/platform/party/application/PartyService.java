@@ -32,7 +32,16 @@ public class PartyService {
                                 String correlationId) {
         validateCreate(request);
         String hash = payloadHash(request);
-        var existing = jdbcTemplate.query("""
+        int reservationInserted = jdbcTemplate.update("""
+                INSERT INTO party_schema.idempotency_record
+                    (actor, operation, business_scope, idempotency_key, payload_hash,
+                     status_code, response_body, expires_at)
+                VALUES (?, 'PARTY_CREATE', 'CUSTOMER', ?, ?, 202, '', ?)
+                ON CONFLICT (actor, operation, business_scope, idempotency_key) DO NOTHING
+                """, actor, idempotencyKey, hash,
+                Timestamp.from(Instant.now().plusSeconds(24 * 60 * 60)));
+
+        var reservation = jdbcTemplate.query("""
                 SELECT payload_hash, response_body, expires_at
                 FROM party_schema.idempotency_record
                 WHERE actor = ? AND operation = 'PARTY_CREATE'
@@ -41,18 +50,28 @@ public class PartyService {
                         rs.getString("payload_hash"),
                         rs.getString("response_body"),
                         rs.getTimestamp("expires_at").toInstant()), actor, idempotencyKey);
-        if (!existing.isEmpty()) {
-            var record = existing.getFirst();
-            if (record.expiresAt().isBefore(Instant.now())) {
-                // Continue and replace this expired record below.
-            } else if (!record.payloadHash().equals(hash)) {
+        if (!reservation.isEmpty()) {
+            var record = reservation.getFirst();
+            if (!record.payloadHash().equals(hash)) {
                 throw new IdempotencyConflictException();
-            } else {
+            }
+            if (record.expiresAt().isBefore(Instant.now())) {
+                jdbcTemplate.update("""
+                        UPDATE party_schema.idempotency_record
+                        SET payload_hash = ?, response_body = '', status_code = 202,
+                            expires_at = ?, created_at = CURRENT_TIMESTAMP
+                        WHERE actor = ? AND operation = 'PARTY_CREATE'
+                          AND business_scope = 'CUSTOMER' AND idempotency_key = ?
+                        """, hash, Timestamp.from(Instant.now().plusSeconds(24 * 60 * 60)),
+                        actor, idempotencyKey);
+            } else if (!record.responseBody().isBlank()) {
                 try {
                     return objectMapper.readValue(record.responseBody(), PartyResponse.class);
                 } catch (Exception exception) {
                     throw new IllegalStateException("Cannot replay party create response", exception);
                 }
+            } else if (reservationInserted == 0) {
+                throw new IdempotencyInProgressException();
             }
         }
         UUID partyId = UUID.randomUUID();
@@ -61,19 +80,12 @@ public class PartyService {
                 correlationId, partyId, request.managingBranchId());
         try {
             jdbcTemplate.update("""
-                    INSERT INTO party_schema.idempotency_record
-                        (actor, operation, business_scope, idempotency_key, payload_hash,
-                         status_code, response_body, expires_at)
-                    VALUES (?, 'PARTY_CREATE', 'CUSTOMER', ?, ?, 201, ?, ?)
-                    ON CONFLICT (actor, operation, business_scope, idempotency_key)
-                    DO UPDATE SET payload_hash = EXCLUDED.payload_hash,
-                                  status_code = EXCLUDED.status_code,
-                                  response_body = EXCLUDED.response_body,
-                                  expires_at = EXCLUDED.expires_at,
-                                  created_at = CURRENT_TIMESTAMP
-                    """, actor, idempotencyKey, hash,
-                    objectMapper.writeValueAsString(party),
-                    Timestamp.from(Instant.now().plusSeconds(24 * 60 * 60)));
+                    UPDATE party_schema.idempotency_record
+                    SET status_code = 201, response_body = ?
+                    WHERE actor = ? AND operation = 'PARTY_CREATE'
+                      AND business_scope = 'CUSTOMER' AND idempotency_key = ?
+                    """, objectMapper.writeValueAsString(party),
+                    actor, idempotencyKey);
         } catch (Exception exception) {
             throw new IllegalStateException("Cannot store party idempotency result", exception);
         }
@@ -150,6 +162,12 @@ public class PartyService {
     public static class IdempotencyConflictException extends RuntimeException {
         public IdempotencyConflictException() {
             super("Idempotency key was reused with a different payload");
+        }
+    }
+
+    public static class IdempotencyInProgressException extends RuntimeException {
+        public IdempotencyInProgressException() {
+            super("The idempotent request is already in progress");
         }
     }
 

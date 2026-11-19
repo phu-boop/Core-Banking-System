@@ -52,9 +52,9 @@ Use RBAC with `SELF`, `ORGANIZATION` and `BRANCH` scoped grants. Resource owners
 ## API and event scope — exact contracts remain open
 
 - Identity: resolve the Keycloak-validated external subject to an active internal `userId` and approved principal context. Token issuance and login stay in Keycloak.
-- Party: create/read/update a customer Party and only approved individual profile fields, with resource-level authorization and optimistic version checks for updates.
+- Party: create/read/update a customer Party and only approved individual profile fields, with resource-level authorization and optimistic version checks for updates. The first implementation is available in `party-service`; PII fields and match thresholds remain OPEN.
 - Corporate: create/read an Organization and manage membership/mandate under organization-scoped permissions. Approval execution is not included in this first slice.
-- Branch: create/read/list branch records and enforce branch-administration permissions.
+- Branch: create/read/list branch records and enforce branch-administration permissions. The first implementation is available in `branch-service`; claim mapping and lifecycle transitions remain OPEN.
 - Events: `PartyCreated` remains a proposed event. Do not select or implement event transport until broker approval; synchronous owner APIs may be used where required by an approved flow.
 - Each command API states whether it uses idempotency and defines its business scope. When used, apply actor + operation + business scope, 24-hour default retention, same-payload replay and different-payload `409` behavior. Key format/storage are not prescribed.
 
@@ -69,6 +69,7 @@ Exact routes, request/response fields, error mapping and event payloads remain s
 | Approved PII profile fields, match attributes, weights, thresholds and retention | OPEN | Party schema, validation and duplicate review |
 | Jurisdiction-specific organization legal identifiers/uniqueness | OPEN | Corporate schema and onboarding |
 | Full role catalog, permission vocabulary and grant inheritance | OPEN | Detailed grant model and endpoint authorization |
+| Canonical Keycloak claim mapping for the first-slice Branch permissions and scoped grants | OPEN | Production authorization integration; current `branch_permissions` / `branch_grants` mapping is provisional |
 | Managing-branch assignment timing, reassignment workflow/effective date | OPEN | Party schema constraints and branch-change API |
 | Idempotency key format, storage and operation-specific business scopes | OPEN | Per-command schema/API implementation |
 | Audit storage, tamper-evidence, read access matrix, retention enforcement and archival | OPEN | Durable audit implementation and production operations |

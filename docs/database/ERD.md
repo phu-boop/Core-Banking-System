@@ -66,7 +66,7 @@ All IDs below are opaque identifiers; UUID is a **PROPOSED** implementation choi
 | `corporate_schema.approval_policy` | `policy_id` PK; `organization_id`; policy config/version/effective status; snapshot semantics OPEN | UNIQUE `(organization_id, policy_version)`; `(organization_id, status)` |
 | `corporate_schema.approval_request` | `approval_id` PK; `organization_id`, `transfer_id` references; policy version reference; status | `(organization_id, status)`, `(transfer_id)` |
 | `corporate_schema.approval_step` | `approval_step_id` PK; `approval_id` same-schema FK; step sequence, assigned/deciding actor references, decision/time | UNIQUE `(approval_id, step_number)`; `(approval_id, decision)` |
-| `branch_schema.branch` | `branch_id` PK; branch code UNIQUE within the bank; name/status | `(status)` |
+| `branch_schema.branch` | `branch_id` PK; branch code unique without case sensitivity; name/status; created/updated timestamps | `(status, name, branch_id)` |
 | `account_schema.account` | `account_id` PK; `account_number` UNIQUE; logical `party_id` reference; account type/status; `currency` constrained to VND in MVP | `(party_id, status)` |
 | `account_schema.account_status_history` | `history_id` PK; `account_id` same-schema FK; status/reason/actor/time | `(account_id, changed_at)` |
 | `transaction_schema.financial_transaction` | `transaction_id` PK; operation type/status; idempotency scope/key; correlation refs | Idempotency follows actor + operation + business scope and 24-hour default when used; exact scope/storage per API remain to be designed; `(status, created_at)` |
@@ -88,6 +88,7 @@ All IDs below are opaque identifiers; UUID is a **PROPOSED** implementation choi
 - Account numbers, branch codes, policy versions and external references have uniqueness scope to be confirmed.
 - A customer has one primary managing branch at a time; it is a single logical reference distinct from transaction-processing branch. Whether assignment is required at customer creation and reassignment workflow/effective-date rules remain to be defined. See [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
 - Each Corporate Organization maps 1:1 to one Party of type `ORGANIZATION` through a logical reference; there is no cross-schema FK. Organization legal-identity fields and jurisdiction-specific uniqueness remain OPEN.
+- The first `branch_schema` migration implements branch code/name/status and case-insensitive code uniqueness; status transition and lifecycle operations remain OPEN.
 - Party duplicate detection uses soft match and human review. Do not add default uniqueness on National ID, phone or email, or auto-merge/delete candidates. Matching fields and thresholds remain OPEN.
 - External destination data and provider identifiers are not modeled beyond references until interbank provider/protocol are known.
 - Do not add FK between schemas even if all schemas reside in one PostgreSQL database.

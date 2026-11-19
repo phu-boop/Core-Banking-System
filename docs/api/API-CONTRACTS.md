@@ -51,7 +51,9 @@ Keycloak owns login and token issuance. Use Authorization Code + PKCE for intera
 |---|---|---|---|---|---|
 | `POST /v1/branches` | `code`, `name`, optional approved metadata → `branchId`, status | Unique code; required fields | Branch administration permission | duplicate code, invalid data, forbidden | Key recommended |
 | `GET /v1/branches/{branchId}` | none → branch metadata/status | Valid ID | Branch visibility scope | not found/not visible, forbidden | Not applicable |
-| `GET /v1/branches` | filters/page → branch page | Validate filters/page bounds after policy chosen | Branch-scoped permission | invalid filter, forbidden | Not applicable |
+| `GET /v1/branches` | optional `status`, `page` (default `0`), `size` (default `20`) → branch page | `page >= 0`; `1 <= size <= 100`; status is `ACTIVE` or `INACTIVE` | Branch-scoped permission; list includes only branches visible to the caller unless caller has global branch-read permission | invalid filter/page, forbidden | Not applicable |
+
+The Branch first slice uppercases trimmed codes, trims names, and treats codes as case-insensitively unique. Its current `branch_permissions` / `branch_grants` JWT claim mapping is provisional; the canonical permission catalog and Identity/Keycloak claim mapping remain OPEN. Branch status transitions are not implemented in this slice.
 
 ## Account
 
