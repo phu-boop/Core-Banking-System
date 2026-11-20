@@ -1,6 +1,6 @@
 # Bounded Contexts
 
-12 contexts dưới đây là service boundaries **PROPOSED** theo kiến trúc microservices ACCEPTED. Identity & Access, Party / Customer và Branch đã có first-slice implementation; các context còn lại vẫn là thiết kế. Mỗi service sở hữu schema tương ứng trong [ERD](../database/ERD.md). Mọi reference sang context khác là ID/API/event, không phải direct table access hay foreign key.
+12 contexts dưới đây là service boundaries **PROPOSED** theo kiến trúc microservices ACCEPTED. Identity & Access, Party / Customer, Branch và Corporate Organization đã có first-slice implementation; các capability còn lại vẫn là thiết kế. Mỗi service sở hữu schema tương ứng trong [ERD](../database/ERD.md). Mọi reference sang context khác là ID/API/event, không phải direct table access hay foreign key.
 
 | Context | Schema | Nguồn dữ liệu sở hữu |
 |---|---|---|
@@ -45,12 +45,12 @@ Chi tiết endpoint/DTO vẫn **PROPOSED**; synchronous service-to-service API d
 ## 3. Corporate
 
 - **Trách nhiệm:** quản lý organization, membership, mandate, quyền nghiệp vụ doanh nghiệp và configurable approval policy/workflow.
-- **Entities sở hữu (PROPOSED):** `Organization`, `Membership`, `Mandate`, `ApprovalPolicy`, `ApprovalRequest`, `ApprovalStep`, `ApprovalHistory`.
+- **Entities sở hữu (PROPOSED):** `Organization`, `Membership`, `Mandate`, `ApprovalPolicy`, `ApprovalRequest`, `ApprovalStep`, `ApprovalHistory`. First slice hiện sở hữu Organization với logical `partyId` và status; các aggregate khác chưa triển khai.
 - **Schema:** `corporate_schema`; mỗi Organization tham chiếu đúng một Party loại `ORGANIZATION` qua logical `partyId` theo ADR-012, không phải FK.
-- **API:** quản lý organization/members/mandates/policy và approval/decision; kiểm tra người duyệt đủ điều kiện.
+- **API:** first slice tạo/đọc Organization sau khi Party owner xác nhận `partyId` thuộc loại `ORGANIZATION`; membership/mandate/policy và approval/decision chưa triển khai.
 - **Publish:** `TransferApproved` sau quyết định; denial/change events chưa được xác định.
 - **Consume:** `PartyCreated`, `TransferRequested`; có thể cần Identity grants/Branch refs qua API.
-- **Dependencies:** Party IDs, Identity actor/grants, Transfer workflow và Audit; policy snapshot semantics còn OPEN.
+- **Dependencies:** Party owner API qua REST và Keycloak Client Credentials; claim/audience mapping cần cấu hình và xác nhận. Identity actor/grants, Transfer workflow và Audit là dependencies cho capability sau; policy snapshot semantics còn OPEN.
 - **Không được:** tự ghi ledger, xác nhận external settlement, sở hữu customer credential hoặc bypass Maker–Checker.
 
 ## 4. Branch

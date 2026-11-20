@@ -89,6 +89,7 @@ All IDs below are opaque identifiers; UUID is a **PROPOSED** implementation choi
 - A customer has one primary managing branch at a time; it is a single logical reference distinct from transaction-processing branch. Whether assignment is required at customer creation and reassignment workflow/effective-date rules remain to be defined. See [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
 - Each Corporate Organization maps 1:1 to one Party of type `ORGANIZATION` through a logical reference; there is no cross-schema FK. Organization legal-identity fields and jurisdiction-specific uniqueness remain OPEN.
 - The first `branch_schema` migration implements branch code/name/status and case-insensitive code uniqueness; status transition and lifecycle operations remain OPEN.
+- The first `corporate_schema` migration implements `organization` with a unique logical `party_id` and an organization audit table. Corporate validates the Party type through the Party owner API; Membership, Mandate and Approval tables are not part of this first slice.
 - Party duplicate detection uses soft match and human review. Do not add default uniqueness on National ID, phone or email, or auto-merge/delete candidates. Matching fields and thresholds remain OPEN.
 - External destination data and provider identifiers are not modeled beyond references until interbank provider/protocol are known.
 - Do not add FK between schemas even if all schemas reside in one PostgreSQL database.

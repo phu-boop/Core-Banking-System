@@ -15,7 +15,7 @@ public class IdentityPrincipalService {
     public IdentityPrincipalService(IdentityMappingRepository identityMappingRepository) {
         this.identityMappingRepository = identityMappingRepository;
     }
-
+    
     @Transactional(readOnly = true)
     public IdentityPrincipalResponse resolve(String issuer, String subject) {
         var mapping = identityMappingRepository.findByIssuerAndSubject(issuer, subject)

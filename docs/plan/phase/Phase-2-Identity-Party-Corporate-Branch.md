@@ -116,7 +116,9 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 
 **Đầu ra:** corporate onboarding và approval eligibility có thể kiểm thử; không thực hiện transfer hoặc Ledger posting.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** Organization first slice đã triển khai trong `corporate-service`: tạo/đọc Organization, xác thực Party type qua owner API và giữ unique logical `partyId`. Legal profile, Membership, Mandate, ApprovalPolicy/history và approval execution chưa triển khai; các chi tiết role/policy còn OPEN.
+
+Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–Checker và approval history; không bao gồm Transfer/Ledger execution) nằm tại [Corporate Approval implementation plan](./corporate-approval/plan.md). Membership/Mandate implementations hoặc owner interfaces đã duyệt, cùng các decision gate được liệt kê trong plan, là prerequisites trước khi triển khai workflow.
 
 ### 2.5 — Branch
 

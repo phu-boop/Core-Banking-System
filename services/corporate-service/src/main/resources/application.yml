@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: corporate-service
+  datasource:
+    url: ${CORPORATE_DATASOURCE_URL:}
+    username: ${CORPORATE_DATASOURCE_USERNAME:}
+    password: ${CORPORATE_DATASOURCE_PASSWORD:}
+  flyway:
+    enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          party-service:
+            provider: keycloak
+            client-id: ${CORPORATE_PARTY_CLIENT_ID:}
+            client-secret: ${CORPORATE_PARTY_CLIENT_SECRET:}
+            authorization-grant-type: client_credentials
+            scope: ${CORPORATE_PARTY_SCOPE:party.read}
+        provider:
+          keycloak:
+            token-uri: ${KEYCLOAK_TOKEN_URI:}
+
+corporate:
+  security:
+    issuer-uri: ${KEYCLOAK_ISSUER_URI:}
+    jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:}
+    audience: ${CORPORATE_TOKEN_AUDIENCE:}
+    party-service-base-url: ${PARTY_SERVICE_BASE_URL:}
+    party-client-id: ${CORPORATE_PARTY_CLIENT_ID:}
+    party-client-secret: ${CORPORATE_PARTY_CLIENT_SECRET:}
+    token-uri: ${KEYCLOAK_TOKEN_URI:}
+
+server:
+  port: ${SERVER_PORT:8083}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+      show-details: never
+
+logging:
+  structured:
+    format:
+      console: logstash

@@ -1,0 +1,97 @@
+# Plan-to-Tasks Traceability Checkpoint
+metadata:
+  generated: "2026-11-20"
+  source_plan: "docs/plan/phase/corporate-approval/plan.md"
+  target_tasks: "Tasks are embedded in docs/plan/phase/corporate-approval/plan.md"
+
+summary:
+  total_plan_items: 7
+  covered_plan_items: 7
+  missing_plan_items: 0
+  coverage_percentage: 100.0
+  total_tasks_generated: 15
+  orphan_tasks: 0
+
+phases:
+  - phase_id: "P1"
+    phase_name: "Decision and contract gates"
+    items:
+      - item_id: "P1.1"
+        description: "Resolve Approval behavior and approve the feature baseline."
+        tasks: ["T001"]
+        notes: "Blocking gate; no implementation before owner-approved feature spec and decisions."
+      - item_id: "P1.2"
+        description: "Finalize Corporate approval data and API contracts."
+        tasks: ["T002"]
+        notes: "Must follow P1.1."
+  - phase_id: "P2"
+    phase_name: "Foundational persistence"
+    items:
+      - item_id: "P2.1"
+        description: "Add Corporate approval persistence and domain model."
+        tasks: ["T003", "T004", "T005"]
+        notes: "Must follow approved P1.1 and P1.2 contracts."
+  - phase_id: "P3"
+    phase_name: "Policy administration"
+    items:
+      - item_id: "P3.1"
+        description: "Implement policy administration."
+        tasks: ["T006", "T007", "T008"]
+        notes: "Lifecycle must match approved contract."
+  - phase_id: "P4"
+    phase_name: "Approval workflow and API"
+    items:
+      - item_id: "P4.1"
+        description: "Implement approval request and decision workflow."
+        tasks: ["T009", "T010", "T011"]
+        notes: "Implement only explicitly approved transitions."
+      - item_id: "P4.2"
+        description: "Expose approval APIs and enforce command safety."
+        tasks: ["T012", "T013"]
+        notes: "Authorization and idempotency must be implemented with the endpoints."
+  - phase_id: "P5"
+    phase_name: "Verification and documentation"
+    items:
+      - item_id: "P5.1"
+        description: "Verify behavior, isolation, and audit evidence."
+        tasks: ["T014", "T015"]
+        notes: "Acceptance includes corporate-service Maven verify."
+
+missing_plan_items: []
+orphan_tasks: []
+
+upstream_trace:
+  - plan_item: "P1.1"
+    source_requirements: ["REQ-APR-001", "REQ-APR-002", "REQ-APR-003", "REQ-APR-004", "REQ-APR-005"]
+    tasks: ["T001"]
+    full_trace: "ADR-007 / Business Rules → REQ-APR-* → P1.1 → T001"
+  - plan_item: "P1.2"
+    source_requirements: ["REQ-APR-001", "REQ-APR-003", "REQ-APR-005"]
+    tasks: ["T002"]
+    full_trace: "ADR-007 / API Contracts / ERD → REQ-APR-* → P1.2 → T002"
+  - plan_item: "P2.1"
+    source_requirements: ["REQ-APR-001", "REQ-APR-003", "REQ-APR-005"]
+    tasks: ["T003", "T004", "T005"]
+    full_trace: "Approved design → REQ-APR-* → P2.1 → T003,T004,T005"
+  - plan_item: "P3.1"
+    source_requirements: ["REQ-APR-001", "REQ-APR-005"]
+    tasks: ["T006", "T007", "T008"]
+    full_trace: "Approved policy lifecycle → REQ-APR-* → P3.1 → T006,T007,T008"
+  - plan_item: "P4.1"
+    source_requirements: ["REQ-APR-001", "REQ-APR-002", "REQ-APR-003", "REQ-APR-004", "REQ-APR-005"]
+    tasks: ["T009", "T010", "T011"]
+    full_trace: "Approved workflow → REQ-APR-* → P4.1 → T009,T010,T011"
+  - plan_item: "P4.2"
+    source_requirements: ["REQ-APR-002", "REQ-APR-003", "REQ-APR-004"]
+    tasks: ["T012", "T013"]
+    full_trace: "Approved API/security contract → REQ-APR-* → P4.2 → T012,T013"
+  - plan_item: "P5.1"
+    source_requirements: ["REQ-APR-001", "REQ-APR-002", "REQ-APR-003", "REQ-APR-004", "REQ-APR-005"]
+    tasks: ["T014", "T015"]
+    full_trace: "Approved acceptance criteria → REQ-APR-* → P5.1 → T014,T015"
+
+validation:
+  passed: true
+  errors: []
+  warnings:
+    - "Traceability is complete against the plan-local requirements; feature-spec approval is still a prerequisite."

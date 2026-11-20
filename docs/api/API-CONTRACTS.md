@@ -1,6 +1,6 @@
 # API Contracts
 
-**Status:** tất cả endpoint nghiệp vụ dưới đây là **PROPOSED** design contracts, không phải API đã tồn tại. Repository hiện chỉ có service template kỹ thuật với health endpoints, chưa có business API implementation. REST is accepted for synchronous service-to-service calls in the first implementation slice by [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md); API Gateway technology remains OPEN. Keycloak/OIDC is the initial Identity Provider. Request/response examples are schematic; enum values, limits, routes and detailed field rules require domain review.
+**Status:** tài liệu này là design contract; các mục chưa triển khai vẫn là **PROPOSED**. First slices của Party, Branch và Corporate đã có business API tương ứng trong repository; Identity, Membership, Mandate, approval và các domain khác vẫn là thiết kế. REST is accepted for synchronous service-to-service calls in the first implementation slice by [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md); API Gateway technology remains OPEN. Keycloak/OIDC is the initial Identity Provider. Request/response examples are schematic; enum values, limits, routes and detailed field rules require domain review.
 
 ## Conventions
 
@@ -41,9 +41,11 @@ Keycloak owns login and token issuance. Use Authorization Code + PKCE for intera
 
 | Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
-| `POST /v1/organizations` | `partyId`, organization profile → `organizationId`, status | Party must be type `ORGANIZATION`; exactly one logical Party reference per Organization and one-to-one mapping; required legal data TBD | Corporate onboarding permission | invalid profile, party absent/wrong type, duplicate organization, forbidden | If enabled, actor + operation + organization business scope; 24-hour default; exact scope and key storage are per-operation decisions |
+| `POST /v1/organizations` | `partyId` → `organizationId`, status | Party must be type `ORGANIZATION`; exactly one logical Party reference per Organization and one-to-one mapping; legal profile fields TBD | Corporate onboarding permission | invalid/missing Party, wrong Party type, duplicate organization, forbidden | If enabled, actor + operation + organization business scope; 24-hour default; exact scope and key storage are per-operation decisions |
 | `POST /v1/organizations/{organizationId}/members` | `userId`, membership role/scope → `membershipId`, status | Organization/user active; role/scope allowed by policy | Organization admin/mandate grant, checked by Corporate | org/user absent, duplicate membership, insufficient mandate, forbidden | Key recommended |
 | `GET /v1/organizations/{organizationId}` | none → organization profile and status | Valid ID | Organization-level authorization | not found/not visible, forbidden | Not applicable |
+
+The Corporate Organization first slice currently implements only `partyId` and `ACTIVE` status; legal profile data, Membership, Mandate and ApprovalPolicy are excluded. Corporate validates the logical Party reference by calling Party's owner API with a Keycloak Client Credentials token. The service client must be configured for the Party API audience and `party:read`; exact Keycloak client/claim mapping remains OPEN.
 
 ## Branch
 
