@@ -30,7 +30,7 @@ public class OrganizationController {
             @AuthenticationPrincipal Jwt jwt,
             HttpServletRequest servletRequest) {
         OrganizationResponse response = organizationService.create(
-                request, jwt, servletRequest.getHeader("X-Correlation-Id"));
+                request, jwt, (String) servletRequest.getAttribute(CorrelationIdFilter.CORRELATION_ID_ATTRIBUTE));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

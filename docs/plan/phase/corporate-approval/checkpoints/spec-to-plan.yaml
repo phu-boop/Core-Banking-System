@@ -1,108 +1,76 @@
 # Spec-to-Plan Traceability Checkpoint
 metadata:
   generated: "2026-11-20"
-  source_spec: "Derived requirements from docs/adr/ADR-007-configurable-corporate-approval.md and docs/domain/BUSINESS-RULES.md; standalone feature spec not yet approved"
+  source_spec: "docs/specs/corporate-approval/feature-spec.md"
   target_plan: "docs/plan/phase/corporate-approval/plan.md"
 
 summary:
-  total_requirements: 5
-  covered_requirements: 5
+  total_requirements: 10
+  covered_requirements: 10
   missing_requirements: 0
   coverage_percentage: 100.0
 
 requirements:
-  - req_id: "REQ-APR-001"
-    req_description: "Approval policies are configurable and support multiple approval levels."
+  - req_id: "REQ-001"
+    req_description: "Organization-scoped configurable policies with ordered levels, explicit activation, and one active version per operation type."
     priority: "P1"
     plan_mapping:
       phase: "Corporate Approval"
-      phase_name: "Corporate policy and workflow"
-      items:
-        - item_id: "P1.1"
-          description: "Approve scope, policy behavior and feature baseline."
-        - item_id: "P1.2"
-          description: "Finalize policy, request and API contracts."
-        - item_id: "P2.1"
-          description: "Persist immutable policy versions and approval workflow records."
-        - item_id: "P3.1"
-          description: "Implement policy administration."
-        - item_id: "P4.1"
-          description: "Implement multi-level approval workflow."
-        - item_id: "P5.1"
-          description: "Verify policy and workflow behavior."
-    notes: "Derived from accepted ADR-007; IDs are plan-local until the feature spec is approved."
-  - req_id: "REQ-APR-002"
-    req_description: "Approval enforces Maker–Checker and disallows self-approval."
+      items: ["P1.1", "P1.2", "P2.1", "P3.1", "P4.1", "P5.1"]
+  - req_id: "REQ-002"
+    req_description: "Each request pins the immutable policy version selected at submission."
     priority: "P1"
     plan_mapping:
       phase: "Corporate Approval"
-      phase_name: "Corporate policy and workflow"
-      items:
-        - item_id: "P1.1"
-          description: "Approve Maker–Checker semantics."
-        - item_id: "P4.1"
-          description: "Enforce Maker–Checker in the workflow."
-        - item_id: "P4.2"
-          description: "Enforce authorization at the decision API."
-        - item_id: "P5.1"
-          description: "Verify self-approval denial."
-    notes: "Derived from ADR-007 and the mandatory Corporate Approval rule."
-  - req_id: "REQ-APR-003"
-    req_description: "Approval decisions retain auditable approval history."
+      items: ["P1.1", "P1.2", "P2.1", "P3.1", "P4.1", "P5.1"]
+  - req_id: "REQ-003"
+    req_description: "Approval levels run sequentially; all required levels must approve."
     priority: "P1"
     plan_mapping:
       phase: "Corporate Approval"
-      phase_name: "Corporate policy and workflow"
-      items:
-        - item_id: "P1.1"
-          description: "Approve history fields and retention behavior."
-        - item_id: "P1.2"
-          description: "Finalize the history contract."
-        - item_id: "P2.1"
-          description: "Persist append-only approval history."
-        - item_id: "P4.1"
-          description: "Record decision history atomically."
-        - item_id: "P4.2"
-          description: "Expose approved decision operations."
-        - item_id: "P5.1"
-          description: "Verify history and atomicity."
-    notes: "Derived from ADR-007 and the accepted audit baseline."
-  - req_id: "REQ-APR-004"
-    req_description: "Corporate validates approval authority; callers cannot self-assign role or scope."
+      items: ["P1.1", "P1.2", "P4.1", "P4.2", "P5.1"]
+  - req_id: "REQ-004"
+    req_description: "The maker cannot approve their own request."
     priority: "P1"
     plan_mapping:
       phase: "Corporate Approval"
-      phase_name: "Corporate policy and workflow"
-      items:
-        - item_id: "P1.1"
-          description: "Approve authorization and approver eligibility semantics."
-        - item_id: "P4.1"
-          description: "Validate decision authority in Corporate."
-        - item_id: "P4.2"
-          description: "Enforce owner-side authorization on API requests."
-        - item_id: "P5.1"
-          description: "Verify unauthorized actors are denied."
-    notes: "Derived from the accepted owner-side authorization boundary."
-  - req_id: "REQ-APR-005"
-    req_description: "Each approval request records the applied policy version; behavior on policy changes is explicitly approved."
+      items: ["P1.1", "P4.1", "P4.2", "P5.1"]
+  - req_id: "REQ-005"
+    req_description: "Rejection is terminal; resubmission creates a new request and preserves prior history."
     priority: "P1"
     plan_mapping:
       phase: "Corporate Approval"
-      phase_name: "Corporate policy and workflow"
-      items:
-        - item_id: "P1.1"
-          description: "Approve pending-request policy behavior."
-        - item_id: "P1.2"
-          description: "Finalize versioning and snapshot contract."
-        - item_id: "P2.1"
-          description: "Persist immutable policy version references."
-        - item_id: "P3.1"
-          description: "Prevent mutation of policy versions referenced by requests."
-        - item_id: "P4.1"
-          description: "Pin the approved version to each request."
-        - item_id: "P5.1"
-          description: "Verify behavior when a policy changes."
-    notes: "Version capture is supported by ERD; pending-request semantics remain OPEN pending formal ADR update."
+      items: ["P1.1", "P4.1", "P4.2", "P5.1"]
+  - req_id: "REQ-006"
+    req_description: "Expiry and delegation are not supported in the MVP."
+    priority: "P1"
+    plan_mapping:
+      phase: "Corporate Approval"
+      items: ["P1.1", "P4.1", "P5.1"]
+  - req_id: "REQ-007"
+    req_description: "Resubmission uses a new request ID and preserves the prior request/history."
+    priority: "P1"
+    plan_mapping:
+      phase: "Corporate Approval"
+      items: ["P1.1", "P4.1", "P4.2", "P5.1"]
+  - req_id: "REQ-008"
+    req_description: "Decision history is append-only and records actor, level, decision, time, and policy version."
+    priority: "P1"
+    plan_mapping:
+      phase: "Corporate Approval"
+      items: ["P1.1", "P1.2", "P2.1", "P4.1", "P4.2", "P5.1"]
+  - req_id: "REQ-009"
+    req_description: "Corporate validates active Membership/Mandate against each level's role/mandate scope, not caller-supplied grants."
+    priority: "P1"
+    plan_mapping:
+      phase: "Corporate Approval"
+      items: ["P1.1", "P4.1", "P4.2", "P5.1"]
+  - req_id: "REQ-010"
+    req_description: "Approval accepts an opaque owner-supplied operation type/reference and does not execute financial operations."
+    priority: "P1"
+    plan_mapping:
+      phase: "Corporate Approval"
+      items: ["P1.1", "P1.2", "P4.1", "P4.2", "P5.1"]
 
 missing_requirements: []
 orphan_plan_items: []
@@ -111,5 +79,5 @@ validation:
   passed: true
   errors: []
   warnings:
-    - "No standalone Approval feature specification or constitution exists; derive/approve REQ IDs before implementation."
-    - "Policy lifecycle and rejection/expiry/delegation/resubmission semantics are decision gates, not silently assumed requirements."
+    - "Membership/Mandate implementation and exact Identity claim mapping remain prerequisites for approver authorization."
+    - "No repository constitution file was found; no constitution-specific check could be performed."

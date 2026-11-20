@@ -6,7 +6,7 @@ Các mục có trạng thái **OPEN** dưới đây chưa được chủ dự á
 |---|---|---|
 | 1 | External interbank network / provider / protocol | OPEN |
 | 2 | Managing branch cardinality của customer | RESOLVED — ADR-012 |
-| 3 | Approval policy snapshot và policy change trong khi giao dịch chờ duyệt | OPEN |
+| 3 | Approval policy snapshot và policy change trong khi giao dịch chờ duyệt | RESOLVED — ADR-007 (2026-11-20) |
 | 4 | API Gateway technology | OPEN |
 | 5 | Identity Provider | RESOLVED — ADR-012 |
 | 6 | Kafka hay RabbitMQ | OPEN |
@@ -33,12 +33,13 @@ Các mục có trạng thái **OPEN** dưới đây chưa được chủ dự á
 - Thời điểm phải gán branch, reassignment workflow/effective date và cross-branch operations vẫn OPEN; xem mục 9.
 
 ### 3. Approval policy snapshot
-
-- **Mô tả:** Chưa xác định policy version nào áp dụng nếu policy đổi khi transfer đang chờ duyệt.
-- **Ảnh hưởng:** Approval eligibility, auditability, replay và quyết định có cần đánh giá lại giao dịch đang chờ.
-- **Lựa chọn:** Snapshot policy/version tại lúc tạo; dùng policy mới tại mỗi lần duyệt; hoặc quy tắc chuyển tiếp được chủ dự án định nghĩa.
-- **Recommendation (PROPOSED):** Lưu policy/version và dữ liệu quyết định có thể audit; chính sách áp dụng phải được chủ dự án duyệt.
-- **Status:** OPEN.
+- **Status:** RESOLVED by [ADR-007](../adr/ADR-007-configurable-corporate-approval.md), approved 2026-11-20.
+- Each request is bound to the immutable policy version selected at submission; a later version does not change pending requests.
+- Approval levels run sequentially and all required levels must approve. Rejection is terminal; resubmission creates a new request and preserves prior history.
+- Expiry and delegation are excluded from the MVP.
+- Policy management uses organization-scoped `approval-policy:manage`; activation is explicit, and only one policy version per organization/operation type may be active.
+- Each level declares role/mandate scope; Corporate checks active Membership and Mandate. The owner service supplies an opaque operation type/reference; Corporate does not execute the operation.
+- Detailed thresholds, role/mandate catalogs, Membership/Mandate API contracts, and exact Keycloak claim mapping remain OPEN and are tracked in the Approval feature spec.
 
 ### 4. API Gateway technology
 
@@ -111,7 +112,7 @@ The decisions in [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branc
 - Audit storage, tamper-evidence, read access matrix, retention enforcement and archival.
 - Exact API routes, DTOs, error codes, versioning and per-operation audit requirements.
 - Event broker/transport, `PartyCreated` payload and Outbox publication.
-- Approval execution/policy snapshot and all Account/Ledger/Transfer behavior.
+- Approval thresholds, role/mandate catalog, Membership/Mandate API contracts and exact Keycloak claim mapping; Transfer-level approval enforcement/execution and all Account/Ledger/Transfer behavior.
 
 ## Khác biệt cần giữ rõ
 

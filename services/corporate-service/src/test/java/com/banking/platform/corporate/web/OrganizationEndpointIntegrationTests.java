@@ -114,8 +114,10 @@ class OrganizationEndpointIntegrationTests {
     @BeforeEach
     void resetDatabaseAndConfigureTokens() {
         try (Connection connection = migratorConnection(); var statement = connection.createStatement()) {
-            statement.execute("TRUNCATE TABLE corporate_schema.organization_audit, "
-                    + "corporate_schema.organization");
+            statement.execute("TRUNCATE TABLE corporate_schema.approval_history, "
+                    + "corporate_schema.approval_step, corporate_schema.approval_request, "
+                    + "corporate_schema.approval_policy_level, corporate_schema.approval_policy, "
+                    + "corporate_schema.organization_audit, corporate_schema.organization");
         } catch (Exception exception) {
             throw new IllegalStateException("Could not reset Corporate test data", exception);
         }
@@ -216,6 +218,209 @@ class OrganizationEndpointIntegrationTests {
         assertThatThrownBy(() -> jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM other_service_schema.private_probe", Integer.class))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
+    }
+
+    @Test
+    void createsAndListsOrganizationScopedDraftPolicyWithOrderedLevels() throws Exception {
+        UUID organizationId = createOrganization();
+        String token = policyAdminToken(organizationId);
+        ResponseEntity<String> created = postPolicy(token, organizationId, """
+                {
+                  "operationType":"INTERNAL_TRANSFER",
+                  "levels":[
+                    {"roleCode":"CHECKER_1","mandateScope":"PAYMENT"},
+                    {"roleCode":"CHECKER_2","mandateScope":"PAYMENT"}
+                  ]
+                }
+                """);
+
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        JsonNode policy = objectMapper.readTree(created.getBody());
+        assertThat(policy.get("organizationId").asText()).isEqualTo(organizationId.toString());
+        assertThat(policy.get("operationType").asText()).isEqualTo("INTERNAL_TRANSFER");
+        assertThat(policy.get("version").asInt()).isEqualTo(1);
+        assertThat(policy.get("status").asText()).isEqualTo("DRAFT");
+        assertThat(policy.get("levels").get(0).get("stepNumber").asInt()).isEqualTo(1);
+        assertThat(policy.get("levels").get(1).get("stepNumber").asInt()).isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM corporate_schema.approval_policy_level", Integer.class)).isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM corporate_schema.organization_audit "
+                        + "WHERE action = 'APPROVAL_POLICY_CREATE'", Integer.class)).isEqualTo(1);
+
+        ResponseEntity<String> listed = restTemplate.exchange(
+                "/v1/organizations/" + organizationId + "/approval-policies?operationType=INTERNAL_TRANSFER",
+                HttpMethod.GET, new HttpEntity<>(headers(token)), String.class);
+        assertThat(listed.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(objectMapper.readTree(listed.getBody()).size()).isEqualTo(1);
+    }
+
+    @Test
+    void activatingReplacementPolicyLeavesOnlyOneActiveVersion() throws Exception {
+        UUID organizationId = createOrganization();
+        String token = policyAdminToken(organizationId);
+        UUID firstPolicyId = createPolicy(token, organizationId, "INTERNAL_TRANSFER");
+        assertThat(activatePolicy(token, organizationId, firstPolicyId).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        UUID secondPolicyId = createPolicy(token, organizationId, "INTERNAL_TRANSFER");
+
+        ResponseEntity<String> activated = activatePolicy(token, organizationId, secondPolicyId);
+        assertThat(activated.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM corporate_schema.approval_policy
+                WHERE organization_id = ? AND operation_type = 'INTERNAL_TRANSFER' AND status = 'ACTIVE'
+                """, Integer.class, organizationId)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT status FROM corporate_schema.approval_policy WHERE policy_id = ?
+                """, String.class, firstPolicyId)).isEqualTo("INACTIVE");
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT policy_version FROM corporate_schema.approval_policy WHERE policy_id = ?
+                """, Integer.class, secondPolicyId)).isEqualTo(2);
+        assertThat(activatePolicy(token, organizationId, firstPolicyId).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM corporate_schema.approval_policy
+                WHERE organization_id = ? AND operation_type = 'INTERNAL_TRANSFER' AND status = 'ACTIVE'
+                """, Integer.class, organizationId)).isEqualTo(1);
+    }
+
+    @Test
+    void policyManagementRequiresOrganizationScopedPermission() throws Exception {
+        UUID organizationId = createOrganization();
+        ResponseEntity<String> denied = postPolicy("no-access-token", organizationId, """
+                {"operationType":"INTERNAL_TRANSFER","levels":[
+                  {"roleCode":"CHECKER","mandateScope":"PAYMENT"}
+                ]}
+                """);
+        assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+        String wrongOrganizationToken = policyAdminToken(UUID.randomUUID());
+        ResponseEntity<String> wrongScope = restTemplate.exchange(
+                "/v1/organizations/" + organizationId + "/approval-policies",
+                HttpMethod.GET, new HttpEntity<>(headers(wrongOrganizationToken)), String.class);
+        assertThat(wrongScope.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void rejectsPolicyWithoutOrderedLevels() throws Exception {
+        UUID organizationId = createOrganization();
+        ResponseEntity<String> response = postPolicy(policyAdminToken(organizationId), organizationId, """
+                {"operationType":"INTERNAL_TRANSFER","levels":[]}
+                """);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM corporate_schema.approval_policy", Integer.class)).isZero();
+    }
+
+    @Test
+    void generatedCorrelationIdIsPersistedForPolicyAudit() throws Exception {
+        UUID organizationId = createOrganization();
+        String token = policyAdminToken(organizationId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<String> created = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-policies",
+                new HttpEntity<>("""
+                        {"operationType":"INTERNAL_TRANSFER","levels":[
+                          {"roleCode":"CHECKER","mandateScope":"PAYMENT"}
+                        ]}
+                        """, headers), String.class);
+
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String correlationId = created.getHeaders().getFirst("X-Correlation-Id");
+        assertThat(correlationId).isNotBlank();
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT correlation_id FROM corporate_schema.organization_audit
+                WHERE action = 'APPROVAL_POLICY_CREATE'
+                """, String.class)).isEqualTo(correlationId);
+    }
+
+    @Test
+    void runtimeRoleCannotMutateImmutablePolicyVersionOrLevels() throws Exception {
+        UUID organizationId = createOrganization();
+        UUID policyId = createPolicy(policyAdminToken(organizationId), organizationId, "INTERNAL_TRANSFER");
+
+        assertThatThrownBy(() -> jdbcTemplate.update("""
+                UPDATE corporate_schema.approval_policy
+                SET policy_version = 99
+                WHERE policy_id = ?
+                """, policyId)).isInstanceOf(org.springframework.dao.DataAccessException.class);
+        assertThatThrownBy(() -> jdbcTemplate.update("""
+                UPDATE corporate_schema.approval_policy_level
+                SET role_code = 'UNAUTHORIZED'
+                WHERE policy_id = ?
+                """, policyId)).isInstanceOf(org.springframework.dao.DataAccessException.class);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT policy_version FROM corporate_schema.approval_policy WHERE policy_id = ?
+                """, Integer.class, policyId)).isEqualTo(1);
+    }
+
+    @Test
+    void requestSchemaCannotBindPolicyFromAnotherOrganizationOrOperation() throws Exception {
+        UUID organizationId = createOrganization();
+        UUID otherOrganizationId = createOrganization();
+        UUID policyId = createPolicy(policyAdminToken(organizationId), organizationId, "INTERNAL_TRANSFER");
+
+        assertThatThrownBy(() -> insertApprovalRequest(
+                organizationId, policyId, "DIFFERENT_OPERATION"))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+        assertThatThrownBy(() -> insertApprovalRequest(
+                otherOrganizationId, policyId, "INTERNAL_TRANSFER"))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+    }
+
+    private void insertApprovalRequest(UUID organizationId, UUID policyId, String operationType) {
+        jdbcTemplate.update("""
+                INSERT INTO corporate_schema.approval_request
+                    (approval_request_id, organization_id, policy_id, operation_type,
+                     operation_reference, maker_subject, status)
+                VALUES (?, ?, ?, ?, 'owner-reference', 'test-maker', 'PENDING')
+                """, UUID.randomUUID(), organizationId, policyId, operationType);
+    }
+
+    private UUID createOrganization() {
+        UUID organizationId = UUID.randomUUID();
+        jdbcTemplate.update("""
+                INSERT INTO corporate_schema.organization
+                    (organization_id, party_id, status, created_at, updated_at)
+                VALUES (?, ?, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                """, organizationId, UUID.randomUUID());
+        return organizationId;
+    }
+
+    private String policyAdminToken(UUID organizationId) {
+        String token = "policy-admin-" + organizationId;
+        when(jwtDecoder.decode(token)).thenReturn(jwt(
+                token, "policy-admin-subject", List.of(), List.of(Map.of(
+                        "permission", "approval-policy:manage",
+                        "scopeType", "ORGANIZATION",
+                        "scopeId", organizationId.toString()))));
+        return token;
+    }
+
+    private UUID createPolicy(String token, UUID organizationId, String operationType) throws Exception {
+        ResponseEntity<String> created = postPolicy(token, organizationId, """
+                {"operationType":"%s","levels":[
+                  {"roleCode":"CHECKER","mandateScope":"PAYMENT"}
+                ]}
+                """.formatted(operationType));
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return UUID.fromString(objectMapper.readTree(created.getBody()).get("policyId").asText());
+    }
+
+    private ResponseEntity<String> postPolicy(String token, UUID organizationId, String body) {
+        HttpHeaders headers = headers(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-policies",
+                new HttpEntity<>(body, headers), String.class);
+    }
+
+    private ResponseEntity<String> activatePolicy(String token, UUID organizationId, UUID policyId) {
+        return restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-policies/" + policyId + "/activate",
+                new HttpEntity<>(null, headers(token)), String.class);
     }
 
     private ResponseEntity<String> post(String token, UUID partyId) {

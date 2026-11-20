@@ -1,15 +1,15 @@
 # Implementation Plan: Corporate Approval Core
 
-**Date**: 2026-11-20 | **Status**: Draft for project-owner review
-**Source baseline**: [ADR-007](../../../adr/ADR-007-configurable-corporate-approval.md), [Business Rules](../../../domain/BUSINESS-RULES.md), [Phase 2 Decision Gate](../Phase-2-Decision-Gate.md), [API Contracts](../../../api/API-CONTRACTS.md), [Logical ERD](../../../database/ERD.md)
+**Date**: 2026-11-20 | **Status**: Implementation in progress
+**Source baseline**: [Feature spec](../../../specs/corporate-approval/feature-spec.md), [ADR-007](../../../adr/ADR-007-configurable-corporate-approval.md), [Business Rules](../../../domain/BUSINESS-RULES.md), [Phase 2 Decision Gate](../Phase-2-Decision-Gate.md), [API Contracts](../../../api/API-CONTRACTS.md), [Logical ERD](../../../database/ERD.md)
 
 ## Summary
 
 Plan a Corporate-owned approval capability that supports configurable multi-level approval policies, Maker–Checker, and durable approval history. The first implementation scope is the Corporate policy and approval workflow only. Corporate Membership and Mandate are not implemented yet; their approved data/authorization contracts and owner-side interfaces are prerequisites for approver eligibility and must be delivered before the dependent workflow tasks. Transfer execution, Ledger posting, and payment settlement are excluded; the later Transfer owner must enforce the approval outcome before executing a financial operation.
 
-Proposed default: bind each pending approval request to an immutable policy version selected at submission. This is a recommendation, not yet a recorded ADR decision; formal owner approval is required before schema/API implementation. Rejection, expiry, delegation, resubmission, policy activation/editing, and step-assignment semantics remain explicit decision gates; implementation must not infer them.
+The project owner approved the behavior and policy-management baseline on 2026-11-20 and it is recorded in [ADR-007](../../../adr/ADR-007-configurable-corporate-approval.md): each request pins an immutable policy version at submission; levels are sequential and all must approve; rejection is terminal; expiry and delegation are excluded; resubmission creates a new request ID; makers cannot self-approve; policy management uses an organization-scoped permission and explicit activation; each level declares role/mandate scope; requests carry an opaque operation reference from the owner service. Membership/Mandate interfaces and exact Keycloak claim mappings must be available before approver authorization can ship.
 
-This repository does not yet contain a standalone Approval feature specification or project constitution. The `REQ-APR-*` IDs below are plan-local trace labels derived only from accepted requirements in ADR-007 and `BUSINESS-RULES.md`; they are not a substitute for an approved feature spec. Resolve this documentation gap before implementation approval.
+The Approval feature spec records the approved baseline and remaining integration prerequisites. Requirement IDs are `REQ-001` through `REQ-010`. No repository constitution file was found; reconcile against it if one is added.
 
 ## Technical Context
 
@@ -39,7 +39,7 @@ No repository constitution file was found. The following checks are grounded in 
 | Security / least privilege | PASS | Corporate validates organization scope and the acting member's authority; request fields cannot grant permission. |
 | Financial correctness | PASS | Approval is separate from execution and Ledger posting. |
 | Auditability | PASS | Decisions and policy versions are recorded append-only with actor and correlation context. |
-| No inferred business rules | CONDITIONAL | Policy lifecycle and rejection/expiry/delegation/resubmission decisions must be approved before affected implementation tasks start. |
+| No inferred business rules | CONDITIONAL | Detailed API/claim mappings and Membership/Mandate owner interfaces must be finalized before dependent integration tasks start. |
 
 ## Applied Guidelines
 
@@ -50,47 +50,47 @@ No matching technology migration guidelines were found in the repository guideli
 ### Step 1: Resolve Approval behavior and approve the feature baseline
 
 - **Plan item**: P1.1
-- **Requirements**: REQ-APR-001, REQ-APR-002, REQ-APR-003, REQ-APR-004, REQ-APR-005
+- **Requirements**: REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-009, REQ-010
 - **Design inputs**: ADR-007, `BUSINESS-RULES.md`, `Phase-2-Decision-Gate.md`
-- **Description**: Confirm the operations covered by the first slice; approve the policy-version behavior; define policy creation/edit/activation and effective dates; define how approval levels and eligible approvers are selected; decide rejection, expiry, delegation, resubmission, cancellation, and duplicate-decision behavior. Record accepted choices in ADR-007 / `OPEN-DECISIONS.md` and produce an Approval feature spec before implementation. This is a hard gate, not a coding task.
+- **Description**: Confirm the first-slice boundary and record the accepted policy/workflow defaults in the feature spec and ADR. Finalize only the remaining detailed Membership/Mandate owner interfaces, role/mandate catalog, exact claim mapping, and route/DTO contract before dependent implementation tasks.
 - **Tasks**:
-  - [ ] T001 [Plan:P1.1] Create `docs/specs/corporate-approval/feature-spec.md` with owner-approved scope, policy lifecycle, workflow transitions, actor eligibility, and acceptance criteria; explicitly require the Corporate Membership/Mandate implementations or approved owner interfaces before workflow tasks.
+  - [x] T001 [Plan:P1.1] Record the provisional `corporate_grants` representation of `approval-policy:manage` and the Membership/Mandate owner-interface dependency in `docs/specs/corporate-approval/feature-spec.md`, `docs/api/API-CONTRACTS.md`, and `services/corporate-service/README.md`.
 
 ### Step 2: Finalize Corporate approval data and API contracts
 
 - **Plan item**: P1.2
-- **Requirements**: REQ-APR-001, REQ-APR-003, REQ-APR-005
+- **Requirements**: REQ-001, REQ-002, REQ-003, REQ-008, REQ-009, REQ-010
 - **Design inputs**: `ERD.md`, `API-CONTRACTS.md`, Corporate service first slice
-- **Description**: Specify policy versioning/immutability, request and step state transitions, decision idempotency scope, history fields, authorization claims/permissions, error mapping, and route/DTO shapes. Keep cross-service references logical and specify owner-side validation. Update the ERD and API contract after decisions are approved.
+- **Description**: Specify policy versioning/immutability, request and step state transitions, decision idempotency scope, history fields, authorization claims/permissions, error mapping, and route/DTO shapes. Keep cross-service references logical and specify owner-side validation. Record the approved behavior and keep Membership/Mandate and Identity mapping dependencies explicit.
 - **Tasks**:
-  - [ ] T002 [Plan:P1.2] Update `docs/database/ERD.md`, `docs/api/API-CONTRACTS.md`, `docs/adr/ADR-007-configurable-corporate-approval.md`, and `docs/architecture/OPEN-DECISIONS.md` to reflect the approved Approval contract and policy-version behavior.
+  - [x] T002 [Plan:P1.2] Finalize the approved Approval policy and data/API contract in `docs/database/ERD.md`, `docs/api/API-CONTRACTS.md`, `docs/adr/ADR-007-configurable-corporate-approval.md`, and `docs/architecture/OPEN-DECISIONS.md`; keep canonical Keycloak mapping and Membership/Mandate interfaces explicitly marked as integration prerequisites.
 
 ### Step 3: Add Corporate approval persistence and domain model
 
 - **Plan item**: P2.1
-- **Requirements**: REQ-APR-001, REQ-APR-003, REQ-APR-005
+- **Requirements**: REQ-001, REQ-002, REQ-008
 - **Design inputs**: Approved feature spec, approved data/API contract, current `corporate_schema` migration
-- **Description**: Add a Flyway migration and domain/persistence types for immutable approval policy versions, approval requests, ordered steps, and append-only decision history. Add only constraints/indexes justified by the approved contract. Do not create cross-schema FKs to organization members, users, or transfers; validate those references through approved owner boundaries.
+- **Description**: Add the Corporate-owned Flyway schema for immutable approval policy versions, approval requests, ordered steps, and append-only decision history, plus the policy domain and persistence types needed by policy administration. Add only constraints/indexes justified by the approved contract. Do not create cross-schema FKs to organization members, users, or transfers; validate those references through approved owner boundaries.
 - **Tasks**:
-  - [ ] T003 [Plan:P2.1] Create `V2__create_approval_tables.sql` under `services/corporate-service/src/main/resources/db/migration/` for the approved policy, version, request, step, and history schema.
-  - [ ] T004 [Plan:P2.1] Add approval policy, request, step, decision, and history domain types under `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/domain/`.
-  - [ ] T005 [Plan:P2.1] Add approval persistence/repository code under `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/persistence/` with organization-scoped queries and no cross-schema access.
+  - [x] T003 [Plan:P2.1] Create `V2__create_approval_tables.sql` under `services/corporate-service/src/main/resources/db/migration/` for the approved policy, version, request, step, and history schema.
+  - [x] T004 [Plan:P2.1] Add the approval policy status, ordered level and response domain types in `services/corporate-service/src/main/java/com/banking/platform/corporate/domain/`; add request, step and decision types with the workflow tasks that use them.
+  - [x] T005 [Plan:P2.1] Add organization-scoped policy persistence/repository code under `services/corporate-service/src/main/java/com/banking/platform/corporate/persistence/` with no cross-schema access; request/decision persistence is completed with T011.
 
 ### Step 4: Implement policy administration
 
 - **Plan item**: P3.1
-- **Requirements**: REQ-APR-001, REQ-APR-005
+- **Requirements**: REQ-001, REQ-002
 - **Design inputs**: Approved policy lifecycle and API contract
-- **Description**: Implement organization-scoped policy creation, versioning, activation/deactivation and retrieval using the approved lifecycle. Enforce authorization in Corporate and prevent mutation of a policy version already referenced by a request. Route names and lifecycle transitions remain subject to Step 1/2 approval.
+- **Description**: Implement organization-scoped policy creation, versioning, activation/deactivation and retrieval using the approved lifecycle. Enforce authorization in Corporate and prevent mutation of policy version content through application behavior and database grants.
 - **Tasks**:
-  - [ ] T006 [Plan:P3.1] Implement the approved policy lifecycle in `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/application/ApprovalPolicyService.java`.
-  - [ ] T007 [Plan:P3.1] Add policy request/response DTOs and organization-scoped policy endpoints in `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/web/ApprovalPolicyController.java`.
-  - [ ] T008 [Plan:P3.1] Add policy lifecycle, version immutability, and organization authorization integration tests in `services/corporate-service/src/test/java/com/banking/platform/corporate/approval/web/ApprovalPolicyEndpointIntegrationTests.java`.
+  - [x] T006 [Plan:P3.1] Implement the approved policy lifecycle in `services/corporate-service/src/main/java/com/banking/platform/corporate/application/ApprovalPolicyService.java`.
+  - [x] T007 [Plan:P3.1] Add policy request/response DTOs and organization-scoped policy endpoints in `services/corporate-service/src/main/java/com/banking/platform/corporate/web/ApprovalPolicyController.java`.
+  - [x] T008 [Plan:P3.1] Add policy lifecycle, version immutability, and organization authorization integration tests in `services/corporate-service/src/test/java/com/banking/platform/corporate/web/OrganizationEndpointIntegrationTests.java`.
 
 ### Step 5: Implement approval request and decision workflow
 
 - **Plan item**: P4.1
-- **Requirements**: REQ-APR-001, REQ-APR-002, REQ-APR-003, REQ-APR-004, REQ-APR-005
+- **Requirements**: REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-009, REQ-010
 - **Design inputs**: Approved state machine, policy version rule, membership/mandate contract, decision API contract
 - **Description**: Create approval requests against the selected immutable policy version, execute the configured levels in order, authorize each decision against Corporate-owned rules, enforce Maker–Checker, and record every decision/result in history in the same transaction. Implement only transitions and outcomes explicitly approved by the feature spec.
 - **Tasks**:
@@ -101,7 +101,7 @@ No matching technology migration guidelines were found in the repository guideli
 ### Step 6: Expose approval APIs and enforce command safety
 
 - **Plan item**: P4.2
-- **Requirements**: REQ-APR-002, REQ-APR-003, REQ-APR-004
+- **Requirements**: REQ-003, REQ-004, REQ-005, REQ-007, REQ-008, REQ-009, REQ-010
 - **Design inputs**: Approved API contract and security claim mapping
 - **Description**: Implement the approved policy query/admin and approval decision endpoints in the Corporate web layer. Apply organization-scoped authorization, validate request ownership through the approved integration boundary, reject self-approval, and implement decision idempotency and error responses. Do not treat API Gateway authorization as sufficient.
 - **Tasks**:
@@ -111,7 +111,7 @@ No matching technology migration guidelines were found in the repository guideli
 ### Step 7: Verify behavior, isolation, and audit evidence
 
 - **Plan item**: P5.1
-- **Requirements**: REQ-APR-001, REQ-APR-002, REQ-APR-003, REQ-APR-004, REQ-APR-005
+- **Requirements**: REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-009, REQ-010
 - **Design inputs**: Approved acceptance criteria and API/data contracts
 - **Description**: Add focused unit and PostgreSQL integration tests for policy version immutability, multi-level progression, authorization, maker self-approval denial, decision replay/conflict, atomic decision-plus-history persistence, and absence of cross-schema access. Run `./mvnw -f services/corporate-service/pom.xml verify` and update Corporate README and Phase 2 status.
 - **Tasks**:
@@ -126,16 +126,15 @@ This work is not included in this Corporate plan. Once Transfer is approved and 
 
 ```text
 services/corporate-service/src/main/java/com/banking/platform/corporate/
-  approval/
-    application/       # policy lifecycle and approval workflow
-    domain/            # policy version, request, step, decision, history
-    persistence/       # repositories / SQL for corporate_schema
-    web/               # approved policy and decision endpoints
+  application/         # organization services and policy lifecycle
+  domain/              # organization and policy domain types
+  persistence/         # repositories / SQL for corporate_schema
+  web/                 # organization and policy endpoints
   config/              # existing security/configuration patterns
 services/corporate-service/src/main/resources/db/migration/
   V2__create_approval_tables.sql
 services/corporate-service/src/test/java/com/banking/platform/corporate/
-  approval/            # focused domain, API, authorization, and PostgreSQL tests
+  web/                 # PostgreSQL API, authorization, policy and schema-isolation tests
 ```
 
 Final package names, schema columns, routes, and state values are design outputs of P1.2, not decisions made by this plan.
@@ -154,22 +153,31 @@ Final package names, schema columns, routes, and state values are design outputs
   - `infra-tier`: PostgreSQL Testcontainers → no database substitute for final migration/constraint acceptance. If Docker is unavailable, unit tests can run but the persistence acceptance gate remains incomplete.
   - `browser-tier`: Not applicable; no browser UI is in this slice.
 - **Environment requirements**: Java runtime, Maven Wrapper, Docker for Testcontainers integration tests.
-- **knownGaps**: No real Keycloak, Membership/Mandate, or Transfer integration is included unless those dependencies are separately approved and available.
+- **External dependency strategy**: Stub Membership/Mandate and operation-owner ports for isolated Corporate tests; use PostgreSQL Testcontainers for persistence; real owner-service integration is a separate acceptance gate after those services exist.
+- **Test base classes**: Reuse the existing Spring Boot test configuration; add a shared Corporate approval integration-test base only if multiple tests need identical container/context setup.
+- **Per-module test skeletons**: Approval policy tests cover lifecycle/versioning; workflow tests cover sequence and transitions; web tests cover auth/error contracts; persistence tests cover schema, transaction atomicity, and history.
+- **Execution rule**: Run focused approval tests while iterating, then require `./mvnw -f services/corporate-service/pom.xml verify` before marking the batch complete.
+- **knownGaps**: Membership/Mandate and Keycloak integrations are not currently available; stubbed owner ports are suitable for isolated tests only, not production readiness. Transfer integration remains deferred.
 - **Test data strategy**: Synthetic organization/member/request IDs; isolate test rows and containers; never use real identities or secrets.
 - **Acceptance criteria**: All approved scenarios pass; no cross-schema database access; no approval decision is committed without matching durable history; build/test succeeds.
 - **Validation review expectations**: Confirm requirements traceability, approved state transitions, Maker–Checker enforcement, policy version binding, access control, and no financial execution side effects.
 
 ## Requirement Mapping
 
-These plan-local IDs are derived from accepted source documents; replace/align them with the IDs in the standalone Approval feature spec when that spec is approved.
+Task IDs below provide the full requirement-to-plan-to-task trace for the current feature-spec draft.
 
-| REQ ID | Description | Plan Items | Implementation Evidence |
-|---|---|---|---|
-| REQ-APR-001 | Approval policies are configurable and support multiple approval levels. | P1.1, P1.2, P2.1, P3.1, P4.1, P5.1 | Approval feature spec, policy lifecycle service/API, versioned policy persistence, workflow tests |
-| REQ-APR-002 | Approval enforces Maker–Checker; the maker cannot approve their own action. | P1.1, P4.1, P4.2, P5.1 | Approval authorization/domain service, decision endpoint, self-approval integration test |
-| REQ-APR-003 | Approval decisions retain auditable approval history. | P1.1, P1.2, P2.1, P4.1, P4.2, P5.1 | Approval history persistence, atomic decision transaction, history API/verification tests |
-| REQ-APR-004 | The service enforcing the business action validates approval authority; callers cannot grant themselves roles/scopes. | P1.1, P4.1, P4.2, P5.1 | Corporate authorization service, scoped decision checks, unauthorized-actor tests |
-| REQ-APR-005 | A request records the policy/version used for its approval evaluation; pending-request change behavior is explicitly approved. | P1.1, P1.2, P2.1, P3.1, P4.1, P5.1 | Immutable policy version reference, request persistence, policy-change tests, approved ADR/spec |
+| REQ ID | Description | Plan Items | Tasks | Implementation Evidence |
+|---|---|---|---|---|
+| REQ-001 | Corporate supports organization-specific policies with multiple ordered levels, org-scoped policy management, explicit activation, and at most one active version per operation type. | P1.1, P1.2, P2.1, P3.1, P4.1, P5.1 | T001–T011, T014–T015 | Policy lifecycle and versioned persistence, approval workflow, API and tests |
+| REQ-002 | A request pins the immutable policy version selected at submission. | P1.1, P1.2, P2.1, P3.1, P4.1, P5.1 | T001–T007, T009–T011, T014–T015 | Policy version reference, immutable version behavior and policy-change tests |
+| REQ-003 | Approval levels run sequentially and all required levels must approve. | P1.1, P1.2, P4.1, P4.2, P5.1 | T001–T002, T009–T015 | Workflow state transitions and ordering tests |
+| REQ-004 | The maker cannot approve their own request. | P1.1, P4.1, P4.2, P5.1 | T001, T009–T015 | Corporate authorization and self-approval denial tests |
+| REQ-005 | A rejection at any level is terminal for that request. | P1.1, P4.1, P4.2, P5.1 | T001, T009–T015 | Terminal state handling and rejection tests |
+| REQ-006 | Expiry and delegation are not supported in the MVP. | P1.1, P4.1, P5.1 | T001, T009–T011, T014–T015 | State model excludes these transitions and tests verify they are unavailable |
+| REQ-007 | Resubmission creates a new request ID and preserves the rejected request/history. | P1.1, P4.1, P4.2, P5.1 | T001, T009–T015 | New request identity and immutable prior history tests |
+| REQ-008 | Decision history is append-only and records actor, level, decision, time, and policy version. | P1.1, P1.2, P2.1, P4.1, P4.2, P5.1 | T001–T005, T009–T015 | History persistence, atomic decision recording and audit tests |
+| REQ-009 | Corporate validates active Membership/Mandate against each level's role/mandate scope, not caller-supplied grants. | P1.1, P4.1, P4.2, P5.1 | T001, T009–T015 | Owner-side authorization, Membership/Mandate boundary and negative authorization tests |
+| REQ-010 | Approval accepts an opaque owner-supplied operation type/reference and does not execute transfers, post Ledger entries, or settle payments. | P1.1, P1.2, P4.1, P4.2, P5.1 | T001–T002, T009–T015 | Service boundary and integration tests verify no financial side effects |
 
 ## Complexity Tracking
 

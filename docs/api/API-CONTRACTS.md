@@ -45,7 +45,7 @@ Keycloak owns login and token issuance. Use Authorization Code + PKCE for intera
 | `POST /v1/organizations/{organizationId}/members` | `userId`, membership role/scope → `membershipId`, status | Organization/user active; role/scope allowed by policy | Organization admin/mandate grant, checked by Corporate | org/user absent, duplicate membership, insufficient mandate, forbidden | Key recommended |
 | `GET /v1/organizations/{organizationId}` | none → organization profile and status | Valid ID | Organization-level authorization | not found/not visible, forbidden | Not applicable |
 
-The Corporate Organization first slice currently implements only `partyId` and `ACTIVE` status; legal profile data, Membership, Mandate and ApprovalPolicy are excluded. Corporate validates the logical Party reference by calling Party's owner API with a Keycloak Client Credentials token. The service client must be configured for the Party API audience and `party:read`; exact Keycloak client/claim mapping remains OPEN.
+The Corporate Organization first slice implements `partyId` and `ACTIVE` status. Corporate now also implements policy creation, listing and activation; legal profile data, Membership, Mandate, approval requests and decisions remain excluded. Corporate validates the logical Party reference by calling Party's owner API with a Keycloak Client Credentials token. The service client must be configured for the Party API audience and `party:read`; exact Keycloak client/claim mapping remains OPEN.
 
 ## Branch
 
@@ -97,14 +97,29 @@ Posting must be atomic inside Ledger. Posted entries are immutable; no update/de
 
 Provider/protocol-specific routes, callbacks and reconciliation API are intentionally unspecified. REST is the synchronous internal API default for the first implementation slice; event transport remains OPEN.
 
-## Approval — Corporate
+## Approval — Corporate core
+
+The Corporate Approval core accepts an opaque operation type/reference from the owning service and does not execute the operation. Policy writes require an organization-scoped `approval-policy:manage` grant represented by the existing provisional `corporate_grants` convention (`permission`, `scopeType: "ORGANIZATION"`, `scopeId`). Checker decisions require an active Membership and Mandate matching the current level's role/mandate scope. Canonical Keycloak claim mapping and the owner-service request permission remain subject to Identity integration review. Policy administration endpoints below are implemented; approval request, decision and history-read endpoints remain proposed.
+
+| Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
+|---|---|---|---|---|---|
+| `GET /v1/organizations/{organizationId}/approval-policies` **(implemented)** | optional `operationType` → policy/version list | Organization exists; operation type is an opaque non-whitespace value of 1–64 characters | Organization-scoped `approval-policy:manage` grant | organization not found, invalid filter, forbidden | Not applicable |
+| `POST /v1/organizations/{organizationId}/approval-policies` **(implemented)** | `operationType`, ordered `levels[]` → `policyId`, `version`, `status=DRAFT` | Operation type is opaque and 1–64 characters; at least one level with a valid role code and mandate scope; one active version per organization/operation type | Organization-scoped `approval-policy:manage` grant | invalid policy (`422`), forbidden (`403`), conflict (`409`), organization not found (`404`) | Not implemented |
+| `POST /v1/organizations/{organizationId}/approval-policies/{policyId}/activate` **(implemented)** | none → policy/version/status | Draft or inactive policy belongs to organization; activation replaces prior active version for that operation type; active policy version fields and levels are immutable | Organization-scoped `approval-policy:manage` grant | not found (`404`), invalid lifecycle transition (`409`), forbidden (`403`) | Repeated activation of the active version is idempotent |
+| `POST /v1/organizations/{organizationId}/approval-requests` **(proposed)** | owner-supplied `operationType`, `operationReference` → `approvalId`, pinned `policyVersion`, status | Active policy exists for operation type; request ID/reference valid | Authorized owning service / organization context; exact claim mapping remains OPEN | no active policy, invalid reference, forbidden | Operation-scoped key to be finalized |
+| `POST /v1/organizations/{organizationId}/approval-requests/{approvalId}/decisions` **(proposed)** | `decision`, optional `reason` → status, current level, history reference | Request pending; current level only; active policy version is pinned; rejection is terminal | Corporate verifies active Membership/Mandate, role/mandate scope, and Maker–Checker | not found/not visible, out of order, unauthorized actor, self-approval, terminal request, conflicting replay | Required; same decision replays; conflicting replay is `409` |
+| `GET /v1/organizations/{organizationId}/approval-requests/{approvalId}/history` **(proposed)** | none → append-only decision history | Request belongs to organization | Organization-scoped history-read permission to be finalized | not found/not visible, forbidden | Not applicable |
+
+Implemented policy creation and activation are audited in `organization_audit` in the same transaction. The database runtime role cannot update policy version fields or policy-level rows; it can only change a policy's lifecycle status and activation timestamp.
+
+The transfer-specific route below is a deferred integration proposal, not part of the current Corporate core implementation slice.
 
 | Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
 | `GET /v1/organizations/{organizationId}/approval-policies` | filters → policy/version summary | Organization exists; page/filter valid | Organization admin or authorized member | not found/not visible, forbidden | Not applicable |
-| `POST /v1/organizations/{organizationId}/transfers/{transferId}/approval-decisions` | `decision`, `reason`, optional `step` → `approvalId`, decision/status, history reference | Organization owns transfer; pending step exists; policy version selected; maker differs from checker where required; policy snapshot semantics OPEN | Corporate verifies organization membership, mandate, role, step and actor | organization/transfer mismatch, no pending approval, unauthorized actor, self-approval, stale policy, duplicate/conflicting decision | Required; duplicate same decision returns prior result; conflicting replay is `409` |
+| `POST /v1/organizations/{organizationId}/transfers/{transferId}/approval-decisions` | `decision`, `reason`, optional `step` → `approvalId`, decision/status, history reference | Organization owns transfer; pending step exists; request remains bound to policy version selected at submission; sequential levels; maker differs from checker | Corporate verifies organization membership, mandate, role, step and actor | organization/transfer mismatch, no pending step, unauthorized actor, self-approval, terminal rejection, duplicate/conflicting decision | Required; duplicate same decision returns prior result; conflicting replay is `409` |
 
-Approval decision is not itself a Ledger posting or settlement.
+Per [ADR-007](../adr/ADR-007-configurable-corporate-approval.md), approval levels are sequential and all required levels must approve; rejection is terminal, resubmission creates a new request ID, and expiry/delegation are excluded from the MVP. Requests pin the immutable policy version selected at submission. Policy lifecycle and approver eligibility remain subject to the feature-spec clarifications. Approval decision is not itself a Ledger posting or settlement; Transfer integration is outside the Corporate Approval core slice.
 
 ## Transaction
 

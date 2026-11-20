@@ -13,7 +13,7 @@ Triển khai các bounded context nền cho danh tính và dữ liệu chủ: Id
 - **ACCEPTED:** Retail + Corporate banking, VND-only, multi-channel, multi-branch và configurable Corporate approval.
 - **ACCEPTED:** managing branch và transaction processing branch là hai khái niệm riêng; Teller bị giới hạn bởi branch permission.
 - **ACCEPTED theo ADR-012:** Keycloak/OIDC, REST synchronous cho first slice, RBAC + scoped grants + owner-side authorization, customer có một primary managing branch tại một thời điểm, Organization:Party 1:1 logical reference, PII soft-match/human review, idempotency policy và audit baseline.
-- **OPEN:** API Gateway, broker/event transport, full role/permission catalog, PII fields/matching thresholds, branch reassignment workflow, operation-specific idempotency scope, audit storage/retention enforcement, approval policy snapshot và production compliance details.
+- **OPEN:** API Gateway, broker/event transport, full role/permission catalog, PII fields/matching thresholds, branch reassignment workflow, operation-specific idempotency scope, audit storage/retention enforcement, approval thresholds, detailed role/mandate catalog/API and exact claim mapping, and production compliance details.
 - Phase 2 không triển khai Account, Ledger, Transfer, Payment hoặc Loan.
 
 Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banking.md), [ADR-003](../../adr/ADR-003-multi-channel.md), [ADR-009](../../adr/ADR-009-multi-branch-banking.md), [ADR-010](../../adr/ADR-010-phase-1-technical-baseline.md), [Open Decisions](../../architecture/OPEN-DECISIONS.md).
@@ -37,7 +37,7 @@ Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banki
 - Custom credential storage hoặc token issuer giả lập Identity Provider.
 - Account, balance, Ledger journal hoặc financial posting.
 - Retail transfer, teller deposit/withdrawal hoặc interbank integration.
-- Approval execution và policy snapshot chưa được duyệt.
+- Transfer-level approval enforcement/execution chưa thuộc Phase 2; Corporate Approval core behavior đã được chốt trong ADR-007, còn Membership/Mandate integration và exact claim mapping là prerequisites.
 - Notification, Reporting, production Gateway hoặc production cluster rollout.
 - Loan.
 
@@ -55,7 +55,7 @@ Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banki
 | Role, permission và scope model | ACCEPTED baseline — ADR-012 | RBAC + scoped grants + resource-level checks; full roles, permissions and inheritance remain OPEN |
 | Idempotency | ACCEPTED baseline — ADR-012 | Actor + operation + business scope, default retention 24h; per-operation scope/format/storage remain to be defined |
 | Audit policy | ACCEPTED baseline — ADR-012 | Required actor/action/resource/result/time/correlation; 7-year project baseline subject to legal review; storage/access design OPEN |
-| Approval policy snapshot | OPEN | Chốt policy áp dụng khi policy thay đổi trong khi request chờ duyệt |
+| Approval policy version behavior | ACCEPTED — ADR-007 | Immutable policy version lúc submit; explicit activation; role/mandate scope; exact catalog/claims remain OPEN |
 
 Không triển khai phần phụ thuộc vào quyết định OPEN trước khi quyết định đó được chủ dự án duyệt.
 
@@ -112,11 +112,11 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 - Kiểm tra organization membership và mandate trong Corporate, không tin caller-supplied role.
 - Enforce Maker–Checker khi xử lý approval action; không cho maker tự duyệt nếu rule được duyệt.
 - Ghi policy version và approval history đủ để audit.
-- Chỉ snapshot/execute approval behavior sau khi quyết định policy snapshot được duyệt.
+- Áp dụng immutable policy version đã được duyệt trong ADR-007; không triển khai Transfer-level approval enforcement/execution trong Phase 2.
 
 **Đầu ra:** corporate onboarding và approval eligibility có thể kiểm thử; không thực hiện transfer hoặc Ledger posting.
 
-**Trạng thái:** Organization first slice đã triển khai trong `corporate-service`: tạo/đọc Organization, xác thực Party type qua owner API và giữ unique logical `partyId`. Legal profile, Membership, Mandate, ApprovalPolicy/history và approval execution chưa triển khai; các chi tiết role/policy còn OPEN.
+**Trạng thái:** Organization first slice đã triển khai trong `corporate-service`: tạo/đọc Organization, xác thực Party type qua owner API và giữ unique logical `partyId`. Approval V2 đã thêm policy schema, policy administration (create/list/activate), scoped permission và audit; request/decision workflow, Membership, Mandate và decision-history writes vẫn chưa triển khai. Canonical Keycloak claim mapping và Membership/Mandate owner interfaces còn là prerequisites cho workflow.
 
 Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–Checker và approval history; không bao gồm Transfer/Ledger execution) nằm tại [Corporate Approval implementation plan](./corporate-approval/plan.md). Membership/Mandate implementations hoặc owner interfaces đã duyệt, cùng các decision gate được liệt kê trong plan, là prerequisites trước khi triển khai workflow.
 
@@ -230,7 +230,7 @@ Không chọn API Gateway, broker, Identity Provider hoặc internal protocol ch
 | Organization/branch authorization chỉ nằm ở Gateway | Enforce owner-side authorization trong Identity/Party/Corporate/Branch |
 | Party và Organization bị trùng ownership | Party quản lý person/profile, Corporate quản lý organization/membership/mandate |
 | Corporate approval bị thực thi trong service sai | Approval eligibility/decision thuộc Corporate; execution/context chỉ ở transfer phase sau |
-| Policy snapshot semantics bị suy đoán | Không implement snapshot behavior trước khi quyết định được duyệt |
+| Approval behavior bị suy đoán | Tuân thủ ADR-007 cho lifecycle/snapshot/rejection/sequencing; chặn tích hợp khi Membership/Mandate APIs hoặc claim mapping chưa sẵn sàng |
 | Cross-service coupling qua direct DB | Schema roles, integration tests và API/event-only references |
 | Phase 2 mở rộng thành Account/Ledger | Giữ scope gate và chặn migration/API cho bounded context chưa được approved |
 
