@@ -114,10 +114,12 @@ class OrganizationEndpointIntegrationTests {
     @BeforeEach
     void resetDatabaseAndConfigureTokens() {
         try (Connection connection = migratorConnection(); var statement = connection.createStatement()) {
-            statement.execute("TRUNCATE TABLE corporate_schema.approval_history, "
+            statement.execute("TRUNCATE TABLE corporate_schema.approval_decision_idempotency, "
+                    + "corporate_schema.approval_history, "
                     + "corporate_schema.approval_step, corporate_schema.approval_request, "
                     + "corporate_schema.approval_policy_level, corporate_schema.approval_policy, "
-                    + "corporate_schema.organization_audit, corporate_schema.organization");
+                    + "corporate_schema.mandate, corporate_schema.membership, "
+                    + "corporate_schema.organization_audit, corporate_schema.organization CASCADE");
         } catch (Exception exception) {
             throw new IllegalStateException("Could not reset Corporate test data", exception);
         }
@@ -357,6 +359,348 @@ class OrganizationEndpointIntegrationTests {
     }
 
     @Test
+    void createsPinnedRequestAndProgressesSequentialLevels() throws Exception {
+        UUID organizationId = createOrganization();
+        String policyToken = policyAdminToken(organizationId);
+        UUID policyId = createPolicy(policyAdminToken(organizationId), organizationId, "INTERNAL_TRANSFER");
+        assertThat(activatePolicy(policyToken, organizationId, policyId).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+
+        HttpHeaders submitHeaders = policySubmitHeaders("approval-maker-token", organizationId);
+        ResponseEntity<String> submitted = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests",
+                new HttpEntity<>(String.join("\n",
+                        "{",
+                        "  \"operationType\":\"INTERNAL_TRANSFER\",",
+                        "  \"operationReference\":\"transfer-123\"",
+                        "}"),
+                        submitHeaders), String.class);
+        assertThat(submitted.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        JsonNode request = objectMapper.readTree(submitted.getBody());
+        UUID approvalId = UUID.fromString(request.get("approvalId").asText());
+        assertThat(request.get("policyVersion").asInt()).isEqualTo(1);
+        assertThat(request.get("status").asText()).isEqualTo("PENDING");
+
+        UUID stepOnePolicy = UUID.fromString(jdbcTemplate.queryForObject("""
+                SELECT policy_id FROM corporate_schema.approval_request
+                WHERE approval_request_id = ?
+                """, String.class, approvalId));
+        assertThat(stepOnePolicy).isEqualTo(policyId);
+    }
+
+    @Test
+    void sequentialApprovalsAndHistoryWorkAcrossTwoLevels() throws Exception {
+        UUID organizationId = createOrganization();
+        String policyToken = policyAdminToken(organizationId);
+        ResponseEntity<String> policyResponse = postPolicy(policyToken, organizationId, """
+                {"operationType":"INTERNAL_TRANSFER","levels":[
+                  {"roleCode":"CHECKER_1","mandateScope":"PAYMENT"},
+                  {"roleCode":"CHECKER_2","mandateScope":"PAYMENT"}
+                ]}
+                """);
+        UUID policyId = UUID.fromString(objectMapper.readTree(policyResponse.getBody()).get("policyId").asText());
+        activatePolicy(policyToken, organizationId, policyId);
+
+        HttpHeaders submitHeaders = policySubmitHeaders("approval-maker-token", organizationId);
+        ResponseEntity<String> submitted = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests",
+                new HttpEntity<>("""
+                        {"operationType":"INTERNAL_TRANSFER","operationReference":"transfer-sequential"}
+                        """, submitHeaders), String.class);
+        UUID approvalId = UUID.fromString(
+                objectMapper.readTree(submitted.getBody()).get("approvalId").asText());
+
+        String checkerOne = configureChecker(organizationId, "checker-one", "CHECKER_1");
+        HttpHeaders firstHeaders = decisionHeaders(checkerOne, "decision-key-1");
+        ResponseEntity<String> first = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"APPROVE","reason":"first"}
+                        """, firstHeaders), String.class);
+        assertThat(first.getStatusCode()).isEqualTo(HttpStatus.OK);
+        JsonNode firstBody = objectMapper.readTree(first.getBody());
+        assertThat(firstBody.get("status").asText()).isEqualTo("PENDING");
+        assertThat(firstBody.get("currentStep").asInt()).isEqualTo(2);
+
+        String checkerTwo = configureChecker(organizationId, "checker-two", "CHECKER_2");
+        HttpHeaders secondHeaders = decisionHeaders(checkerTwo, "decision-key-2");
+        ResponseEntity<String> second = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"APPROVE","reason":"second"}
+                        """, secondHeaders), String.class);
+        assertThat(second.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(objectMapper.readTree(second.getBody()).get("status").asText())
+                .isEqualTo("APPROVED");
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM corporate_schema.approval_history
+                WHERE approval_request_id = ?
+                """, Integer.class, approvalId)).isEqualTo(2);
+    }
+
+    @Test
+    void makerCannotSelfApproveAndRejectionIsTerminal() throws Exception {
+        UUID organizationId = createOrganization();
+        String policyToken = policyAdminToken(organizationId);
+        UUID policyId = createPolicy(policyToken, organizationId, "INTERNAL_TRANSFER");
+        activatePolicy(policyToken, organizationId, policyId);
+        HttpHeaders submitHeaders = policySubmitHeaders("approval-maker-token", organizationId);
+        UUID approvalId = UUID.fromString(objectMapper.readTree(restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests",
+                new HttpEntity<>("""
+                        {"operationType":"INTERNAL_TRANSFER","operationReference":"transfer-maker-check"}
+                        """, submitHeaders), String.class).getBody()).get("approvalId").asText());
+
+        HttpHeaders makerDecision = decisionHeaders("approval-maker-token", "maker-key");
+        ResponseEntity<String> makerAttempt = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"APPROVE","reason":"self"}
+                        """, makerDecision), String.class);
+        assertThat(makerAttempt.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+        String checker = configureChecker(organizationId, "checker-reject", "CHECKER");
+        HttpHeaders rejectHeaders = decisionHeaders(checker, "reject-key");
+        ResponseEntity<String> rejected = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"REJECT","reason":"policy mismatch"}
+                        """, rejectHeaders), String.class);
+        assertThat(rejected.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(objectMapper.readTree(rejected.getBody()).get("status").asText())
+                .isEqualTo("REJECTED");
+
+        ResponseEntity<String> repeated = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"APPROVE","reason":"too late"}
+                        """, decisionHeaders(checker, "late-key")), String.class);
+        assertThat(repeated.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    void decisionIdempotencyReplaysAndRejectsConflictingPayload() throws Exception {
+        UUID organizationId = createOrganization();
+        String policyToken = policyAdminToken(organizationId);
+        UUID policyId = createPolicy(policyToken, organizationId, "INTERNAL_TRANSFER");
+        activatePolicy(policyToken, organizationId, policyId);
+        UUID approvalId = UUID.fromString(objectMapper.readTree(restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests",
+                new HttpEntity<>("""
+                        {"operationType":"INTERNAL_TRANSFER","operationReference":"transfer-idempotency"}
+                        """, policySubmitHeaders("approval-maker-token", organizationId)), String.class)
+                .getBody()).get("approvalId").asText());
+        String checker = configureChecker(organizationId, "checker-idempotent", "CHECKER");
+
+        HttpHeaders headers = decisionHeaders(checker, "same-key");
+        String body = """
+                {"decision":"APPROVE","reason":"approved"}
+                """;
+        ResponseEntity<String> first = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>(body, headers), String.class);
+        assertThat(first.getStatusCode()).isEqualTo(HttpStatus.OK);
+        ResponseEntity<String> replay = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>(body, headers), String.class);
+        assertThat(replay.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(replay.getBody()).isEqualTo(first.getBody());
+
+        ResponseEntity<String> conflict = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"REJECT","reason":"different"}
+                        """, headers), String.class);
+        assertThat(conflict.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM corporate_schema.approval_history
+                WHERE approval_request_id = ?
+                """, Integer.class, approvalId)).isEqualTo(1);
+    }
+
+    @Test
+    void laterLevelCannotBeDecidedBeforeEarlierLevel() throws Exception {
+        UUID organizationId = createOrganization();
+        String policyToken = policyAdminToken(organizationId);
+        ResponseEntity<String> policyResponse = postPolicy(policyToken, organizationId, """
+                {"operationType":"INTERNAL_TRANSFER","levels":[
+                  {"roleCode":"CHECKER_1","mandateScope":"PAYMENT"},
+                  {"roleCode":"CHECKER_2","mandateScope":"PAYMENT"}
+                ]}
+                """);
+        UUID policyId = UUID.fromString(
+                objectMapper.readTree(policyResponse.getBody()).get("policyId").asText());
+        activatePolicy(policyToken, organizationId, policyId);
+        HttpHeaders submitHeaders = policySubmitHeaders("approval-maker-token", organizationId);
+        UUID approvalId = UUID.fromString(objectMapper.readTree(restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests",
+                new HttpEntity<>("""
+                        {"operationType":"INTERNAL_TRANSFER","operationReference":"transfer-order"}
+                        """, submitHeaders), String.class).getBody()).get("approvalId").asText());
+
+        String checkerTwo = configureChecker(organizationId, "checker-two-out-of-order", "CHECKER_2");
+        ResponseEntity<String> wrongStep = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"APPROVE","reason":"out of order"}
+                        """, decisionHeaders(checkerTwo, "wrong-step-key")), String.class);
+        assertThat(wrongStep.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void rejectedRequestResubmissionGetsNewIdAndPreservesHistory() throws Exception {
+        UUID organizationId = createOrganization();
+        String policyToken = policyAdminToken(organizationId);
+        UUID policyId = createPolicy(policyToken, organizationId, "INTERNAL_TRANSFER");
+        activatePolicy(policyToken, organizationId, policyId);
+        HttpHeaders submitHeaders = policySubmitHeaders("approval-maker-token", organizationId);
+
+        UUID firstId = UUID.fromString(objectMapper.readTree(restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests",
+                new HttpEntity<>("""
+                        {"operationType":"INTERNAL_TRANSFER","operationReference":"transfer-resubmit"}
+                        """, submitHeaders), String.class).getBody()).get("approvalId").asText());
+        String checker = configureChecker(organizationId, "checker-resubmit", "CHECKER");
+        restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + firstId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"REJECT","reason":"retry"}
+                        """, decisionHeaders(checker, "reject-first")), String.class);
+
+        UUID secondId = UUID.fromString(objectMapper.readTree(restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests",
+                new HttpEntity<>("""
+                        {"operationType":"INTERNAL_TRANSFER","operationReference":"transfer-resubmit"}
+                        """, submitHeaders), String.class).getBody()).get("approvalId").asText());
+        assertThat(secondId).isNotEqualTo(firstId);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT status FROM corporate_schema.approval_request
+                WHERE approval_request_id = ?
+                """, String.class, firstId)).isEqualTo("REJECTED");
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM corporate_schema.approval_history
+                WHERE approval_request_id = ?
+                """, Integer.class, firstId)).isEqualTo(1);
+    }
+
+    @Test
+    void inactiveMembershipOrMandateCannotApprove() throws Exception {
+        UUID organizationId = createOrganization();
+        String policyToken = policyAdminToken(organizationId);
+        UUID policyId = createPolicy(policyToken, organizationId, "INTERNAL_TRANSFER");
+        activatePolicy(policyToken, organizationId, policyId);
+        UUID approvalId = UUID.fromString(objectMapper.readTree(restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests",
+                new HttpEntity<>("""
+                        {"operationType":"INTERNAL_TRANSFER","operationReference":"transfer-eligibility"}
+                        """, policySubmitHeaders("approval-maker-token", organizationId)), String.class)
+                .getBody()).get("approvalId").asText());
+        String checker = configureChecker(organizationId, "checker-inactive", "CHECKER");
+        UUID membershipId = jdbcTemplate.queryForObject("""
+                SELECT membership_id FROM corporate_schema.membership
+                WHERE organization_id = ? AND subject = ?
+                """, UUID.class, organizationId, ISSUER + "/checker-inactive");
+        jdbcTemplate.update("""
+                UPDATE corporate_schema.mandate
+                SET status = 'INACTIVE', updated_at = CURRENT_TIMESTAMP
+                WHERE membership_id = ?
+                """, membershipId);
+
+        ResponseEntity<String> inactiveMandate = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"APPROVE","reason":"inactive mandate"}
+                        """, decisionHeaders(checker, "inactive-mandate-key")), String.class);
+        assertThat(inactiveMandate.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+        jdbcTemplate.update("""
+                UPDATE corporate_schema.mandate
+                SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP
+                WHERE membership_id = ?
+                """, membershipId);
+        jdbcTemplate.update("""
+                UPDATE corporate_schema.membership
+                SET status = 'INACTIVE', updated_at = CURRENT_TIMESTAMP
+                WHERE membership_id = ?
+                """, membershipId);
+        ResponseEntity<String> inactiveMembership = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/approval-requests/"
+                        + approvalId + "/decisions",
+                new HttpEntity<>("""
+                        {"decision":"APPROVE","reason":"inactive membership"}
+                        """, decisionHeaders(checker, "inactive-membership-key")), String.class);
+        assertThat(inactiveMembership.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void membershipAndMandateManagementEndpointsCreateActiveEligibility() throws Exception {
+        UUID organizationId = createOrganization();
+        String adminToken = policyAdminToken(organizationId);
+        HttpHeaders headers = headers(adminToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<String> membership = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/members",
+                new HttpEntity<>("""
+                        {"subject":"https://idp.example/realms/banking/checker-api","roleCode":"CHECKER"}
+                        """, headers), String.class);
+        assertThat(membership.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        UUID membershipId = UUID.fromString(
+                objectMapper.readTree(membership.getBody()).get("membershipId").asText());
+
+        ResponseEntity<String> mandate = restTemplate.postForEntity(
+                "/v1/organizations/" + organizationId + "/members/"
+                        + membershipId + "/mandates",
+                new HttpEntity<>("""
+                        {"mandateScope":"PAYMENT"}
+                        """, headers), String.class);
+        assertThat(mandate.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM corporate_schema.membership
+                WHERE membership_id = ? AND status = 'ACTIVE'
+                """, Integer.class, membershipId)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM corporate_schema.mandate
+                WHERE membership_id = ? AND mandate_scope = 'PAYMENT' AND status = 'ACTIVE'
+                """, Integer.class, membershipId)).isEqualTo(1);
+    }
+
+    private String configureChecker(UUID organizationId, String subject, String roleCode) {
+        String token = "checker-" + subject;
+        when(jwtDecoder.decode(token)).thenReturn(jwt(
+                token, subject, List.of(), List.of()));
+        UUID membershipId = UUID.randomUUID();
+        jdbcTemplate.update("""
+                INSERT INTO corporate_schema.membership
+                    (membership_id, organization_id, subject, role_code, status)
+                VALUES (?, ?, ?, ?, 'ACTIVE')
+                """, membershipId, organizationId, ISSUER + "/" + subject, roleCode);
+        jdbcTemplate.update("""
+                INSERT INTO corporate_schema.mandate
+                    (mandate_id, membership_id, mandate_scope, status)
+                VALUES (?, ?, 'PAYMENT', 'ACTIVE')
+                """, UUID.randomUUID(), membershipId);
+        return token;
+    }
+
+    private HttpHeaders decisionHeaders(String token, String idempotencyKey) {
+        HttpHeaders headers = headers(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Idempotency-Key", idempotencyKey);
+        return headers;
+    }
+
+    @Test
     void requestSchemaCannotBindPolicyFromAnotherOrganizationOrOperation() throws Exception {
         UUID organizationId = createOrganization();
         UUID otherOrganizationId = createOrganization();
@@ -435,6 +779,17 @@ class OrganizationEndpointIntegrationTests {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         headers.set("X-Correlation-Id", "corporate-test-" + UUID.randomUUID());
+        return headers;
+    }
+
+    private HttpHeaders policySubmitHeaders(String token, UUID organizationId) {
+        when(jwtDecoder.decode(token)).thenReturn(jwt(
+                token, "approval-maker", List.of(), List.of(Map.of(
+                        "permission", "approval-request:submit",
+                        "scopeType", "ORGANIZATION",
+                        "scopeId", organizationId.toString()))));
+        HttpHeaders headers = headers(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }
 

@@ -1,0 +1,23 @@
+metadata:
+  generated: "2026-11-21"
+  source_plan: "docs/plan/phase/interbank-transfer/plan.md"
+
+mapping:
+  - plan_item: "P1.1"
+    tasks: ["T001", "T002", "T003"]
+  - plan_item: "P2.1"
+    tasks: ["T004", "T005"]
+  - plan_item: "P3.1"
+    tasks: ["T006", "T007", "T008"]
+  - plan_item: "P4.1"
+    tasks: ["T009", "T010", "T011"]
+  - plan_item: "P5.1"
+    tasks: ["T012", "T013", "T014"]
+  - plan_item: "P6.1"
+    tasks: ["T015", "T016", "T017"]
+
+validation:
+  plan_items_total: 6
+  tasks_total: 17
+  plan_items_mapped: 6
+  passed: true

@@ -64,6 +64,7 @@ CREATE TABLE corporate_schema.approval_history (
     actor TEXT NOT NULL,
     step_number INTEGER NOT NULL CHECK (step_number > 0),
     decision VARCHAR(8) NOT NULL CHECK (decision IN ('APPROVE', 'REJECT')),
+    reason TEXT,
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     correlation_id TEXT NOT NULL,
     FOREIGN KEY (approval_request_id, policy_id)

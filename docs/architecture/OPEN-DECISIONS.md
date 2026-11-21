@@ -113,6 +113,7 @@ The decisions in [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branc
 - Exact API routes, DTOs, error codes, versioning and per-operation audit requirements.
 - Event broker/transport, `PartyCreated` payload and Outbox publication.
 - Approval thresholds, role/mandate catalog, Membership/Mandate API contracts and exact Keycloak claim mapping; Transfer-level approval enforcement/execution and all Account/Ledger/Transfer behavior.
+- Corporate Transfer MVP: account/balance/limit eligibility, interbank routing/provider, cancellation/reversal, fees/cutoff rules, timeout reconciliation, settlement and Ledger/Payment execution remain OPEN. The independent Transfer service may only store approval state and guard a future execution adapter.
 
 ## Khác biệt cần giữ rõ
 

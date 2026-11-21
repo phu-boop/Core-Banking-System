@@ -45,7 +45,7 @@ Chi tiết endpoint/DTO vẫn **PROPOSED**; synchronous service-to-service API d
 ## 3. Corporate
 
 - **Trách nhiệm:** quản lý organization, membership, mandate, quyền nghiệp vụ doanh nghiệp và configurable approval policy/workflow.
-- **Entities sở hữu (PROPOSED):** `Organization`, `Membership`, `Mandate`, `ApprovalPolicy`, `ApprovalRequest`, `ApprovalStep`, `ApprovalHistory`. First slice hiện sở hữu Organization với logical `partyId` và status; các aggregate khác chưa triển khai.
+- **Entities sở hữu (PROPOSED):** `Organization`, `Membership`, `Mandate`, `ApprovalPolicy`, `ApprovalRequest`, `ApprovalStep`, `ApprovalHistory`. Corporate hiện đã có Organization, policy, Membership, Mandate, approval request/step/history implementation; exact Identity claim mapping remains a deployment/configuration integration concern.
 - **Schema:** `corporate_schema`; mỗi Organization tham chiếu đúng một Party loại `ORGANIZATION` qua logical `partyId` theo ADR-012, không phải FK.
 - **API:** first slice tạo/đọc Organization sau khi Party owner xác nhận `partyId` thuộc loại `ORGANIZATION`; membership/mandate/policy và approval/decision chưa triển khai.
 - **Publish:** `TransferApproved` sau quyết định; denial/change events chưa được xác định.

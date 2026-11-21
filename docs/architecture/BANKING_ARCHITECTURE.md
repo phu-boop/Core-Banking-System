@@ -4,7 +4,7 @@ Tài liệu kiến trúc tổng quan. Bounded Contexts, nghiệp vụ, API, even
 
 ## Trạng thái và mục tiêu
 
-- Dự án đang ở **Phase 2 — Identity, Party, Corporate and Branch**. Phase 1 đã hoàn tất nền tảng kỹ thuật; Identity, Party, Branch và Corporate Organization có first-slice implementation. Corporate Membership/Mandate/Approval vẫn chưa triển khai.
+- Dự án đang ở **Phase 2 — Identity, Party, Corporate and Branch**. Phase 1 đã hoàn tất nền tảng kỹ thuật; Identity, Party, Branch và Corporate Organization có first-slice implementation. Corporate Membership/Mandate/Approval core đã triển khai; Transfer-level approval enforcement/execution remains DEFERRED.
 - Phạm vi: Core Banking cho Retail và Corporate Banking, hỗ trợ Internet Banking, Admin và Teller.
 - Trạng thái của nội dung: **ACCEPTED** là quyết định chủ dự án xác nhận; **PROPOSED** là thiết kế cần duyệt; **OPEN** là chưa quyết định; **DEFERRED** là để giai đoạn sau.
 

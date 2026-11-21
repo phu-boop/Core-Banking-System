@@ -1,0 +1,37 @@
+metadata:
+  feature: "provider-neutral-interbank-transfer"
+  generated: "2026-11-21"
+  source_spec: "docs/specs/interbank-transfer/feature-spec.md"
+
+mapping:
+  - requirement: "REQ-001"
+    plan_items: ["P1.1", "P2.1", "P4.1"]
+  - requirement: "REQ-002"
+    plan_items: ["P4.1"]
+  - requirement: "REQ-003"
+    plan_items: ["P1.1", "P3.1", "P4.1", "P5.1"]
+  - requirement: "REQ-004"
+    plan_items: ["P1.1", "P4.1", "P5.1"]
+  - requirement: "REQ-005"
+    plan_items: ["P1.1", "P4.1", "P5.1"]
+  - requirement: "REQ-006"
+    plan_items: ["P2.1", "P3.1"]
+  - requirement: "REQ-007"
+    plan_items: ["P3.1", "P5.1"]
+  - requirement: "REQ-008"
+    plan_items: ["P1.1", "P3.1"]
+  - requirement: "REQ-009"
+    plan_items: ["P1.1", "P2.1", "P3.1"]
+  - requirement: "REQ-010"
+    plan_items: ["P2.1", "P3.1", "P5.1"]
+  - requirement: "REQ-011"
+    plan_items: ["P4.1", "P5.1"]
+  - requirement: "REQ-012"
+    plan_items: ["P4.1"]
+  - requirement: "REQ-013"
+    plan_items: ["P1.1", "P5.1"]
+
+validation:
+  requirements_total: 13
+  requirements_mapped: 13
+  passed: true

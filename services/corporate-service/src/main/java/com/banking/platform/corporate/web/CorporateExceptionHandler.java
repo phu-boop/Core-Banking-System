@@ -6,6 +6,13 @@ import com.banking.platform.corporate.application.OrganizationService.Organizati
 import com.banking.platform.corporate.application.ApprovalPolicyService.ApprovalPolicyConflictException;
 import com.banking.platform.corporate.application.ApprovalPolicyService.ApprovalPolicyNotFoundException;
 import com.banking.platform.corporate.application.ApprovalPolicyService.InvalidApprovalPolicyException;
+import com.banking.platform.corporate.application.ApprovalRequestConflictException;
+import com.banking.platform.corporate.application.ApprovalRequestNotFoundException;
+import com.banking.platform.corporate.application.ApprovalRequestValidationException;
+import com.banking.platform.corporate.application.IneligibleApproverException;
+import com.banking.platform.corporate.application.MakerCheckerException;
+import com.banking.platform.corporate.application.MembershipService.MembershipNotFoundException;
+import com.banking.platform.corporate.application.MembershipService.MembershipValidationException;
 import com.banking.platform.corporate.integration.OidcPartyReferenceClient.PartyServiceUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -60,6 +67,55 @@ public class CorporateExceptionHandler {
     public ResponseEntity<Map<String, Object>> approvalPolicyNotFound(
             ApprovalPolicyNotFoundException exception, HttpServletRequest request) {
         return error(HttpStatus.NOT_FOUND, "APPROVAL_POLICY_NOT_FOUND",
+                exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ApprovalRequestValidationException.class)
+    public ResponseEntity<Map<String, Object>> invalidApprovalRequest(
+            ApprovalRequestValidationException exception, HttpServletRequest request) {
+        return error(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_APPROVAL_REQUEST",
+                exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ApprovalRequestConflictException.class)
+    public ResponseEntity<Map<String, Object>> approvalRequestConflict(
+            ApprovalRequestConflictException exception, HttpServletRequest request) {
+        return error(HttpStatus.CONFLICT, "APPROVAL_REQUEST_CONFLICT",
+                exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ApprovalRequestNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> approvalRequestNotFound(
+            ApprovalRequestNotFoundException exception, HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, "APPROVAL_REQUEST_NOT_FOUND",
+                exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(MakerCheckerException.class)
+    public ResponseEntity<Map<String, Object>> makerChecker(
+            MakerCheckerException exception, HttpServletRequest request) {
+        return error(HttpStatus.FORBIDDEN, "MAKER_CHECKER_VIOLATION",
+                exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(IneligibleApproverException.class)
+    public ResponseEntity<Map<String, Object>> ineligibleApprover(
+            IneligibleApproverException exception, HttpServletRequest request) {
+        return error(HttpStatus.FORBIDDEN, "APPROVER_NOT_ELIGIBLE",
+                exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(MembershipValidationException.class)
+    public ResponseEntity<Map<String, Object>> invalidMembership(
+            MembershipValidationException exception, HttpServletRequest request) {
+        return error(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_MEMBERSHIP",
+                exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(MembershipNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> membershipNotFound(
+            MembershipNotFoundException exception, HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND",
                 exception.getMessage(), request);
     }
 

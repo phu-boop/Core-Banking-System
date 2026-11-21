@@ -1,0 +1,70 @@
+traceability:
+  - requirement: "REQ-001"
+    plan_items: ["P1.1", "P2.1", "P3.1", "P4.1"]
+    tasks: ["T003", "T004", "T005", "T006", "T007", "T008"]
+    files:
+      - "services/transfer-service/src/main/resources/db/migration/V1__create_transfer_tables.sql"
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ApprovalEnforcedTransferService.java"
+    status: "complete"
+  - requirement: "REQ-002"
+    plan_items: ["P1.1", "P3.1", "P4.1"]
+    tasks: ["T006", "T007", "T008"]
+    files:
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/persistence/TransferRepository.java"
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/integration/CorporateApprovalClient.java"
+    status: "complete"
+  - requirement: "REQ-003"
+    plan_items: ["P3.1", "P4.1", "P5.1"]
+    tasks: ["T005", "T008", "T010"]
+    files:
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ApprovalEnforcedTransferService.java"
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ExecutionAdapter.java"
+    status: "complete"
+  - requirement: "REQ-004"
+    plan_items: ["P3.1", "P4.1", "P5.1"]
+    tasks: ["T005", "T008", "T010"]
+    files:
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ApprovalEnforcedTransferService.java"
+    status: "complete"
+  - requirement: "REQ-005"
+    plan_items: ["P1.1", "P3.1", "P5.1"]
+    tasks: ["T001", "T005", "T008", "T011"]
+    files:
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/domain/TransferStatus.java"
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ApprovalEnforcedTransferService.java"
+    status: "complete"
+  - requirement: "REQ-006"
+    plan_items: ["P2.1", "P5.1"]
+    tasks: ["T009", "T012"]
+    files:
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/persistence/TransferRepository.java"
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ApprovalEnforcedTransferService.java"
+    status: "complete"
+  - requirement: "REQ-007"
+    plan_items: ["P2.1", "P3.1", "P5.1"]
+    tasks: ["T004", "T006", "T008"]
+    files:
+      - "services/transfer-service/src/main/resources/db/migration/V1__create_transfer_tables.sql"
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/persistence/TransferRepository.java"
+    status: "complete"
+  - requirement: "REQ-008"
+    plan_items: ["P1.1", "P4.1", "P5.1"]
+    tasks: ["T001", "T002", "T010"]
+    files:
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ExecutionAdapter.java"
+      - "docs/plan/phase/corporate-transfer/plan.md"
+    status: "complete"
+  - requirement: "REQ-009"
+    plan_items: ["P1.1", "P5.1"]
+    tasks: ["T001", "T010"]
+    files:
+      - "docs/plan/phase/corporate-transfer/research.md"
+      - "docs/plan/phase/corporate-transfer/plan.md"
+    status: "complete"
+  - requirement: "REQ-010"
+    plan_items: ["P1.1", "P4.1"]
+    tasks: ["T007", "T008", "T011"]
+    files:
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/integration/CorporateApprovalClient.java"
+      - "services/transfer-service/src/main/java/com/banking/platform/transfer/web/TransferController.java"
+    status: "complete"

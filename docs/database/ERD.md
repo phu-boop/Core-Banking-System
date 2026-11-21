@@ -61,8 +61,8 @@ All IDs below are opaque identifiers; UUID is a **PROPOSED** implementation choi
 | `party_schema.party` | `party_id` PK; `party_type`; `status`; optional logical `managing_branch_id` reference (no FK); created timestamps | `(party_type, status)`, `(managing_branch_id, status)` |
 | `party_schema.individual_profile` | `party_id` PK and same-schema FK to `party`; profile fields subject to PII design | PII searches only if approved |
 | `corporate_schema.organization` | `organization_id` PK; required `party_id` UNIQUE logical reference to exactly one Party of type `ORGANIZATION`; `status` | `(status)` |
-| `corporate_schema.membership` | `membership_id` PK; `organization_id`, `user_id` references; role/status; no cross-schema FK | UNIQUE active membership rule to be specified; `(organization_id, status)`, `(user_id)` |
-| `corporate_schema.mandate` | `mandate_id` PK; `organization_id`; `member_id` reference; mandate scope/status | `(organization_id, status)` |
+| `corporate_schema.membership` | `membership_id` PK; `organization_id`; exact authenticated `subject`; role code/status; no cross-schema FK | UNIQUE one active membership per organization/subject/role; `(organization_id, subject, role_code, status)` |
+| `corporate_schema.mandate` | `mandate_id` PK; `membership_id` same-schema FK; mandate scope/status | UNIQUE one active mandate per membership/scope; `(membership_id, mandate_scope, status)` |
 | `corporate_schema.approval_policy` | `policy_id` PK; `organization_id`; opaque `operation_type`; immutable policy version/content; status and explicit activation timestamp; requests pin this version (ADR-007) | UNIQUE `(organization_id, operation_type, policy_version)`; partial UNIQUE for one active version per organization/operation type |
 | `corporate_schema.approval_policy_level` | `policy_level_id` PK; `policy_id` same-schema FK; ordered `step_number`; required `role_code` and `mandate_scope`; runtime role cannot update/delete levels | UNIQUE `(policy_id, step_number)` |
 | `corporate_schema.approval_request` | `approval_request_id` PK; `organization_id`; opaque owner-supplied `operation_type` / `operation_reference`; `maker_subject`; composite FK binds policy version to the same organization and operation type; status; no cross-schema FK | `(organization_id, submitted_at)`, `(operation_type, operation_reference)` |
@@ -91,10 +91,11 @@ All IDs below are opaque identifiers; UUID is a **PROPOSED** implementation choi
 - A customer has one primary managing branch at a time; it is a single logical reference distinct from transaction-processing branch. Whether assignment is required at customer creation and reassignment workflow/effective-date rules remain to be defined. See [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
 - Each Corporate Organization maps 1:1 to one Party of type `ORGANIZATION` through a logical reference; there is no cross-schema FK. Organization legal-identity fields and jurisdiction-specific uniqueness remain OPEN.
 - The first `branch_schema` migration implements branch code/name/status and case-insensitive code uniqueness; status transition and lifecycle operations remain OPEN.
-- Corporate V1 implements `organization` with a unique logical `party_id` and an organization audit table. Corporate validates the Party type through the Party owner API. V2 implements approval-policy administration and creates the request, step and append-only decision-history tables; request workflow, Membership and Mandate remain unimplemented.
+- Corporate V1 implements `organization` with a unique logical `party_id` and an organization audit table. Corporate validates the Party type through the Party owner API. V2 implements approval-policy administration and creates the request, step and append-only decision-history tables. V3 implements 24-hour decision idempotency. V4 implements Corporate-owned Membership and Mandate records; decisions require active matching records through `JdbcApproverEligibilityClient`.
 - Party duplicate detection uses soft match and human review. Do not add default uniqueness on National ID, phone or email, or auto-merge/delete candidates. Matching fields and thresholds remain OPEN.
 - External destination data and provider identifiers are not modeled beyond references until interbank provider/protocol are known.
 - Do not add FK between schemas even if all schemas reside in one PostgreSQL database.
+- The Transfer first slice owns `transfer_schema.transfers`, `transfer_schema.transfer_idempotency`, and `transfer_schema.transfer_audit`. Approval request and policy references are opaque cross-context IDs with no Foreign Key or direct read into Corporate tables.
 
 ## Ownership and access
 

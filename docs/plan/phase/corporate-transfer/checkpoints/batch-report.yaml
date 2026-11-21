@@ -1,0 +1,103 @@
+batch_id: "B01"
+completed_tasks:
+  - "T001"
+  - "T002"
+  - "T003"
+  - "T004"
+  - "T005"
+  - "T006"
+  - "T007"
+  - "T008"
+  - "T009"
+  - "T010"
+  - "T011"
+  - "T012"
+  - "T013"
+  - "T014"
+blocked_tasks: []
+files_changed:
+  T003:
+    - file: "services/transfer-service/pom.xml"
+      change_type: "created"
+      description: "Spring Boot Transfer service Maven module"
+  T004:
+    - file: "services/transfer-service/src/main/resources/db/migration/V1__create_transfer_tables.sql"
+      change_type: "created"
+      description: "Transfer, idempotency and audit schema"
+  T005:
+    - file: "services/transfer-service/src/main/java/com/banking/platform/transfer/domain/"
+      change_type: "created"
+      description: "Transfer state, request and Corporate response types"
+  T006:
+    - file: "services/transfer-service/src/main/java/com/banking/platform/transfer/persistence/TransferRepository.java"
+      change_type: "created"
+      description: "JDBC persistence and idempotency repository"
+  T007:
+    - file: "services/transfer-service/src/main/java/com/banking/platform/transfer/integration/CorporateApprovalClient.java"
+      change_type: "created"
+      description: "Synchronous Corporate approval REST client"
+  T008:
+    - file: "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ApprovalEnforcedTransferService.java"
+      change_type: "created"
+      description: "Approval state orchestration and execution gate"
+  T011:
+    - file: "services/transfer-service/src/main/java/com/banking/platform/transfer/web/"
+      change_type: "created"
+      description: "Transfer REST controller, correlation filter and error mapping"
+  T012:
+    - file: "services/transfer-service/src/test/"
+      change_type: "created"
+      description: "Unit execution-gate tests and PostgreSQL Testcontainers repository test"
+  T014:
+    - file: "services/transfer-service/README.md"
+      change_type: "created"
+      description: "Transfer service scope and verification notes"
+upstream_artifacts_consumed:
+  T001:
+    - artifact: "docs/plan/phase/corporate-transfer/plan.md"
+      used_for: "Approved Transfer approval-gate scope"
+    - artifact: "docs/plan/phase/corporate-transfer/research.md"
+      used_for: "Open exclusions and unresolved provider behavior"
+evidence_mapping:
+  T012:
+    - upstream: "docs/plan/phase/corporate-transfer/plan.md#Testing Strategy"
+      output: "services/transfer-service/src/test/"
+      evidence: "Execution-gate, idempotency, Mock Corporate REST and PostgreSQL Testcontainers tests pass"
+traceability:
+  - requirement: "REQ-001"
+    plan_item: "P2.1-P4.1"
+    task: "T003-T008"
+    files: ["services/transfer-service"]
+    status: "completed"
+  - requirement: "REQ-003"
+    plan_item: "P3.1-P5.1"
+    task: "T005-T010"
+    files: ["services/transfer-service/src/main/java/com/banking/platform/transfer/application/"]
+    status: "completed"
+  - requirement: "REQ-006"
+    plan_item: "P5.1"
+    task: "T009"
+    files: ["services/transfer-service/src/main/java/com/banking/platform/transfer/persistence/TransferRepository.java"]
+    status: "completed"
+  - requirement: "REQ-008"
+    plan_item: "P1.1-P5.1"
+    task: "T001-T010"
+    files: ["services/transfer-service/src/main/java/com/banking/platform/transfer/application/ExecutionAdapter.java"]
+    status: "completed"
+protocol_violation: false
+errors: []
+warnings:
+  - "Ledger, Payment, interbank provider, settlement and reversal behavior remain deferred."
+test_results:
+  T012:
+    command: "./mvnw -f services/transfer-service/pom.xml verify"
+    passed: 8
+    failed: 0
+    skipped: 0
+    failures: []
+  T013:
+    command: "./mvnw -f services/corporate-service/pom.xml verify"
+    passed: 21
+    failed: 0
+    skipped: 0
+    failures: []

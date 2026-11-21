@@ -1,6 +1,6 @@
 # Implementation Plan: Corporate Approval Core
 
-**Date**: 2026-11-20 | **Status**: Implementation in progress
+**Date**: 2026-11-20 | **Status**: Implemented — Corporate Approval core; Transfer enforcement deferred
 **Source baseline**: [Feature spec](../../../specs/corporate-approval/feature-spec.md), [ADR-007](../../../adr/ADR-007-configurable-corporate-approval.md), [Business Rules](../../../domain/BUSINESS-RULES.md), [Phase 2 Decision Gate](../Phase-2-Decision-Gate.md), [API Contracts](../../../api/API-CONTRACTS.md), [Logical ERD](../../../database/ERD.md)
 
 ## Summary
@@ -94,9 +94,9 @@ No matching technology migration guidelines were found in the repository guideli
 - **Design inputs**: Approved state machine, policy version rule, membership/mandate contract, decision API contract
 - **Description**: Create approval requests against the selected immutable policy version, execute the configured levels in order, authorize each decision against Corporate-owned rules, enforce Maker–Checker, and record every decision/result in history in the same transaction. Implement only transitions and outcomes explicitly approved by the feature spec.
 - **Tasks**:
-  - [ ] T009 [Plan:P4.1] Implement approval request creation and ordered step progression in `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/application/ApprovalWorkflowService.java`.
-  - [ ] T010 [Plan:P4.1] Add Corporate-side approver eligibility and Maker–Checker checks in `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/application/ApprovalAuthorizationService.java`, consuming only approved Membership/Mandate interfaces.
-  - [ ] T011 [Plan:P4.1] Persist decision transitions and append-only history atomically through `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/persistence/ApprovalRepository.java`.
+  - [x] T009 [Plan:P4.1] Implement approval request creation and ordered step progression in `services/corporate-service/src/main/java/com/banking/platform/corporate/application/ApprovalWorkflowService.java`.
+  - [x] T010 [Plan:P4.1] Add Corporate-owned Membership/Mandate persistence and the production `JdbcApproverEligibilityClient`, which requires active membership plus active mandate matching organization, subject, role and scope; Maker–Checker remains enforced in the workflow.
+  - [x] T011 [Plan:P4.1] Persist decision transitions and append-only history atomically through `services/corporate-service/src/main/java/com/banking/platform/corporate/persistence/ApprovalRepository.java`.
 
 ### Step 6: Expose approval APIs and enforce command safety
 
@@ -105,8 +105,8 @@ No matching technology migration guidelines were found in the repository guideli
 - **Design inputs**: Approved API contract and security claim mapping
 - **Description**: Implement the approved policy query/admin and approval decision endpoints in the Corporate web layer. Apply organization-scoped authorization, validate request ownership through the approved integration boundary, reject self-approval, and implement decision idempotency and error responses. Do not treat API Gateway authorization as sufficient.
 - **Tasks**:
-  - [ ] T012 [Plan:P4.2] Add the approved decision request/response DTOs and routes in `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/web/ApprovalDecisionController.java`.
-  - [ ] T013 [Plan:P4.2] Implement decision idempotency, same-key replay, conflicting-payload detection, and error mapping in `services/corporate-service/src/main/java/com/banking/platform/corporate/approval/application/ApprovalDecisionService.java`; cover them in `services/corporate-service/src/test/java/com/banking/platform/corporate/approval/ApprovalDecisionServiceTests.java`.
+  - [x] T012 [Plan:P4.2] Add approval request, decision and history routes in `services/corporate-service/src/main/java/com/banking/platform/corporate/web/ApprovalDecisionController.java`.
+  - [x] T013 [Plan:P4.2] Implement 24-hour decision idempotency, same-key replay, conflicting-payload detection, and error mapping in `ApprovalRepository` and `CorporateExceptionHandler`.
 
 ### Step 7: Verify behavior, isolation, and audit evidence
 
@@ -115,12 +115,14 @@ No matching technology migration guidelines were found in the repository guideli
 - **Design inputs**: Approved acceptance criteria and API/data contracts
 - **Description**: Add focused unit and PostgreSQL integration tests for policy version immutability, multi-level progression, authorization, maker self-approval denial, decision replay/conflict, atomic decision-plus-history persistence, and absence of cross-schema access. Run `./mvnw -f services/corporate-service/pom.xml verify` and update Corporate README and Phase 2 status.
 - **Tasks**:
-  - [ ] T014 [Plan:P5.1] Add PostgreSQL Testcontainers coverage for multi-level decisions, Maker–Checker, policy changes, transactional history, and schema isolation under `services/corporate-service/src/test/java/com/banking/platform/corporate/approval/`.
-  - [ ] T015 [Plan:P5.1] Run `./mvnw -f services/corporate-service/pom.xml verify`, update `services/corporate-service/README.md` and `docs/plan/phase/Phase-2-Identity-Party-Corporate-Branch.md`, and record verified scope and remaining dependencies.
+  - [x] T014 [Plan:P5.1] Add PostgreSQL Testcontainers coverage for policy lifecycle, sequential decisions, Maker–Checker, terminal rejection, decision history, idempotency replay/conflict and schema isolation.
+  - [x] T015 [Plan:P5.1] Run `./mvnw -f services/corporate-service/pom.xml verify`, update `services/corporate-service/README.md` and `docs/plan/phase/Phase-2-Identity-Party-Corporate-Branch.md`, and record verified scope and remaining dependencies.
 
 ### Deferred: Transfer enforcement and financial execution
 
 This work is not included in this Corporate plan. Once Transfer is approved and implemented, a separate plan must define how Transfer submits an approval request, consumes the Corporate result, handles pending/rejected/expired requests, and prevents execution until approval is complete. Ledger posting and payment settlement remain owned by their respective services.
+
+The separate implementation plan is at [Corporate Transfer Approval Enforcement](../corporate-transfer/plan.md).
 
 ## Project Structure
 

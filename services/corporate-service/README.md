@@ -11,7 +11,11 @@ Corporate Organization and policy-administration slices for Phase 2.
 - Policy creation and activation write an organization audit record atomically.
 - `corporate_schema.organization.party_id` is unique; it is a logical reference and has no cross-schema foreign key.
 - Organization creation and its audit record commit in one database transaction.
-- V2 creates Corporate-owned policy, request, step and decision-history tables. Request submission, checker decisions, Membership, Mandate, legal profile data and financial execution are not implemented.
+- V2 creates Corporate-owned policy, request, step and decision-history tables.
+- V3 creates the 24-hour decision idempotency table.
+- V4 creates Corporate Membership and Mandate tables.
+- Request submission and ordered decision execution are implemented. Approval decisions validate active Membership and Mandate records in Corporate against the current level.
+- Legal profile data and financial execution are not implemented.
 - The approved Corporate Approval behavior baseline is documented in [ADR-007](../../docs/adr/ADR-007-configurable-corporate-approval.md); this slice implements policy administration only.
 
 ## Authorization
@@ -30,6 +34,21 @@ Policy endpoints:
 - `POST /v1/organizations/{organizationId}/approval-policies` creates a draft version with one or more ordered levels.
 - `GET /v1/organizations/{organizationId}/approval-policies?operationType=...` lists policies for the organization, optionally filtered by opaque operation type.
 - `POST /v1/organizations/{organizationId}/approval-policies/{policyId}/activate` activates a draft or inactive version and deactivates the currently active version for that operation type.
+
+Approval workflow endpoints:
+
+- `POST /v1/organizations/{organizationId}/approval-requests` creates a pending request pinned to the active policy for the opaque operation type.
+- `GET /v1/organizations/{organizationId}/approval-requests/{approvalId}` reads a request and its current step.
+- `POST /v1/organizations/{organizationId}/approval-requests/{approvalId}/decisions` approves or rejects the current step. Send `Idempotency-Key` as a header or body field.
+- `GET /v1/organizations/{organizationId}/approval-requests/{approvalId}/history` reads append-only decision history.
+
+The `ApproverEligibilityClient` is implemented by `JdbcApproverEligibilityClient`. It requires all of the following: matching organization, exact authenticated subject, active Membership role, and active Mandate scope. It must not derive approver eligibility from caller-supplied JWT role or mandate values.
+
+Membership endpoints:
+
+- `POST /v1/organizations/{organizationId}/members` creates an active Membership.
+- `GET /v1/organizations/{organizationId}/members` lists Membership records.
+- `POST /v1/organizations/{organizationId}/members/{membershipId}/mandates` creates an active Mandate.
 
 Operation type values are preserved as supplied (1–64 non-whitespace characters). Role codes and mandate scopes are trimmed and stored uppercase. Policy administration does not submit or decide approval requests.
 

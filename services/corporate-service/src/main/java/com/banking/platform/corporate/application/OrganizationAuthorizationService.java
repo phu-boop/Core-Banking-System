@@ -26,6 +26,30 @@ public class OrganizationAuthorizationService {
         }
     }
 
+    public void requireApprovalRequestSubmission(Jwt jwt, UUID organizationId) {
+        if (!hasScopedPermission(jwt, "approval-request:submit", organizationId)
+                && !hasScopedPermission(jwt, "approval-policy:manage", organizationId)) {
+            throw new AccessDeniedException("Organization-scoped approval request submission permission is required");
+        }
+    }
+
+    public boolean hasApprovalPolicyManagement(Jwt jwt, UUID organizationId) {
+        return hasScopedPermission(jwt, "approval-policy:manage", organizationId);
+    }
+
+    public boolean hasApprovalRequestSubmission(Jwt jwt, UUID organizationId) {
+        return hasScopedPermission(jwt, "approval-request:submit", organizationId)
+                || hasApprovalPolicyManagement(jwt, organizationId);
+    }
+
+    public void requireMembershipManagement(Jwt jwt, UUID organizationId) {
+        if (!hasScopedPermission(jwt, "membership:manage", organizationId)
+                && !hasScopedPermission(jwt, "approval-policy:manage", organizationId)) {
+            throw new AccessDeniedException(
+                    "Organization-scoped membership:manage permission is required");
+        }
+    }
+
     private boolean hasGlobalPermission(Jwt jwt, String permission) {
         Object claim = jwt.getClaims().get("corporate_permissions");
         return claim instanceof Collection<?> values

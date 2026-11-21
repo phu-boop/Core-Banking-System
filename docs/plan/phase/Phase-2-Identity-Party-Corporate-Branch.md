@@ -116,7 +116,7 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 
 **Đầu ra:** corporate onboarding và approval eligibility có thể kiểm thử; không thực hiện transfer hoặc Ledger posting.
 
-**Trạng thái:** Organization first slice đã triển khai trong `corporate-service`: tạo/đọc Organization, xác thực Party type qua owner API và giữ unique logical `partyId`. Approval V2 đã thêm policy schema, policy administration (create/list/activate), scoped permission và audit; request/decision workflow, Membership, Mandate và decision-history writes vẫn chưa triển khai. Canonical Keycloak claim mapping và Membership/Mandate owner interfaces còn là prerequisites cho workflow.
+**Trạng thái:** Organization first slice đã triển khai trong `corporate-service`: tạo/đọc Organization, xác thực Party type qua owner API và giữ unique logical `partyId`. Approval V2/V3/V4 đã triển khai policy schema, policy administration, request submission, ordered decision state, append-only history, 24-hour decision idempotency, và Corporate-owned Membership/Mandate with active eligibility lookup. Canonical Keycloak claim mapping remains an integration/configuration decision, but eligible decisions no longer depend on caller-supplied role/mandate grants.
 
 Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–Checker và approval history; không bao gồm Transfer/Ledger execution) nằm tại [Corporate Approval implementation plan](./corporate-approval/plan.md). Membership/Mandate implementations hoặc owner interfaces đã duyệt, cùng các decision gate được liệt kê trong plan, là prerequisites trước khi triển khai workflow.
 
