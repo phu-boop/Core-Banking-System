@@ -4,6 +4,7 @@ import com.banking.platform.payment.application.PaymentService;
 import com.banking.platform.payment.domain.PaymentOutcomeRequest;
 import com.banking.platform.payment.domain.PaymentRecord;
 import com.banking.platform.payment.domain.SubmitPaymentRequest;
+import com.banking.platform.payment.integration.InterbankProviderAdapter;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,9 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/internal/payments")
 public class PaymentController {
     private final PaymentService service;
+    private final InterbankProviderAdapter providerAdapter;
 
-    public PaymentController(PaymentService service) {
+    public PaymentController(PaymentService service,
+                             InterbankProviderAdapter providerAdapter) {
         this.service = service;
+        this.providerAdapter = providerAdapter;
     }
 
     @PostMapping
@@ -37,6 +41,18 @@ public class PaymentController {
     @GetMapping("/{paymentId}")
     public PaymentRecord get(@PathVariable UUID paymentId) {
         return service.get(paymentId);
+    }
+
+    @PostMapping("/{paymentId}/reconcile")
+    public PaymentRecord reconcile(@PathVariable UUID paymentId,
+                                   @AuthenticationPrincipal Jwt jwt,
+                                   HttpServletRequest servletRequest) {
+        PaymentRecord payment = service.get(paymentId);
+        var outcome = providerAdapter.query(
+                paymentId, payment.providerReference(), correlationId(servletRequest));
+        return service.recordOutcome(paymentId, new PaymentOutcomeRequest(
+                outcome.outcome(), "MOCK_PROVIDER_QUERY",
+                outcome.providerReference(), correlationId(servletRequest)));
     }
 
     @PostMapping("/{paymentId}/outcomes")

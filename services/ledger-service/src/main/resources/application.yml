@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: ledger-service
+  datasource:
+    url: ${LEDGER_DB_URL}
+    username: ${LEDGER_DB_USERNAME}
+    password: ${LEDGER_DB_PASSWORD}
+  flyway:
+    schemas: ledger_schema
+    default-schema: ledger_schema
+server:
+  port: ${SERVER_PORT:8086}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

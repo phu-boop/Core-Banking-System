@@ -20,9 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PaymentService {
     private final PaymentRepository repository;
+    private final com.banking.platform.payment.integration.InterbankProviderAdapter providerAdapter;
 
-    public PaymentService(PaymentRepository repository) {
+    public PaymentService(PaymentRepository repository,
+                          com.banking.platform.payment.integration.InterbankProviderAdapter providerAdapter) {
         this.repository = repository;
+        this.providerAdapter = providerAdapter;
     }
 
     @Transactional
@@ -58,6 +61,36 @@ public class PaymentService {
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
             repository.saveIdempotency(idempotencyKey, actor, operation, businessScope,
                     payloadHash, paymentId);
+        }
+        if (providerAdapter != null) {
+            com.banking.platform.payment.integration.InterbankProviderAdapter.ProviderSubmissionResponse providerResponse =
+                    providerAdapter.submit(
+                            paymentId,
+                            request.destinationReference(),
+                            request.amount(),
+                            request.currency(),
+                            correlationId);
+            if ("UNRESOLVED".equals(providerResponse.status())) {
+                repository.recordOutcome(paymentId, UUID.randomUUID(), "UNRESOLVED",
+                        "MOCK_PROVIDER_QUERY", providerResponse.providerReference(), correlationId);
+                repository.audit(paymentId, actor, "PROVIDER_SUBMIT", "UNRESOLVED",
+                        "MOCK_PROVIDER", providerResponse.providerReference(), correlationId);
+                repository.updateStatus(paymentId, PaymentStatus.UNRESOLVED,
+                        providerResponse.providerReference());
+                return get(paymentId);
+            }
+            if ("FAILED".equals(providerResponse.status())) {
+                repository.recordOutcome(paymentId, UUID.randomUUID(), "FAILED",
+                        "MOCK_PROVIDER", providerResponse.providerReference(), correlationId);
+                repository.audit(paymentId, actor, "PROVIDER_SUBMIT", "FAILED",
+                        "MOCK_PROVIDER", providerResponse.providerReference(), correlationId);
+                repository.updateStatus(paymentId, PaymentStatus.FAILED,
+                        providerResponse.providerReference());
+                return get(paymentId);
+            }
+            repository.updateStatus(paymentId, PaymentStatus.PENDING_SUBMISSION,
+                    providerResponse.providerReference());
+            return get(paymentId);
         }
         return payment;
     }

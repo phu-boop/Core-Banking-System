@@ -29,7 +29,9 @@ class PaymentServiceTests {
     @BeforeEach
     void setUp() {
         repository = mock(PaymentRepository.class);
-        service = new PaymentService(repository);
+        com.banking.platform.payment.integration.InterbankProviderAdapter adapter =
+                mock(com.banking.platform.payment.integration.InterbankProviderAdapter.class);
+        service = new PaymentService(repository, adapter);
     }
 
     @Test
@@ -67,6 +69,26 @@ class PaymentServiceTests {
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.submit(request, "idem", "actor", "corr"));
+    }
+
+    @Test
+    void mockTimeoutSubmissionBecomesUnresolved() {
+        com.banking.platform.payment.integration.MockInterbankProviderAdapter provider =
+                new com.banking.platform.payment.integration.MockInterbankProviderAdapter();
+        PaymentService providerService = new PaymentService(repository, provider);
+        SubmitPaymentRequest request = new SubmitPaymentRequest(
+                UUID.randomUUID(), "TIMEOUT", new BigDecimal("100.00"), "VND", "corr");
+        UUID paymentId = UUID.randomUUID();
+        when(repository.find(any())).thenReturn(Optional.of(
+                new PaymentRecord(paymentId, request.transferId(),
+                        request.amount(), "VND", "TIMEOUT",
+                        PaymentStatus.UNRESOLVED, null, "corr",
+                        Instant.now(), Instant.now())));
+
+        PaymentRecord result = providerService.submit(request, "idem", "actor", "corr");
+
+        org.junit.jupiter.api.Assertions.assertEquals(PaymentStatus.UNRESOLVED, result.status());
+        verify(repository).updateStatus(any(), eq(PaymentStatus.UNRESOLVED), isNull());
     }
 
     private PaymentRecord payment(UUID paymentId, PaymentStatus status) {

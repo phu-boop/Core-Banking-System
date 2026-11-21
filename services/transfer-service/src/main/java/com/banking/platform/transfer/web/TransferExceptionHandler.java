@@ -19,6 +19,11 @@ public class TransferExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(TransferExceptions.ValidationException.class)
+    ResponseEntity<Map<String, String>> validation(TransferExceptions.ValidationException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(UnsupportedOperationException.class)
     ResponseEntity<Map<String, String>> unsupported(UnsupportedOperationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));

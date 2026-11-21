@@ -1,6 +1,10 @@
 package com.banking.platform.transfer.domain;
 
 public enum TransferStatus {
+    ACCEPTED,
+    PROCESSING,
+    SETTLED,
+    FAILED,
     PENDING_APPROVAL,
     APPROVED,
     REJECTED,

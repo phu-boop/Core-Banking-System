@@ -16,6 +16,8 @@
         <module>services/party-service</module>
         <module>services/branch-service</module>
         <module>services/corporate-service</module>
+        <module>services/account-service</module>
+        <module>services/ledger-service</module>
         <module>services/transfer-service</module>
         <module>services/payment-service</module>
     </modules>

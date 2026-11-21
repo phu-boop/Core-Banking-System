@@ -2,7 +2,7 @@
 
 **Feature Branch**: `phase-6-interbank-transfer`
 **Created**: 2026-11-21
-**Status**: Draft
+**Status**: Implemented — provider-neutral mock sandbox
 **Input**: Provider-neutral Phase 6 interbank transfer boundary
 
 ## Scope Baseline

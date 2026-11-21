@@ -155,7 +155,10 @@ class IdentityPrincipalEndpointIntegrationTests {
     }
 
     @BeforeEach
-    void configureMockTokens() {
+    void configureMockTokens() throws SQLException {
+        try (Connection migrator = migratorConnection(); Statement statement = migrator.createStatement()) {
+            statement.execute("TRUNCATE TABLE identity_schema.identity_audit");
+        }
         when(jwtDecoder.decode("active-token")).thenReturn(jwt("active-token", "active-subject"));
         when(jwtDecoder.decode("disabled-token")).thenReturn(jwt("disabled-token", "disabled-subject"));
         when(jwtDecoder.decode("unknown-token")).thenReturn(jwt("unknown-token", "unknown-subject"));
@@ -179,12 +182,29 @@ class IdentityPrincipalEndpointIntegrationTests {
         assertThat(body.get("grants").get(0).get("permission").asText()).isEqualTo("customer:read");
         assertThat(body.get("grants").get(0).get("scopeType").asText()).isEqualTo("SELF");
         assertThat(response.getBody()).doesNotContain("active-subject");
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM identity_schema.identity_audit "
+                                + "WHERE actor = ? AND action = 'IDENTITY_PRINCIPAL_RESOLVE' "
+                                + "AND result = 'SUCCESS'",
+                        Integer.class,
+                        ACTIVE_USER_ID.toString()))
+                .isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM identity_schema.identity_audit "
+                                + "WHERE resource_id LIKE 'sha256:%'",
+                        Integer.class))
+                .isEqualTo(1);
     }
 
     @Test
     void deniesUnknownAndDisabledMappingsWithTheSameStatus() {
         assertThat(getPrincipal("unknown-token").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(getPrincipal("disabled-token").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM identity_schema.identity_audit "
+                                + "WHERE actor = 'UNKNOWN' AND result = 'DENIED'",
+                        Integer.class))
+                .isEqualTo(2);
     }
 
     @Test
@@ -195,6 +215,10 @@ class IdentityPrincipalEndpointIntegrationTests {
         assertThatThrownBy(() -> jdbcTemplate.update(
                         "UPDATE identity_schema.user_identity SET status = 'DISABLED' WHERE user_id = ?",
                         ACTIVE_USER_ID))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                        "UPDATE identity_schema.identity_audit SET result = 'CHANGED' "
+                                + "WHERE actor = 'UNKNOWN'"))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
         assertThatThrownBy(() -> jdbcTemplate.queryForObject(
                         "SELECT count(*) FROM identity_schema.flyway_schema_history", Integer.class))

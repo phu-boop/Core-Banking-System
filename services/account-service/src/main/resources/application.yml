@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: account-service
+  datasource:
+    url: ${ACCOUNT_DB_URL}
+    username: ${ACCOUNT_DB_USERNAME}
+    password: ${ACCOUNT_DB_PASSWORD}
+  flyway:
+    schemas: account_schema
+    default-schema: account_schema
+server:
+  port: ${SERVER_PORT:8085}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

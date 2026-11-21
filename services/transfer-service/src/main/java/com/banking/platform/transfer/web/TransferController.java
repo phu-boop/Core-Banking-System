@@ -1,6 +1,9 @@
 package com.banking.platform.transfer.web;
 
 import com.banking.platform.transfer.application.ApprovalEnforcedTransferService;
+import com.banking.platform.transfer.application.RetailTransferService;
+import com.banking.platform.transfer.domain.RetailTransferRequest;
+import com.banking.platform.transfer.domain.RetailTransferRecord;
 import com.banking.platform.transfer.domain.SubmitTransferRequest;
 import com.banking.platform.transfer.domain.TransferRecord;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,9 +22,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/transfers")
 public class TransferController {
     private final ApprovalEnforcedTransferService service;
+    private final RetailTransferService retailService;
 
-    public TransferController(ApprovalEnforcedTransferService service) {
+    public TransferController(ApprovalEnforcedTransferService service,
+                              RetailTransferService retailService) {
         this.service = service;
+        this.retailService = retailService;
+    }
+
+    @PostMapping("/internal")
+    public RetailTransferRecord submitInternal(@RequestBody RetailTransferRequest request,
+                                               @RequestHeader(name = "Idempotency-Key") String idempotencyKey,
+                                               @AuthenticationPrincipal Jwt jwt,
+                                               HttpServletRequest servletRequest) {
+        return retailService.submit(request, idempotencyKey, jwt.getSubject(),
+                correlationId(servletRequest));
+    }
+
+    @GetMapping("/internal/{transferId}")
+    public RetailTransferRecord getInternal(@PathVariable UUID transferId) {
+        return retailService.get(transferId);
     }
 
     @PostMapping

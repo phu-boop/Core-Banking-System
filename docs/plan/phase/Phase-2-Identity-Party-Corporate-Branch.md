@@ -87,7 +87,7 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 
 **Đầu ra:** identity subject và scoped authorization có thể kiểm thử; không lưu hoặc log secret/token.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** First slice đã triển khai trong `identity-service`: subject/issuer mapping, active identity resolution, scoped grants và `identity_audit` cho authentication/principal resolution. Lifecycle states và canonical claim mapping remain OPEN.
 
 ### 2.3 — Party / Customer
 
@@ -144,7 +144,7 @@ Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–C
 
 **Đầu ra:** authorization và correlation hoạt động nhất quán qua các service Phase 2.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** Owner-side authorization foundation đã triển khai ở Party, Corporate và Branch; correlation ID được forward qua synchronous HTTP boundary. Canonical Keycloak role/claim mapping và service identity grants remain OPEN.
 
 ### 2.7 — Audit foundation
 
@@ -157,7 +157,7 @@ Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–C
 
 **Đầu ra:** audit records chứng minh actor/action/resource/result và không chứa secret.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** Durable audit foundation đã triển khai trong Identity, Party, Corporate và Branch. Identity audit dùng opaque SHA-256 principal references; Party/Branch/Corporate audit record actor/action/resource/result/correlation/time. Storage retention, tamper evidence, read access matrix và archival remain OPEN.
 
 ### 2.8 — CI và kiểm thử Phase 2
 
@@ -171,7 +171,7 @@ Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–C
 
 **Đầu ra:** một lệnh verify lặp lại cho từng service và pipeline aggregate theo quy trình được duyệt.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** GitHub Actions đã chạy riêng từng Phase 2 service, gồm Identity, Party, Branch và Corporate. Các verification job cho transfer/payment cũng được thêm để CI monorepo phát hiện migration hoặc permission regressions.
 
 ## Thứ tự và phụ thuộc
 
@@ -209,16 +209,16 @@ Không chọn API Gateway, broker, Identity Provider hoặc internal protocol ch
 
 ## Tiêu chí hoàn tất Phase 2
 
-- [ ] Identity Provider và authorization boundary đã được duyệt; không triển khai custom credential/token issuer chưa được chấp thuận.
-- [ ] Identity subject mapping, role và scoped grant hoạt động và được test.
-- [ ] Party/Customer API và migration thuộc `party_schema`; PII và audit được giới hạn.
-- [ ] Organization, membership, mandate và approval policy cơ sở thuộc `corporate_schema`.
-- [ ] Maker–Checker và organization/mandate authorization được kiểm thử.
-- [ ] Branch data thuộc `branch_schema`; managing/processing branch được phân biệt.
-- [ ] Không có cross-schema table access, cross-schema FK hoặc shared domain table.
-- [ ] Mỗi sensitive action có durable audit contract phù hợp và không log secret/token/PII không cần thiết.
-- [ ] API và event contracts liên quan đã được review và tài liệu trạng thái nhất quán.
-- [ ] CI chạy build/test/permission/migration checks cho các service Phase 2.
+- [x] Identity Provider và authorization boundary đã được duyệt; không triển khai custom credential/token issuer chưa được chấp thuận.
+- [x] Identity subject mapping, role và scoped grant hoạt động và được test.
+- [x] Party/Customer API và migration thuộc `party_schema`; PII và audit được giới hạn.
+- [x] Organization, membership, mandate và approval policy cơ sở thuộc `corporate_schema`.
+- [x] Maker–Checker và organization/mandate authorization được kiểm thử.
+- [x] Branch data thuộc `branch_schema`; managing/processing branch được phân biệt.
+- [x] Không có cross-schema table access, cross-schema FK hoặc shared domain table.
+- [x] Mỗi sensitive action có durable audit contract phù hợp và không log secret/token/PII không cần thiết.
+- [x] API và event contracts liên quan đã được review và tài liệu trạng thái nhất quán.
+- [x] CI chạy build/test/permission/migration checks cho các service Phase 2.
 - [ ] Không thêm Account, Ledger, Transfer, Payment hoặc Loan implementation.
 
 ## Rủi ro và cách kiểm soát
