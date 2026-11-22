@@ -20,6 +20,7 @@
 - Common HTTP errors: `400` invalid input, `401` unauthenticated, `403` unauthorized, `404` resource absent/not visible, `409` state or idempotency conflict, `422` business validation failure, `429` rate limit, `5xx` transient/system failure. Exact mapping is PROPOSED.
 - Each service enforces authorization for its own resource and business operation. API Gateway must not be the only authorization layer.
 - For an API that uses idempotency, scope it by actor, operation and business scope; default retention is 24 hours. Same key/same payload replays the prior result; same key/different payload returns `409 Conflict`. Each command must state if idempotency applies and define its business scope; key format/storage are not prescribed. See [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
+- Channel context is explicit in Phase 7 as `INTERNET_BANKING`, `ADMIN` or `TELLER`. Channel is not an authorization grant and must not replace account, organization, branch or resource scope.
 
 ## Authentication — Identity & Access
 

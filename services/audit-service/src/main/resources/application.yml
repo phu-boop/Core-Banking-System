@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: audit-service
+  datasource:
+    url: ${AUDIT_DATASOURCE_URL:}
+    username: ${AUDIT_DATASOURCE_USERNAME:}
+    password: ${AUDIT_DATASOURCE_PASSWORD:}
+  flyway:
+    enabled: true
+    schemas: audit_schema
+    default-schema: audit_schema
+
+audit:
+  security:
+    issuer-uri: ${KEYCLOAK_ISSUER_URI:}
+    jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:}
+    audience: ${AUDIT_TOKEN_AUDIENCE:audit-service}
+
+server:
+  port: ${SERVER_PORT:8087}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

@@ -20,5 +20,6 @@
         <module>services/ledger-service</module>
         <module>services/transfer-service</module>
         <module>services/payment-service</module>
+        <module>services/audit-service</module>
     </modules>
 </project>

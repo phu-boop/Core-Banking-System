@@ -1,5 +1,7 @@
 # Banking Clone — Lộ trình triển khai đề xuất
 
+> **Document status:** Historical roadmap summary. Use [PROJECT_ROADMAP.md](../../PROJECT_ROADMAP.md) for current phase status and [CURRENT_STATUS.md](../../CURRENT_STATUS.md) for the active task.
+
 Lộ trình dưới đây chia dự án thành các giai đoạn có thể kiểm chứng, từ thiết kế đến MVP và mở rộng. Đây là **đề xuất về thứ tự triển khai**, không thay đổi ADR đã được chấp nhận và không tự bổ sung business requirement. **Phase 1 — Technical Foundation** đã hoàn tất; dự án chuyển sang **Phase 2 — Identity, Party, Corporate and Branch**; chưa triển khai nghiệp vụ banking.
 
 ## Nguyên tắc chia giai đoạn
