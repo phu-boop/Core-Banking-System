@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {
-    "mtime": 1795282156.8653555,
-    "seen": 1795283787.767001,
-    "ast_hash": "9453677b2be695c717a7840cb528d3cc",
+    "mtime": 1795336562.7049794,
+    "seen": 1795336605.2719705,
+    "ast_hash": "61a06a2d53c3e14bf3792329d1b9b1a6",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -36,15 +36,15 @@
     "semantic_hash": ""
   },
   "services/branch-service/pom.xml": {
-    "mtime": 1795115023.761281,
-    "seen": 1795231215.6317332,
-    "ast_hash": "59ef5d71f665dd60cc4974f76af9abb7",
+    "mtime": 1795335844.0352776,
+    "seen": 1795336605.2743554,
+    "ast_hash": "effac7c320c1e894b387f99877a7d0a8",
     "semantic_hash": ""
   },
   "services/branch-service/src/main/java/com/banking/platform/branch/BranchServiceApplication.java": {
-    "mtime": 1795115023.88103,
-    "seen": 1795231215.6317356,
-    "ast_hash": "f75cb06b592de040d1dd16e5f3996a48",
+    "mtime": 1795336035.9565017,
+    "seen": 1795336605.2743592,
+    "ast_hash": "77ca274139c34ccc5e282333db9cc2e3",
     "semantic_hash": ""
   },
   "services/branch-service/src/main/java/com/banking/platform/branch/application/BranchAuthorizationService.java": {
@@ -132,15 +132,15 @@
     "semantic_hash": ""
   },
   "services/corporate-service/pom.xml": {
-    "mtime": 1795120248.0799847,
-    "seen": 1795231215.6317532,
-    "ast_hash": "f14bb8691e926419943edcfbde657fd2",
+    "mtime": 1795335844.0582786,
+    "seen": 1795336605.2755623,
+    "ast_hash": "97453e445da6e68acd36462df9e07d09",
     "semantic_hash": ""
   },
   "services/corporate-service/src/main/java/com/banking/platform/corporate/CorporateServiceApplication.java": {
-    "mtime": 1795120248.1782737,
-    "seen": 1795231215.6317544,
-    "ast_hash": "954600d8e98de59aa5794335ba5797ec",
+    "mtime": 1795336035.9685018,
+    "seen": 1795336605.275564,
+    "ast_hash": "6725e7cf2242fc1dba61c2888fbf36ee",
     "semantic_hash": ""
   },
   "services/corporate-service/src/main/java/com/banking/platform/corporate/application/ApprovalPolicyService.java": {
@@ -402,15 +402,15 @@
     "semantic_hash": ""
   },
   "services/identity-service/pom.xml": {
-    "mtime": 1795109591.750719,
-    "seen": 1795231215.6318092,
-    "ast_hash": "c956edb9e48c9bee717ea699366ef70f",
+    "mtime": 1795335843.9822755,
+    "seen": 1795336605.279107,
+    "ast_hash": "272c4e9e96f63c75a54a7625f14471bd",
     "semantic_hash": ""
   },
   "services/identity-service/src/main/java/com/banking/platform/identity/IdentityServiceApplication.java": {
-    "mtime": 1795109591.7670848,
-    "seen": 1795231215.6318114,
-    "ast_hash": "1cec24acddba2e281bc944b718c304de",
+    "mtime": 1795336035.9375014,
+    "seen": 1795336605.2791102,
+    "ast_hash": "9d69e82e5ca833db228e354a27ee99d0",
     "semantic_hash": ""
   },
   "services/identity-service/src/main/java/com/banking/platform/identity/application/IdentityPrincipalService.java": {
@@ -522,15 +522,15 @@
     "semantic_hash": ""
   },
   "services/party-service/pom.xml": {
-    "mtime": 1795113722.4855053,
-    "seen": 1795231215.6318407,
-    "ast_hash": "5fa80c438e8e1007abbb3a8fc33ef83d",
+    "mtime": 1795335844.0012763,
+    "seen": 1795336605.281937,
+    "ast_hash": "d12af107ef23745b394f0abe77c80f5f",
     "semantic_hash": ""
   },
   "services/party-service/src/main/java/com/banking/platform/party/PartyServiceApplication.java": {
-    "mtime": 1795111011.4256322,
-    "seen": 1795231215.631842,
-    "ast_hash": "237d61f2f2b7b063f16d65937abf58d4",
+    "mtime": 1795336035.9475017,
+    "seen": 1795336605.2819388,
+    "ast_hash": "5d72a5940a9921f22c51391c1a789a0f",
     "semantic_hash": ""
   },
   "services/party-service/src/main/java/com/banking/platform/party/application/PartyService.java": {
@@ -984,15 +984,15 @@
     "semantic_hash": ""
   },
   "services/transfer-service/pom.xml": {
-    "mtime": 1795242570.8761237,
-    "seen": 1795248815.6811929,
-    "ast_hash": "098c50daf7953e22ec168d720414b1f6",
+    "mtime": 1795335844.1062806,
+    "seen": 1795336605.2843714,
+    "ast_hash": "fdcef77f155d21a8098ab88ae214fd82",
     "semantic_hash": ""
   },
   "services/transfer-service/src/main/java/com/banking/platform/transfer/TransferServiceApplication.java": {
-    "mtime": 1795285898.5114286,
-    "seen": 1795288318.218943,
-    "ast_hash": "943e95a2231af29fba9b3126f51d2858",
+    "mtime": 1795336036.0035024,
+    "seen": 1795336605.2843733,
+    "ast_hash": "ecaf0e812fe47830089e6d690464d492",
     "semantic_hash": ""
   },
   "services/transfer-service/src/main/java/com/banking/platform/transfer/application/ApprovalEnforcedTransferService.java": {
@@ -1122,9 +1122,9 @@
     "semantic_hash": ""
   },
   "pom.xml": {
-    "mtime": 1795294366.9793916,
-    "seen": 1795294933.2898924,
-    "ast_hash": "41cbd216cbac38fc57dd4dad670c3475",
+    "mtime": 1795335787.7190967,
+    "seen": 1795336605.2726328,
+    "ast_hash": "0653933970242d129880a53c4d99547d",
     "semantic_hash": ""
   },
   "docs/plan/phase/corporate-transfer/checkpoints/SMOKE_TEST_VERDICT.md": {
@@ -1170,15 +1170,15 @@
     "semantic_hash": ""
   },
   "services/payment-service/pom.xml": {
-    "mtime": 1795257677.4763231,
-    "seen": 1795267837.1933968,
-    "ast_hash": "f2c02d5a17342bef6cff2619802d14a0",
+    "mtime": 1795335844.1152809,
+    "seen": 1795336605.2827587,
+    "ast_hash": "8329f4b10795ed84356389a636cbdee4",
     "semantic_hash": ""
   },
   "services/payment-service/src/main/java/com/banking/platform/payment/PaymentServiceApplication.java": {
-    "mtime": 1795257677.4864388,
-    "seen": 1795267837.1933985,
-    "ast_hash": "a4efd96f44c1c6f398881dc8fbd25e8a",
+    "mtime": 1795336036.0145025,
+    "seen": 1795336605.2827606,
+    "ast_hash": "2f9fa934554854d7d3ea9528bfd6f80c",
     "semantic_hash": ""
   },
   "services/payment-service/src/main/java/com/banking/platform/payment/application/PaymentExceptions.java": {
@@ -1314,15 +1314,15 @@
     "semantic_hash": ""
   },
   "services/account-service/pom.xml": {
-    "mtime": 1795282212.422348,
-    "seen": 1795283787.767731,
-    "ast_hash": "95eb93ec1bd986beff9391671e0f7ebc",
+    "mtime": 1795335844.0792794,
+    "seen": 1795336605.272635,
+    "ast_hash": "f8de95148ceee5a1936734b324db9dc9",
     "semantic_hash": ""
   },
   "services/account-service/src/main/java/com/banking/platform/account/AccountServiceApplication.java": {
-    "mtime": 1795282172.6883533,
-    "seen": 1795283787.7677326,
-    "ast_hash": "b6a258b03c90e64f0b76ec00c4445226",
+    "mtime": 1795336035.981502,
+    "seen": 1795336605.2726367,
+    "ast_hash": "0aec3e00319e7afd8ce12d353be89ab3",
     "semantic_hash": ""
   },
   "services/account-service/src/main/java/com/banking/platform/account/application/AccountService.java": {
@@ -1398,15 +1398,15 @@
     "semantic_hash": ""
   },
   "services/ledger-service/pom.xml": {
-    "mtime": 1795282212.446699,
-    "seen": 1795283787.7734807,
-    "ast_hash": "c9f2e30297d95bdd8fe1377be3b17c96",
+    "mtime": 1795335844.09728,
+    "seen": 1795336605.2810824,
+    "ast_hash": "b5d28007700da193c7f7a34b7b59c94a",
     "semantic_hash": ""
   },
   "services/ledger-service/src/main/java/com/banking/platform/ledger/LedgerServiceApplication.java": {
-    "mtime": 1795282212.4627652,
-    "seen": 1795283787.7734845,
-    "ast_hash": "343c3b27d64da248fb55dc3c45ab3cb2",
+    "mtime": 1795336035.9915023,
+    "seen": 1795336605.2810848,
+    "ast_hash": "986b3e0e284bb45d2a4d114733e0313f",
     "semantic_hash": ""
   },
   "services/ledger-service/src/main/java/com/banking/platform/ledger/application/LedgerService.java": {
@@ -1590,15 +1590,15 @@
     "semantic_hash": ""
   },
   "services/audit-service/pom.xml": {
-    "mtime": 1795294367.0130208,
-    "seen": 1795294933.2912056,
-    "ast_hash": "fa57981568ed82d0d9e80eb8601a55a9",
+    "mtime": 1795335844.1232812,
+    "seen": 1795336605.2734556,
+    "ast_hash": "97b63c66cb5bd1cbd7a99c0f12776a05",
     "semantic_hash": ""
   },
   "services/audit-service/src/main/java/com/banking/platform/audit/AuditServiceApplication.java": {
-    "mtime": 1795294367.0323915,
-    "seen": 1795294933.291209,
-    "ast_hash": "1eae2613596f8746ceb524f765e22227",
+    "mtime": 1795336036.0285027,
+    "seen": 1795336605.2734578,
+    "ast_hash": "cc69bb2460ea5d55e25b3d0ba6757c60",
     "semantic_hash": ""
   },
   "services/audit-service/src/main/java/com/banking/platform/audit/application/AuditAuthorizationService.java": {
@@ -1713,6 +1713,96 @@
     "mtime": 1795295613.646613,
     "seen": 1795296225.346688,
     "ast_hash": "04707bccddf9350209c1e4d42d47d11c",
+    "semantic_hash": ""
+  },
+  "command.md": {
+    "mtime": 1795334458.6341925,
+    "seen": 1795335122.4283671,
+    "ast_hash": "4856deb2604c09be6b761f7c5c2fe5a1",
+    "semantic_hash": ""
+  },
+  "docs/api-documentation/AUDIT.md": {
+    "mtime": 1795335055.280185,
+    "seen": 1795335122.429044,
+    "ast_hash": "ad4cb0a321ba13e376173f682474f18a",
+    "semantic_hash": ""
+  },
+  "docs/api-documentation/IMPLEMENTATION_PLAN.md": {
+    "mtime": 1795335649.060669,
+    "seen": 1795335662.6528277,
+    "ast_hash": "d4dfd1427c00d77df2798cac9cbba5d3",
+    "semantic_hash": ""
+  },
+  "docs/api-documentation/checkpoints/batch-report.yaml": {
+    "mtime": 1795336580.2742393,
+    "seen": 1795336605.2720182,
+    "ast_hash": "19fba6075432515fd571a91becbc207e",
+    "semantic_hash": ""
+  },
+  "docs/api-documentation/checkpoints/tasks-to-impl.yaml": {
+    "mtime": 1795336580.2642393,
+    "seen": 1795336605.2720196,
+    "ast_hash": "d961028d41bcf710f7176becad358c65",
+    "semantic_hash": ""
+  },
+  "services/api-docs-service/deploy/kubernetes/local.yaml": {
+    "mtime": 1795336204.9726362,
+    "seen": 1795336605.27344,
+    "ast_hash": "b81a293a44f69dcfa8f942699e8f8fe6",
+    "semantic_hash": ""
+  },
+  "services/api-docs-service/pom.xml": {
+    "mtime": 1795335908.1588683,
+    "seen": 1795336605.273443,
+    "ast_hash": "b94152f003769972c2ae234018e37c05",
+    "semantic_hash": ""
+  },
+  "services/api-docs-service/src/main/java/com/banking/platform/apidocs/ApiDocsServiceApplication.java": {
+    "mtime": 1795335908.2122915,
+    "seen": 1795336605.2734454,
+    "ast_hash": "82b9c3249b13c67871d4f3fdb5e2bc73",
+    "semantic_hash": ""
+  },
+  "services/api-docs-service/src/main/java/com/banking/platform/apidocs/config/ApiDocsConfiguration.java": {
+    "mtime": 1795335908.2632942,
+    "seen": 1795336605.2734468,
+    "ast_hash": "149a9b378462ea5ed7c066112dd498a5",
+    "semantic_hash": ""
+  },
+  "services/api-docs-service/src/main/java/com/banking/platform/apidocs/config/ApiDocsProperties.java": {
+    "mtime": 1795335908.2432933,
+    "seen": 1795336605.2734485,
+    "ast_hash": "03d215610a7662a65bf5532b44759516",
+    "semantic_hash": ""
+  },
+  "services/api-docs-service/src/main/java/com/banking/platform/apidocs/web/OpenApiProxyController.java": {
+    "mtime": 1795335908.275295,
+    "seen": 1795336605.2734501,
+    "ast_hash": "ac276b70f66a0f11c779ee81c1ec599d",
+    "semantic_hash": ""
+  },
+  "services/api-docs-service/src/main/resources/application.yml": {
+    "mtime": 1795335908.2832954,
+    "seen": 1795336605.2734518,
+    "ast_hash": "2a4a210913a4c218082331890d8316d6",
+    "semantic_hash": ""
+  },
+  "services/api-docs-service/src/test/java/com/banking/platform/apidocs/web/OpenApiProxyControllerTests.java": {
+    "mtime": 1795335908.294296,
+    "seen": 1795336605.2734535,
+    "ast_hash": "94d92bd211ccaf564ab9b3d3acf72222",
+    "semantic_hash": ""
+  },
+  "docs/api-documentation/IMPLEMENTATION_REPORT.md": {
+    "mtime": 1795336562.7279797,
+    "seen": 1795336605.2867286,
+    "ast_hash": "a50a3ad8fdc87684cf0f4ee786ea8421",
+    "semantic_hash": ""
+  },
+  "docs/api-documentation/README.md": {
+    "mtime": 1795336204.983637,
+    "seen": 1795336605.286732,
+    "ast_hash": "48a5fb63db68dab0442f95bea4acf9f2",
     "semantic_hash": ""
   }
 }

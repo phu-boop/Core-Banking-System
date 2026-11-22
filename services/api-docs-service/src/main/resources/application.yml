@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: api-docs-service
+
+server:
+  port: ${SERVER_PORT:8090}
+
+api-docs:
+  services:
+    identity: ${IDENTITY_OPENAPI_URL:http://localhost:8080/v3/api-docs}
+    party: ${PARTY_OPENAPI_URL:http://localhost:8081/v3/api-docs}
+    branch: ${BRANCH_OPENAPI_URL:http://localhost:8082/v3/api-docs}
+    corporate: ${CORPORATE_OPENAPI_URL:http://localhost:8083/v3/api-docs}
+    account: ${ACCOUNT_OPENAPI_URL:http://localhost:8085/v3/api-docs}
+    ledger: ${LEDGER_OPENAPI_URL:http://localhost:8086/v3/api-docs}
+    transfer: ${TRANSFER_OPENAPI_URL:http://localhost:8085/v3/api-docs}
+    payment: ${PAYMENT_OPENAPI_URL:http://localhost:8086/v3/api-docs}
+    audit: ${AUDIT_OPENAPI_URL:http://localhost:8087/v3/api-docs}
+
+springdoc:
+  swagger-ui:
+    urls-primary-name: Identity
+    urls:
+      - name: Identity
+        url: /specs/identity
+      - name: Party
+        url: /specs/party
+      - name: Branch
+        url: /specs/branch
+      - name: Corporate
+        url: /specs/corporate
+      - name: Account
+        url: /specs/account
+      - name: Ledger
+        url: /specs/ledger
+      - name: Transfer
+        url: /specs/transfer
+      - name: Payment
+        url: /specs/payment
+      - name: Audit
+        url: /specs/audit
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

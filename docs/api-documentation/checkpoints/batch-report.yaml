@@ -1,0 +1,57 @@
+batch_id: "API-DOCS-B01"
+
+completed_tasks:
+  - "T001"
+  - "T002"
+  - "T003"
+  - "T004"
+  - "T006"
+  - "T007"
+  - "T009"
+  - "T010"
+  - "T011"
+
+blocked_tasks:
+  - "T005"
+  - "T008"
+
+test_results:
+  identity_service:
+    command: "./mvnw -f services/identity-service/pom.xml clean test"
+    passed: 12
+    failed: 0
+    skipped: 0
+  api_docs_service:
+    command: "./mvnw -f services/api-docs-service/pom.xml test"
+    passed: 2
+    failed: 0
+    skipped: 0
+  workspace:
+    command: "./mvnw clean verify"
+    passed: 85
+    failed: 0
+    skipped: 0
+
+endpoint_probes:
+  - method: GET
+    path: /actuator/health
+    status: 200
+    result: PASS
+  - method: GET
+    path: /swagger-ui/index.html
+    status: 200
+    result: PASS
+  - method: GET
+    path: /v3/api-docs
+    status: 200
+    result: PASS
+  - method: GET
+    path: /specs/identity
+    status: 502
+    result: EXPECTED_WITH_BUSINESS_SERVICE_STOPPED
+
+warnings:
+  - severity: MEDIUM
+    message: "All business services were not running, so end-to-end dropdown loading remains unverified."
+  - severity: MEDIUM
+    message: "Docker and Kubernetes runtime validation remain pending."
