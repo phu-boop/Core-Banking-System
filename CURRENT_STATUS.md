@@ -2,22 +2,20 @@
 
 **Last audited**: 2026-11-22
 **Git branch**: `feat/corporate-approval-core`
-**Classification**: AT RISK
+**Classification**: ON TRACK
 
 ## Current phase
 
-Phase 7 — Channels, Audit, Notification and Reporting.
+Phase 8 — Production Readiness planning.
 
-Implementation is not complete: an Audit module scaffold and unit tests have been added, while channel-aware owner authorization, PostgreSQL integration coverage, Notification and Reporting remain unfinished.
+Phase 7 implementation is complete. Reporting, channel authorization, Audit and Notification have workspace verification evidence.
+Phase 8 planning artifacts are now created and await execution.
 
 ## Current task
 
-Complete the highest-priority security slice:
+Continue Phase 8 in the following order:
 
-1. Apply and test owner-side channel/resource/organization/branch authorization in existing Account and Transfer routes.
-2. Add PostgreSQL Testcontainers coverage for Audit persistence and schema isolation.
-
-Do not start Notification or Reporting until the current channel/Audit slice passes.
+1. Begin Phase 8 T001-T023 after owner approval of provider-neutral deployment and operational target inputs.
 
 ## Completed evidence
 
@@ -27,15 +25,20 @@ Do not start Notification or Reporting until the current channel/Audit slice pas
 - Phase 4: Retail transfer and Ledger execution.
 - Phase 5: Corporate approval and approval-enforced Transfer.
 - Phase 6: Provider-neutral Payment sandbox and unresolved-outcome behavior.
-- Workspace `./mvnw verify`: 72 tests pass, 0 fail.
+- Workspace `./mvnw clean verify`: 101 tests pass, 0 fail.
 - Audit module `./mvnw -f services/audit-service/pom.xml test`: 2 tests pass.
+- Centralized API Documentation: `./mvnw clean verify` pass; Swagger UI and docs service health/API probes return HTTP 200.
+- T004-T006: Account/Transfer channel and owner authorization tests pass.
+- T009: Audit PostgreSQL Testcontainers integration passes.
+- T010-T013: Notification persistence, mock delivery and tests pass.
+- T014-T017: Reporting projection migrations, scoped queries, export deduplication and tests pass.
+- T018-T020: processed-event deduplication boundaries and the Phase 7 smoke verdict pass.
+- Commits include `53ff071` for the API docs service and `b459776` for the Audit service.
 
 ## Incomplete work
 
 - Channel context and owner-side authorization are not consistently applied to Account/Transfer.
-- Audit has no PostgreSQL Testcontainers acceptance test yet.
-- Notification service is not implemented.
-- Reporting service is not implemented.
+- Reporting PostgreSQL Testcontainers acceptance coverage is not yet complete.
 - Real interbank provider and settlement/reconciliation are OPEN.
 - API Gateway, event broker and production deployment decisions remain OPEN.
 - Phase 8 is not started.

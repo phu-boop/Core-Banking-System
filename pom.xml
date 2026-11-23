@@ -22,5 +22,7 @@
         <module>services/payment-service</module>
         <module>services/audit-service</module>
         <module>services/api-docs-service</module>
+        <module>services/notification-service</module>
+        <module>services/reporting-service</module>
     </modules>
 </project>

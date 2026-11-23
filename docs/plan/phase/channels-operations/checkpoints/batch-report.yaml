@@ -1,16 +1,14 @@
-batch_id: "B01"
+batch_id: "B03"
 
 completed_tasks:
   - "T001"
   - "T002"
   - "T003"
-  - "T007"
-  - "T008"
-
-blocked_tasks:
   - "T004"
   - "T005"
   - "T006"
+  - "T007"
+  - "T008"
   - "T009"
   - "T010"
   - "T011"
@@ -23,6 +21,8 @@ blocked_tasks:
   - "T018"
   - "T019"
   - "T020"
+
+blocked_tasks: []
 
 files_changed:
   T001:
@@ -38,23 +38,60 @@ files_changed:
     - "services/audit-service/src/main/java/com/banking/platform/audit/"
   T008:
     - "services/audit-service/src/main/java/com/banking/platform/audit/web/AuditController.java"
+  T014:
+    - "services/reporting-service/pom.xml"
+    - "services/reporting-service/src/main/resources/db/migration/V1__create_reporting_tables.sql"
+  T015:
+    - "services/reporting-service/src/main/java/com/banking/platform/reporting/application/"
+    - "services/reporting-service/src/main/java/com/banking/platform/reporting/persistence/"
+  T016:
+    - "services/reporting-service/src/main/java/com/banking/platform/reporting/domain/ExportRequest.java"
+    - "services/reporting-service/src/main/java/com/banking/platform/reporting/application/ReportingService.java"
+  T017:
+    - "services/reporting-service/src/test/java/com/banking/platform/reporting/application/"
+  T018:
+    - "services/audit-service/src/main/resources/db/migration/V2__create_processed_event.sql"
+    - "services/notification-service/src/main/resources/db/migration/V2__create_processed_event.sql"
+    - "services/reporting-service/src/main/resources/db/migration/V2__create_processed_event.sql"
+  T019:
+    - "docs/plan/phase/channels-operations/checkpoints/SMOKE_TEST_VERDICT.md"
+  T020:
+    - "docs/plan/phase/channels-operations/checkpoints/SMOKE_TEST_VERDICT.md"
 
 test_results:
+  account_service:
+    command: "./mvnw -f services/account-service/pom.xml test"
+    passed: 5
+    failed: 0
+    skipped: 0
+  transfer_service:
+    command: "./mvnw -f services/transfer-service/pom.xml test"
+    passed: 14
+    failed: 0
+    skipped: 0
   audit_service:
     command: "./mvnw -f services/audit-service/pom.xml test"
-    passed: 2
+    passed: 3
+    failed: 0
+    skipped: 0
+  notification_service:
+    command: "./mvnw -f services/notification-service/pom.xml test"
+    passed: 5
     failed: 0
     skipped: 0
   workspace:
-    command: "./mvnw verify"
-    passed: 72
+    command: "./mvnw clean verify"
+    passed: 101
+    failed: 0
+    skipped: 0
+  reporting_service:
+    command: "./mvnw -f services/reporting-service/pom.xml test"
+    passed: 6
     failed: 0
     skipped: 0
 
 warnings:
   - severity: MEDIUM
     message: "API Gateway, event broker and notification provider remain OPEN."
-  - severity: MEDIUM
-    message: "T009 PostgreSQL Testcontainers coverage remains to be added."
 
 protocol_violation: false

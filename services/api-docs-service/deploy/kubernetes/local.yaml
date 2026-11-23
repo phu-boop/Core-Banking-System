@@ -46,6 +46,8 @@ spec:
               value: "http://payment-service:8086/v3/api-docs"
             - name: AUDIT_OPENAPI_URL
               value: "http://audit-service:8087/v3/api-docs"
+            - name: NOTIFICATION_OPENAPI_URL
+              value: "http://notification-service:8088/v3/api-docs"
           ports:
             - name: http
               containerPort: 8090

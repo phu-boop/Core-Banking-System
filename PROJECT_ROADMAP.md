@@ -15,7 +15,7 @@ Loan nằm ngoài MVP.
 
 ## Trạng thái tổng thể
 
-**AT RISK** — Workspace đã có build/test pass và các implementation slice đến Phase 6, nhưng tài liệu trạng thái chưa nhất quán, Phase 7 mới chỉ hoàn thành scaffold/batch đầu, còn nhiều quyết định production còn OPEN.
+**ON TRACK** — Phases 0-6 and the API Documentation slice have build/test evidence. Phase 7 implementation remains open for channel authorization, Audit integration tests, Notification and Reporting; production decisions remain OPEN.
 
 ## Các phase
 
@@ -28,8 +28,8 @@ Loan nằm ngoài MVP.
 | 4 | Retail internal transfer and Teller | Complete — bounded first slice | Retail transfer and Ledger execution, 12 Transfer tests |
 | 5 | Corporate approval and transfer enforcement | Complete — bounded first slice | Corporate approval and approval-enforced Transfer implementation |
 | 6 | Interbank transfer | Complete — provider-neutral sandbox | 70-test smoke evidence + mock provider; real provider remains deferred |
-| 7 | Channels, Audit, Notification and Reporting | In progress | Audit module scaffolded and 2 unit tests pass; channel authorization, Notification and Reporting remain |
-| 8 | Production readiness | Not started | Kubernetes provider/topology, security, load/recovery and runbook work remain |
+| 7 | Channels, Audit, Notification and Reporting | Complete — bounded first slice | Reporting, Audit, Notification and cross-service smoke evidence pass |
+| 8 | Production readiness | Planning | Spec and implementation plan created; Kubernetes provider/topology, security targets and recovery thresholds remain OPEN |
 | Later | Loan | Deferred | Out of MVP |
 
 ## Phases 0-2
@@ -113,13 +113,16 @@ Complete channel-aware operations and provider-neutral Audit, Notification and R
 - Phase 7 spec: `docs/specs/phase-7-channels-operations/feature-spec.md`.
 - Phase 7 plan: `docs/plan/phase/channels-operations/plan.md`.
 - Audit module unit tests pass.
-- Full workspace currently passes 72 tests.
+- Centralized API Documentation report: `docs/api-documentation/IMPLEMENTATION_REPORT.md`.
+- Full workspace passes 101 tests.
 
 ## Phase 8
 
 - Objective: Production release readiness.
 - Acceptance: Security review, load/concurrency tests, HA/DR, monitoring, backup/restore, deployment and rollback.
-- Status: Not started.
+- Status: Planning.
+- Spec: `docs/specs/phase-8-production-readiness/feature-spec.md`.
+- Plan: `docs/plan/phase/production-readiness/plan.md`.
 
 ## Critical dependencies and open decisions
 

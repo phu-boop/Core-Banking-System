@@ -100,6 +100,9 @@ Kế hoạch triển khai chi tiết: [Phase 2 — Identity, Party, Corporate an
 
 ### Phase 7 — Kênh, Audit, Notification và Reporting
 
+- Tài liệu phase: [Phase 7 — Channels, Audit, Notification and Reporting](./phase/Phase-7-Channels-Audit-Notification-Reporting.md).
+- Implementation plan chi tiết: [channels-operations plan](./phase/channels-operations/plan.md).
+
 - Hoàn thiện Internet Banking, Admin và Teller theo scope được xác nhận.
 - Thực thi channel-, organization-, account- và branch-level authorization trong service sở hữu resource.
 - Hoàn thiện Audit trail, notification delivery và Reporting projections.
@@ -108,6 +111,11 @@ Kế hoạch triển khai chi tiết: [Phase 2 — Identity, Party, Corporate an
 **Hoàn tất khi:** kiểm thử quyền trên từng kênh và scope; sự kiện được xử lý idempotent; notification/report không làm thay đổi trạng thái tài chính.
 
 ### Phase 8 — Production readiness
+
+- Tài liệu:
+  - [Phase overview](./phase/Phase-8-Production-Readiness.md).
+  - [Feature spec](../specs/phase-8-production-readiness/feature-spec.md).
+  - [Implementation plan](./phase/production-readiness/plan.md).
 
 - Chạy unit, integration, contract, end-to-end, concurrency và load tests theo tiêu chí được duyệt.
 - Thực hiện threat/security review, secret management, kiểm tra audit và rà soát dữ liệu nhạy cảm trong log.

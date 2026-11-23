@@ -165,3 +165,88 @@ jobs:
 
       - name: Build and verify API documentation service
         run: ./mvnw -f services/api-docs-service/pom.xml verify
+
+  notification-service:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Build and verify notification service
+        run: ./mvnw -f services/notification-service/pom.xml verify
+
+  workspace-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Verify the full Maven reactor
+        run: ./mvnw -B -ntp clean verify
+
+      - name: Add per-service test counts to the job summary
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob
+          import os
+          import xml.etree.ElementTree as ET
+
+          grouped = {}
+          for report in glob.glob("services/*/target/surefire-reports/TEST-*.xml"):
+              service = report.split("/")[1]
+              suite = ET.parse(report).getroot()
+              counts = grouped.setdefault(service, [0, 0, 0, 0])
+              counts[0] += int(suite.attrib.get("tests", 0))
+              counts[1] += int(suite.attrib.get("failures", 0))
+              counts[2] += int(suite.attrib.get("errors", 0))
+              counts[3] += int(suite.attrib.get("skipped", 0))
+
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          lines = [
+              "### Maven test results",
+              "",
+              "| Service | Tests | Failures | Errors | Skipped |",
+              "|---|---:|---:|---:|---:|",
+          ]
+          for service, (tests, failures, errors, skipped) in sorted(grouped.items()):
+              lines.append(
+                  f"| {service} | {tests} | {failures} | {errors} | {skipped} |"
+              )
+          lines.append("")
+          lines.append(
+              f"**Total:** {sum(v[0] for v in grouped.values())} tests, "
+              f"{sum(v[1] for v in grouped.values())} failures, "
+              f"{sum(v[2] for v in grouped.values())} errors, "
+              f"{sum(v[3] for v in grouped.values())} skipped."
+          )
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as summary:
+                  summary.write("\n".join(lines) + "\n")
+          print("\n".join(lines))
+          PY
+
+      - name: Build container images for services with Dockerfiles
+        run: |
+          found=0
+          for dockerfile in $(find services -mindepth 2 -maxdepth 2 -name Dockerfile -print | sort); do
+            found=1
+            service_dir="$(dirname "$dockerfile")"
+            service_name="$(basename "$service_dir")"
+            docker build --tag "core-banking/${service_name}:ci" "$service_dir"
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "No service Dockerfiles are available for container-build verification."
+          fi

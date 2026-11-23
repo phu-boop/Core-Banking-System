@@ -16,6 +16,7 @@ api-docs:
     transfer: ${TRANSFER_OPENAPI_URL:http://localhost:8085/v3/api-docs}
     payment: ${PAYMENT_OPENAPI_URL:http://localhost:8086/v3/api-docs}
     audit: ${AUDIT_OPENAPI_URL:http://localhost:8087/v3/api-docs}
+    notification: ${NOTIFICATION_OPENAPI_URL:http://localhost:8088/v3/api-docs}
 
 springdoc:
   swagger-ui:
@@ -39,6 +40,8 @@ springdoc:
         url: /specs/payment
       - name: Audit
         url: /specs/audit
+      - name: Notification
+        url: /specs/notification
 
 management:
   endpoints:

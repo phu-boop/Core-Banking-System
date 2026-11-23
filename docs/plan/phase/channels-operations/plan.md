@@ -1,6 +1,15 @@
 # Implementation Plan: Channels, Audit, Notification and Reporting
 
-**Date**: 2026-11-22 | **Status**: Planned | **Spec**: [Feature spec](../../../specs/phase-7-channels-operations/feature-spec.md)
+**Date**: 2026-11-22 | **Status**: Complete | **Spec**: [Feature spec](../../../specs/phase-7-channels-operations/feature-spec.md)
+
+## Execution Sequence
+
+1. **Authorization batch**: T004-T006. Complete first because it protects all channel-facing resources.
+2. **Audit integration batch**: T009. Verify persistence and schema isolation before Notification/Reporting.
+3. **Notification batch**: T010-T013. Implement after channel and Audit safety gates pass.
+4. **Reporting batch**: T014-T017. Implement projections and exports only after scope rules are verified.
+5. **Verification batch**: T018-T020. Run cross-service deduplication and workspace smoke verification.
+6. **Developer documentation**: Centralized API Documentation is already implemented and verified in `docs/api-documentation/`; it is an independent developer-facing addition to Phase 7 scope.
 
 ## Summary
 
@@ -59,9 +68,9 @@ No repository constitution file exists. The plan follows the accepted architectu
 - **Requirements**: REQ-001, REQ-002, REQ-003, REQ-004, REQ-005
 - **Description**: Add reusable server-side channel/resource scope checks and apply them to Account, Transfer, Corporate and existing Admin/Teller routes.
 - **Tasks**:
-  - [ ] T004 [Plan:2.1] Add channel and scope types under `services/*/src/main/java/com/banking/platform/*/application/`.
-  - [ ] T005 [Plan:2.1] Enforce Internet Banking account ownership in Account and Transfer endpoints.
-  - [ ] T006 [Plan:2.1] Enforce Teller branch scope and explicit Admin permission on existing management endpoints.
+  - [x] T004 [Plan:2.1] Add channel and scope types under `services/*/src/main/java/com/banking/platform/*/application/`.
+  - [x] T005 [Plan:2.1] Enforce Internet Banking account ownership in Account and Transfer endpoints.
+  - [x] T006 [Plan:2.1] Enforce Teller branch scope and explicit Admin permission on existing management endpoints.
 
 ### Step 3: Implement durable Audit
 
@@ -70,36 +79,36 @@ No repository constitution file exists. The plan follows the accepted architectu
 - **Tasks**:
   - [x] T007 [Plan:3.1] Implement Audit domain types and JDBC repositories under `services/audit-service/src/main/java/com/banking/platform/audit/`.
   - [x] T008 [Plan:3.1] Implement `POST /internal/audit/records` and `GET /v1/audit/records` in `services/audit-service/src/main/java/com/banking/platform/audit/web/`.
-  - [ ] T009 [Plan:3.1] Add unit and PostgreSQL Testcontainers tests under `services/audit-service/src/test/java/com/banking/platform/audit/`.
+  - [x] T009 [Plan:3.1] Add unit and PostgreSQL Testcontainers tests under `services/audit-service/src/test/java/com/banking/platform/audit/`.
 
 ### Step 4: Implement provider-neutral Notification
 
 - **Requirements**: REQ-009, REQ-010, REQ-015
 - **Description**: Add durable notification requests and delivery attempts with mock delivery and no financial side effects.
 - **Tasks**:
-  - [ ] T010 [Plan:4.1] Scaffold `services/notification-service/` with `notification_schema`.
-  - [ ] T011 [Plan:4.1] Implement Notification and NotificationAttempt persistence under `services/notification-service/src/main/java/com/banking/platform/notification/`.
-  - [ ] T012 [Plan:4.1] Implement provider-neutral delivery boundary and mock provider adapter.
-  - [ ] T013 [Plan:4.1] Add duplicate notification and non-financial-side-effect tests under `services/notification-service/src/test/java/`.
+  - [x] T010 [Plan:4.1] Scaffold `services/notification-service/` with `notification_schema`.
+  - [x] T011 [Plan:4.1] Implement Notification and NotificationAttempt persistence under `services/notification-service/src/main/java/com/banking/platform/notification/`.
+  - [x] T012 [Plan:4.1] Implement provider-neutral delivery boundary and mock provider adapter.
+  - [x] T013 [Plan:4.1] Add duplicate notification and non-financial-side-effect tests under `services/notification-service/src/test/java/`.
 
 ### Step 5: Implement scoped Reporting projections
 
 - **Requirements**: REQ-011, REQ-012, REQ-013
 - **Description**: Add bounded reporting queries and export jobs backed by projections with source watermarks.
 - **Tasks**:
-  - [ ] T014 [Plan:5.1] Scaffold `services/reporting-service/` and reporting projection migrations.
-  - [ ] T015 [Plan:5.1] Implement allowlisted report queries and organization/account/branch/channel scope checks.
-  - [ ] T016 [Plan:5.1] Implement bounded export job deduplication and format validation.
-  - [ ] T017 [Plan:5.1] Add Reporting tests proving projection lag is visible and balances remain Ledger-authoritative.
+  - [x] T014 [Plan:5.1] Scaffold `services/reporting-service/` and reporting projection migrations.
+  - [x] T015 [Plan:5.1] Implement allowlisted report queries and organization/account/branch/channel scope checks.
+  - [x] T016 [Plan:5.1] Implement bounded export job deduplication and format validation.
+  - [x] T017 [Plan:5.1] Add Reporting tests proving projection lag is visible and balances remain Ledger-authoritative.
 
 ### Step 6: Wire cross-service evidence and verify
 
 - **Requirements**: REQ-006, REQ-014, REQ-015
 - **Description**: Add provider-neutral event consumers/outbox behavior and run workspace verification.
 - **Tasks**:
-  - [ ] T018 [Plan:6.1] Add stable event-id deduplication behavior to cross-service consumer boundaries.
-  - [ ] T019 [Plan:6.1] Add smoke coverage for the Internet Banking, Teller, Admin, Audit, Notification and Reporting journeys.
-  - [ ] T020 [Plan:6.1] Run `./mvnw verify` and record the Phase 7 smoke-test verdict.
+  - [x] T018 [Plan:6.1] Add stable event-id deduplication behavior to cross-service consumer boundaries.
+  - [x] T019 [Plan:6.1] Add smoke coverage for the Internet Banking, Teller, Admin, Audit, Notification and Reporting journeys.
+  - [x] T020 [Plan:6.1] Run `./mvnw verify` and record the Phase 7 smoke-test verdict.
 
 ## Project Structure
 
