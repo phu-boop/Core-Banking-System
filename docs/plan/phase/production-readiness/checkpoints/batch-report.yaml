@@ -1,0 +1,164 @@
+batch_id: "P8-B01"
+
+completed_tasks:
+  - "T001"
+  - "T002"
+  - "T003"
+  - "T004"
+  - "T005"
+  - "T006"
+  - "T007"
+  - "T008"
+  - "T009"
+  - "T010"
+  - "T011"
+  - "T012"
+  - "T013"
+  - "T014"
+  - "T015"
+  - "T016"
+  - "T017"
+  - "T018"
+  - "T019"
+  - "T020"
+  - "T021"
+  - "T022"
+
+blocked_tasks:
+  - "T023"
+
+files_changed:
+  T001:
+    - ".github/workflows/ci.yml"
+  T002:
+    - ".github/workflows/ci.yml"
+  T003:
+    - "docs/plan/phase/production-readiness/checkpoints/RELEASE_CHECKLIST.md"
+  T004:
+    - "deploy/kubernetes/README.md"
+  T005:
+    - "services/*/src/main/resources/application.yml"
+  T006:
+    - "deploy/kubernetes/local/kustomization.yaml"
+    - "deploy/kubernetes/local/*-service.yaml"
+  T007:
+    - "deploy/kubernetes/README.md"
+    - "deploy/kubernetes/production/README.md"
+  T008:
+    - "services/identity-service/src/main/resources/application.yml"
+    - "services/party-service/src/main/resources/application.yml"
+    - "services/branch-service/src/main/resources/application.yml"
+    - "services/corporate-service/src/main/resources/application.yml"
+    - "services/transfer-service/src/main/resources/application.yml"
+    - "services/payment-service/src/main/resources/application.yml"
+    - "services/audit-service/src/main/resources/application.yml"
+    - "services/notification-service/src/main/resources/application.yml"
+    - "services/reporting-service/src/main/resources/application.yml"
+    - "services/transfer-service/src/main/java/com/banking/platform/transfer/config/TransferSecurityProperties.java"
+    - "services/payment-service/src/main/java/com/banking/platform/payment/config/PaymentSecurityProperties.java"
+    - "services/audit-service/src/main/java/com/banking/platform/audit/config/AuditSecurityProperties.java"
+    - "services/transfer-service/src/test/java/com/banking/platform/transfer/config/TransferSecurityPropertiesTests.java"
+    - "services/payment-service/src/test/java/com/banking/platform/payment/config/PaymentSecurityPropertiesTests.java"
+    - "services/audit-service/src/test/java/com/banking/platform/audit/config/AuditSecurityPropertiesTests.java"
+  T009:
+    - ".github/workflows/ci.yml"
+  T010:
+    - "services/service-template/src/test/java/com/banking/platform/servicetemplate/web/CorrelationIdFilterTests.java"
+    - "services/identity-service/src/test/java/com/banking/platform/identity/web/CorrelationIdFilterTests.java"
+  T011:
+    - "docs/architecture/OPEN-DECISIONS.md"
+  T012:
+    - ".github/workflows/ci.yml"
+    - ".github/scripts/workspace-smoke.sh"
+    - "services/api-docs-service/src/main/resources/application.yml"
+  T013:
+    - "docs/operations/ALERT_RESPONSE.md"
+    - "docs/operations/SERVICE_RECOVERY.md"
+  T014:
+    - "docs/operations/OUTBOX_OPERATIONS.md"
+  T015:
+    - "docs/operations/OPERATIONAL_TARGETS.md"
+    - "docs/operations/ALERT_RESPONSE.md"
+    - "docs/operations/SERVICE_RECOVERY.md"
+  T016:
+    - "docs/operations/BACKUP_RESTORE_REHEARSAL.md"
+  T017:
+    - "docs/operations/ROLLBACK_REHEARSAL.md"
+  T018:
+    - "services/ledger-service/src/main/java/com/banking/platform/ledger/application/LedgerService.java"
+    - "services/ledger-service/src/main/java/com/banking/platform/ledger/persistence/JdbcLedgerRepository.java"
+    - "services/ledger-service/src/test/java/com/banking/platform/ledger/web/LedgerEndpointIntegrationTests.java"
+  T019:
+    - "docs/operations/DR_DEPENDENCY_SMOKE_TEST_PLAN.md"
+  T020:
+    - "docs/plan/phase/production-readiness/checkpoints/batch-report.yaml"
+    - "docs/plan/phase/production-readiness/checkpoints/tasks-to-impl.yaml"
+  T021:
+    - "docs/plan/phase/production-readiness/checkpoints/REHEARSAL_EVIDENCE.md"
+  T022:
+    - "docs/plan/phase/production-readiness/checkpoints/SMOKE_TEST_VERDICT.md"
+
+test_results:
+  workspace:
+    command: "./mvnw -B -ntp clean verify"
+    passed: 107
+    failed: 0
+    skipped: 0
+    module_counts:
+      account-service: 5
+      api-docs-service: 2
+      audit-service: 4
+      branch-service: 4
+      corporate-service: 21
+      identity-service: 13
+      ledger-service: 5
+      notification-service: 5
+      party-service: 3
+      payment-service: 7
+      reporting-service: 6
+      service-template: 17
+      transfer-service: 15
+  focused_log_redaction:
+    command: "./mvnw -B -ntp -pl services/service-template,services/identity-service -am test"
+    passed: 30
+    failed: 0
+    skipped: 0
+  api_docs_module:
+    command: "./mvnw -B -ntp -f services/api-docs-service/pom.xml clean package"
+    passed: 2
+    failed: 0
+    skipped: 0
+  ledger_service:
+    command: "./mvnw -B -ntp -pl services/ledger-service -am test"
+    passed: 5
+    failed: 0
+    skipped: 0
+  workspace_smoke:
+    command: "docker build --tag core-banking/api-docs-service:ci services/api-docs-service && bash .github/scripts/workspace-smoke.sh"
+    passed: 4
+    failed: 0
+  docker_images:
+    command: "docker build for each services/*/Dockerfile"
+    passed: 13
+    failed: 0
+    skipped: 0
+  kubernetes_manifests:
+    command: "kubectl kustomize deploy/kubernetes/local"
+    passed: 25
+    failed: 0
+  release_gate:
+    status: "BLOCKED"
+    reason: "T023 requires project-owner approval and CI/rehearsal evidence that are not available in this session."
+    skipped: 0
+
+warnings:
+  - severity: LOW
+    message: "The Gitleaks GitHub Actions job is configured but has not run in this local session; GitHub Actions will execute it on the next push or pull request."
+  - severity: MEDIUM
+    message: "Production Kubernetes provider, external secret store and workload identity remain OPEN."
+  - severity: MEDIUM
+    message: "Local Keycloak URLs use HTTP while several service security-property validators require HTTPS; local deployment readiness is not confirmed."
+  - severity: HIGH
+    message: "T023 is blocked pending owner go/no-go approval, CI secret-scan evidence, approved operational targets, and recovery/rollback rehearsal evidence."
+
+protocol_violation: false

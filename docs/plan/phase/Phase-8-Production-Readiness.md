@@ -2,10 +2,11 @@
 
 ## Status
 
-- **Current status:** Active — first release-gate batch in progress.
-- **Completed in this batch:** full-reactor CI verification and per-service test summary; container builds for services with Dockerfiles; initial release checklist.
-- **Not completed:** production deployment manifests for all services, secret-store integration, approved SLO/RPO/RTO, operational runbooks, recovery rehearsals and owner release approval.
+- **Current status:** Active — implementation in progress.
+- **Completed in this batch:** full-reactor CI verification and per-service test summary; container builds for all service Dockerfiles; initial release checklist; local Deployment/Service manifests and liveness/readiness probes for all deployable services.
+- **Not completed:** production overlay (registry/provider/topology decisions pending), secret-store integration, approved SLO/RPO/RTO, operational runbooks, recovery rehearsals and owner release approval.
 - **Detailed implementation plan:** [Production Readiness plan](./production-readiness/plan.md).
+- **Next task:** T008 — add fail-fast validation for required service credentials and OIDC settings.
 - **Feature specification:** [Phase 8 feature spec](../../specs/phase-8-production-readiness/feature-spec.md).
 
 ## Scope

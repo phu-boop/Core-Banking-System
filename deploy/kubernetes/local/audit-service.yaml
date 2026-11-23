@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: audit-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: audit-service
+    spec:
+      containers:
+        - name: audit-service
+          image: core-banking/audit-service:ci
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: core-banking-runtime
+          env:
+            - name: SERVER_PORT
+              value: "8087"
+            - name: AUDIT_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/core_banking
+            - name: AUDIT_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: audit-service-db-credentials
+                  key: username
+            - name: AUDIT_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: audit-service-db-credentials
+                  key: password
+            - name: AUDIT_TOKEN_AUDIENCE
+              value: audit-service
+          ports:
+            - name: http
+              containerPort: 8087
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: audit-service
+  ports:
+    - name: http
+      port: 8087
+      targetPort: http

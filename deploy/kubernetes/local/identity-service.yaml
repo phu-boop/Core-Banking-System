@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: identity-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: identity-service
+    spec:
+      containers:
+        - name: identity-service
+          image: core-banking/identity-service:ci
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: core-banking-runtime
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: IDENTITY_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/core_banking
+            - name: IDENTITY_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: identity-service-db-credentials
+                  key: username
+            - name: IDENTITY_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: identity-service-db-credentials
+                  key: password
+            - name: IDENTITY_TOKEN_AUDIENCE
+              value: identity-service
+          ports:
+            - name: http
+              containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: identity-service
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

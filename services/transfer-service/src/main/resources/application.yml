@@ -2,22 +2,22 @@ spring:
   application:
     name: transfer-service
   datasource:
-    url: ${TRANSFER_DATASOURCE_URL:}
-    username: ${TRANSFER_DATASOURCE_USERNAME:}
-    password: ${TRANSFER_DATASOURCE_PASSWORD:}
+    url: ${TRANSFER_DATASOURCE_URL}
+    username: ${TRANSFER_DATASOURCE_USERNAME}
+    password: ${TRANSFER_DATASOURCE_PASSWORD}
   flyway:
     enabled: false
 
 transfer:
   security:
-    issuer-uri: ${KEYCLOAK_ISSUER_URI:}
-    jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:}
-    audience: ${TRANSFER_TOKEN_AUDIENCE:}
+    issuer-uri: ${KEYCLOAK_ISSUER_URI}
+    jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
+    audience: ${TRANSFER_TOKEN_AUDIENCE}
   corporate:
     base-url: ${CORPORATE_APPROVAL_BASE_URL:http://localhost:8083}
-    client-id: ${TRANSFER_CORPORATE_CLIENT_ID:}
-    client-secret: ${TRANSFER_CORPORATE_CLIENT_SECRET:}
-    token-uri: ${KEYCLOAK_TOKEN_URI:}
+    client-id: ${TRANSFER_CORPORATE_CLIENT_ID}
+    client-secret: ${TRANSFER_CORPORATE_CLIENT_SECRET}
+    token-uri: ${KEYCLOAK_TOKEN_URI}
   payment:
     base-url: ${PAYMENT_BASE_URL:http://localhost:8086}
   ledger:
@@ -31,3 +31,11 @@ management:
     web:
       exposure:
         include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+      show-details: never

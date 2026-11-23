@@ -2,17 +2,17 @@ spring:
   application:
     name: identity-service
   datasource:
-    url: ${IDENTITY_DATASOURCE_URL:}
-    username: ${IDENTITY_DATASOURCE_USERNAME:}
-    password: ${IDENTITY_DATASOURCE_PASSWORD:}
+    url: ${IDENTITY_DATASOURCE_URL}
+    username: ${IDENTITY_DATASOURCE_USERNAME}
+    password: ${IDENTITY_DATASOURCE_PASSWORD}
   flyway:
     enabled: false
 
 identity:
   database:
-    url: ${IDENTITY_DATASOURCE_URL:}
-    username: ${IDENTITY_DATASOURCE_USERNAME:}
-    password: ${IDENTITY_DATASOURCE_PASSWORD:}
+    url: ${IDENTITY_DATASOURCE_URL}
+    username: ${IDENTITY_DATASOURCE_USERNAME}
+    password: ${IDENTITY_DATASOURCE_PASSWORD}
   security:
     issuer-uri: ${KEYCLOAK_ISSUER_URI:}
     jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:}

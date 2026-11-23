@@ -94,11 +94,12 @@ Các mục có trạng thái **OPEN** dưới đây chưa được chủ dự á
 
 ### 11. Production external secret store and workload identity
 
-- **Mô tả:** Hướng production đã thống nhất là external secret store qua External Secrets Operator. Chưa chọn AWS Secrets Manager hay Vault; workload identity và cách cấp quyền trên provider cụ thể cũng chưa được thiết kế.
+- **Đã chấp nhận theo ADR-011:** External Secrets Operator là mẫu tích hợp secret store cho production; đây không phải quyết định chọn nhà cung cấp.
+- **OPEN:** Chưa chọn AWS Secrets Manager hay Vault. Cơ chế workload identity và cách cấp quyền phụ thuộc Kubernetes provider tại mục 8 và chưa được thiết kế.
 - **Ảnh hưởng:** Workload identity, secret synchronization, encryption at rest, IAM/RBAC, vận hành và chi phí.
 - **Lựa chọn:** AWS Secrets Manager hoặc Vault; cách tích hợp workload identity/RBAC phụ thuộc Kubernetes provider đã chọn trong quyết định 8.
 - **Recommendation (PROPOSED):** Chọn theo môi trường triển khai thực tế; trước production cần xác định encryption at rest, workload identity và policy truy cập tối thiểu.
-- **Status:** OPEN cho external store và chi tiết workload identity. Hướng tích hợp và yêu cầu IAM/RBAC đã được ghi nhận tại [ADR-011](../adr/ADR-011-phase-based-secret-management.md).
+- **Status:** OPEN cho provider external secret store và chi tiết workload identity. Hướng tích hợp đã được ghi nhận tại [ADR-011](../adr/ADR-011-phase-based-secret-management.md); IAM/RBAC cụ thể vẫn cần chọn theo provider.
 
 ## Phase 2 implementation details still OPEN
 

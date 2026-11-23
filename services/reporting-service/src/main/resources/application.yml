@@ -2,9 +2,9 @@ spring:
   application:
     name: reporting-service
   datasource:
-    url: ${REPORTING_DATASOURCE_URL:}
-    username: ${REPORTING_DATASOURCE_USERNAME:}
-    password: ${REPORTING_DATASOURCE_PASSWORD:}
+    url: ${REPORTING_DATASOURCE_URL}
+    username: ${REPORTING_DATASOURCE_USERNAME}
+    password: ${REPORTING_DATASOURCE_PASSWORD}
   flyway:
     enabled: true
     schemas: reporting_schema
@@ -12,8 +12,8 @@ spring:
 
 reporting:
   security:
-    issuer-uri: ${KEYCLOAK_ISSUER_URI:}
-    jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:}
+    issuer-uri: ${KEYCLOAK_ISSUER_URI}
+    jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
     audience: ${REPORTING_TOKEN_AUDIENCE:reporting-service}
 
 server:
@@ -24,3 +24,11 @@ management:
     web:
       exposure:
         include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+      show-details: never

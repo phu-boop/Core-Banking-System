@@ -1,6 +1,6 @@
 # Implementation Plan: Production Readiness
 
-**Date**: 2026-11-22 | **Status**: Planning | **Spec**: [Feature spec](../../../specs/phase-8-production-readiness/feature-spec.md)
+**Date**: 2026-11-22 | **Status**: In Progress | **Spec**: [Feature spec](../../../specs/phase-8-production-readiness/feature-spec.md)
 
 ## Summary
 
@@ -58,49 +58,49 @@ No repository constitution exists. The plan follows accepted architecture and se
 - **Requirements**: REQ-002, REQ-003, REQ-011
 - **Description**: Add provider-neutral Kubernetes manifests and health probes for every deployable service.
 - **Tasks**:
-  - [ ] T004 [Plan:2.1] Define a deployment manifest catalog under `deploy/kubernetes/`.
-  - [ ] T005 [P] [Plan:2.1] Add liveness/readiness probe configuration to all deployable Spring Boot service application settings.
-  - [ ] T006 [P] [Plan:2.1] Add independent Deployment and Service manifests for local and production overlays.
-  - [ ] T007 [Plan:2.1] Document secret references without embedding secret values in `deploy/kubernetes/`.
+  - [x] T004 [Plan:2.1] Define a deployment manifest catalog under `deploy/kubernetes/`.
+  - [x] T005 [P] [Plan:2.1] Add liveness/readiness probe configuration to all deployable Spring Boot service application settings.
+  - [x] T006 [P] [Plan:2.1] Add independent local Deployment and Service manifests for each deployable service in `deploy/kubernetes/local/`; defer production overlay pending registry/provider decisions.
+  - [x] T007 [Plan:2.1] Document required secret references without embedding secret values in `deploy/kubernetes/README.md`.
 
 ### Step 3: Secret and security baseline
 
 - **Requirements**: REQ-004, REQ-006
 - **Description**: Verify environment-only secret consumption and redaction controls.
 - **Tasks**:
-  - [ ] T008 [Plan:3.1] Add secret configuration validation to every service that consumes credentials.
-  - [ ] T009 [P] [Plan:3.1] Add a CI secret-detection check that excludes no production secret value.
-  - [ ] T010 [P] [Plan:3.1] Add log/redaction tests proving tokens and passwords are not emitted.
-  - [ ] T011 [Plan:3.1] Document external secret-store and workload-identity decisions as OPEN in `docs/architecture/OPEN-DECISIONS.md`.
+  - [x] T008 [Plan:3.1] Add secret configuration validation to every service that consumes credentials.
+  - [x] T009 [P] [Plan:3.1] Add a CI secret-detection check that excludes no production secret value.
+  - [x] T010 [P] [Plan:3.1] Add log/redaction tests proving tokens and passwords are not emitted.
+  - [x] T011 [Plan:3.1] Document external secret-store and workload-identity decisions as OPEN in `docs/architecture/OPEN-DECISIONS.md`.
 
 ### Step 4: Operational evidence
 
 - **Requirements**: REQ-007, REQ-010
 - **Description**: Define observability, SLO, alert and outbox operational behavior.
 - **Tasks**:
-  - [ ] T012 [Plan:4.1] Add structured health and metrics verification to the workspace smoke workflow.
-  - [ ] T013 [Plan:4.1] Create `docs/operations/` runbooks for alert response and service recovery.
-  - [ ] T014 [Plan:4.1] Create an outbox backlog, retry and controlled replay runbook.
-  - [ ] T015 [Plan:4.1] Record SLO/alert/retention targets as approved-owner inputs rather than defaults.
+  - [x] T012 [Plan:4.1] Add structured health and metrics verification to the workspace smoke workflow.
+  - [x] T013 [Plan:4.1] Create `docs/operations/` runbooks for alert response and service recovery.
+  - [x] T014 [Plan:4.1] Create an outbox backlog, retry and controlled replay runbook.
+  - [x] T015 [Plan:4.1] Record SLO/alert/retention targets as approved-owner inputs rather than defaults.
 
 ### Step 5: Recovery and replay verification
 
 - **Requirements**: REQ-008, REQ-009
 - **Description**: Add recovery rehearsals and replay/concurrency acceptance evidence.
 - **Tasks**:
-  - [ ] T016 [Plan:5.1] Add a backup/restore rehearsal procedure under `docs/operations/`.
-  - [ ] T017 [P] [Plan:5.1] Add a rollback rehearsal procedure for independent service deployments.
-  - [ ] T018 [Plan:5.1] Add concurrency/replay tests that prove one financial side effect per stable event or command identity.
-  - [ ] T019 [P] [Plan:5.1] Add disaster-recovery and dependency-failure smoke scenarios to the test plan.
+  - [x] T016 [Plan:5.1] Add a backup/restore rehearsal procedure under `docs/operations/`.
+  - [x] T017 [P] [Plan:5.1] Add a rollback rehearsal procedure for independent service deployments.
+  - [x] T018 [Plan:5.1] Add concurrency/replay tests that prove one financial side effect per stable event or command identity.
+  - [x] T019 [P] [Plan:5.1] Add disaster-recovery and dependency-failure smoke scenarios to the test plan.
 
 ### Step 6: Final release evidence
 
 - **Requirements**: REQ-001, REQ-012
 - **Description**: Execute final workspace verification and record the Phase 8 release verdict.
 - **Tasks**:
-  - [ ] T020 [Plan:6.1] Run the full workspace Maven verify and record module counts.
-  - [ ] T021 [Plan:6.1] Run or document security, recovery and rollback rehearsals.
-  - [ ] T022 [Plan:6.1] Create `docs/plan/phase/production-readiness/checkpoints/SMOKE_TEST_VERDICT.md`.
+  - [x] T020 [Plan:6.1] Run the full workspace Maven verify and record module counts.
+  - [x] T021 [Plan:6.1] Run or document security, recovery and rollback rehearsals.
+  - [x] T022 [Plan:6.1] Create `docs/plan/phase/production-readiness/checkpoints/SMOKE_TEST_VERDICT.md`.
   - [ ] T023 [Plan:6.1] Complete `RELEASE_CHECKLIST.md` and mark Phase 8 complete only after owner approval.
 
 ## Project Structure

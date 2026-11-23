@@ -29,7 +29,7 @@ Loan nằm ngoài MVP.
 | 5 | Corporate approval and transfer enforcement | Complete — bounded first slice | Corporate approval and approval-enforced Transfer implementation |
 | 6 | Interbank transfer | Complete — provider-neutral sandbox | 70-test smoke evidence + mock provider; real provider remains deferred |
 | 7 | Channels, Audit, Notification and Reporting | Complete — bounded first slice | Reporting, Audit, Notification and cross-service smoke evidence pass |
-| 8 | Production readiness | Planning | Spec and implementation plan created; Kubernetes provider/topology, security targets and recovery thresholds remain OPEN |
+| 8 | Production readiness | In progress | T001-T007 release gate, all service image builds, local Kubernetes manifests and secret references implemented; production choices remain OPEN |
 | Later | Loan | Deferred | Out of MVP |
 
 ## Phases 0-2

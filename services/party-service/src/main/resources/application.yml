@@ -2,17 +2,17 @@ spring:
   application:
     name: party-service
   datasource:
-    url: ${PARTY_DATASOURCE_URL:}
-    username: ${PARTY_DATASOURCE_USERNAME:}
-    password: ${PARTY_DATASOURCE_PASSWORD:}
+    url: ${PARTY_DATASOURCE_URL}
+    username: ${PARTY_DATASOURCE_USERNAME}
+    password: ${PARTY_DATASOURCE_PASSWORD}
   flyway:
     enabled: false
 
 party:
   database:
-    url: ${PARTY_DATASOURCE_URL:}
-    username: ${PARTY_DATASOURCE_USERNAME:}
-    password: ${PARTY_DATASOURCE_PASSWORD:}
+    url: ${PARTY_DATASOURCE_URL}
+    username: ${PARTY_DATASOURCE_USERNAME}
+    password: ${PARTY_DATASOURCE_PASSWORD}
   security:
     issuer-uri: ${KEYCLOAK_ISSUER_URI:}
     jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:}

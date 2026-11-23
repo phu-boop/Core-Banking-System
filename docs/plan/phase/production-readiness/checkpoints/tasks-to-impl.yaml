@@ -1,0 +1,75 @@
+metadata:
+  generated: "2026-11-23"
+  source_plan: "docs/plan/phase/production-readiness/plan.md"
+
+completed_tasks:
+  - "T001"
+  - "T002"
+  - "T003"
+  - "T004"
+  - "T005"
+  - "T006"
+  - "T007"
+  - "T008"
+  - "T009"
+  - "T010"
+  - "T011"
+  - "T012"
+  - "T013"
+  - "T014"
+  - "T015"
+  - "T016"
+  - "T017"
+  - "T018"
+  - "T019"
+  - "T020"
+  - "T021"
+  - "T022"
+
+blocked_tasks:
+  - "T023"
+
+pending_tasks: []
+
+blocked_reasons:
+  T023: "Production release completion requires project-owner go/no-go approval, a successful GitHub Actions secret scan, approved operational targets, and recovery/rollback rehearsal evidence; these inputs are not available in this session."
+
+validation:
+  passed: true
+  workspace_verify: "passed"
+  evidence:
+    command: "./mvnw -B -ntp clean verify"
+    tests_passed: 107
+    tests_failed: 0
+    tests_skipped: 0
+    module_counts:
+      account-service: 5
+      api-docs-service: 2
+      audit-service: 4
+      branch-service: 4
+      corporate-service: 21
+      identity-service: 13
+      ledger-service: 5
+      notification-service: 5
+      party-service: 3
+      payment-service: 7
+      reporting-service: 6
+      service-template: 17
+      transfer-service: 15
+  workspace_smoke:
+    command: "docker build --tag core-banking/api-docs-service:ci services/api-docs-service && bash .github/scripts/workspace-smoke.sh"
+    passed: 4
+    failed: 0
+  local_kustomize:
+    command: "kubectl kustomize deploy/kubernetes/local"
+    passed: 25
+    failed: 0
+  ledger_replay:
+    command: "./mvnw -B -ntp -pl services/ledger-service -am test"
+    passed: 5
+    failed: 0
+    skipped: 0
+  ledger_container:
+    command: "docker build --tag core-banking/ledger-service:ci services/ledger-service"
+    passed: 1
+    failed: 0

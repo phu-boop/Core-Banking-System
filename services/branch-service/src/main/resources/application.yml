@@ -2,9 +2,9 @@ spring:
   application:
     name: branch-service
   datasource:
-    url: ${BRANCH_DATASOURCE_URL:}
-    username: ${BRANCH_DATASOURCE_USERNAME:}
-    password: ${BRANCH_DATASOURCE_PASSWORD:}
+    url: ${BRANCH_DATASOURCE_URL}
+    username: ${BRANCH_DATASOURCE_USERNAME}
+    password: ${BRANCH_DATASOURCE_PASSWORD}
   flyway:
     enabled: false
 

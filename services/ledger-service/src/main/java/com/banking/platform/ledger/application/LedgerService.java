@@ -22,23 +22,17 @@ public class LedgerService {
         this.repository = repository;
     }
 
-    @Transactional
     public JournalResponse post(JournalRequest request, String actor, String correlationId) {
         validate(request);
         var replay = repository.findByOperationKey(request.operationKey());
         if (replay.isPresent()) {
             return replay.get();
         }
-        try {
-            return repository.post(UUID.randomUUID(), request.transactionId(),
-                    request.operationKey(), request.entries(), request.currency(),
-                    actor, correlationId);
-        } catch (DuplicateKeyException exception) {
-            return repository.findByOperationKey(request.operationKey()).orElseThrow();
-        }
+        return repository.post(UUID.randomUUID(), request.transactionId(),
+                request.operationKey(), request.entries(), request.currency(),
+                actor, correlationId);
     }
 
-    @Transactional
     public JournalResponse reverse(UUID journalId, ReversalRequest request,
                                    String actor, String correlationId) {
         JournalResponse original = repository.findById(journalId)

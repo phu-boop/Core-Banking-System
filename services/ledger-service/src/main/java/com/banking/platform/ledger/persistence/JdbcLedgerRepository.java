@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class JdbcLedgerRepository implements LedgerRepository {
@@ -33,14 +34,19 @@ public class JdbcLedgerRepository implements LedgerRepository {
     }
 
     @Override
+    @Transactional
     public JournalResponse post(UUID journalId, UUID transactionId, String operationKey,
                                 List<JournalEntryRequest> entries, String currency,
                                 String actor, String correlationId) {
-        jdbcTemplate.update("""
+        int inserted = jdbcTemplate.update("""
                 INSERT INTO ledger_schema.journal
                     (journal_id, transaction_id, operation_key, status)
                 VALUES (?, ?, ?, 'POSTED')
+                ON CONFLICT (operation_key) DO NOTHING
                 """, journalId, transactionId, operationKey);
+        if (inserted == 0) {
+            return findByOperationKey(operationKey).orElseThrow();
+        }
         insertEntries(journalId, entries, currency);
         audit(actor, "POST_JOURNAL", journalId, "SUCCESS", correlationId);
         return findById(journalId).orElseThrow();
@@ -67,6 +73,7 @@ public class JdbcLedgerRepository implements LedgerRepository {
     }
 
     @Override
+    @Transactional
     public JournalResponse reverse(UUID reversalJournalId, UUID transactionId, String operationKey,
                                    UUID originalJournalId, List<JournalEntryRequest> entries,
                                    String reasonCode, String actor, String correlationId) {
