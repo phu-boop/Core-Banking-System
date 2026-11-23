@@ -28,7 +28,7 @@
 |---|---|---|---|---|---|
 | `GET /v1/identity/me` | none → validated internal principal (`userId`, optional `partyId`, approved context) | Validate Keycloak OIDC token and resolve active `(issuer, subject)` mapping | Authenticated principal; only trusted grants/context returned | invalid/expired token, inactive identity, forbidden | Not applicable |
 
-Keycloak owns login and token issuance. Use Authorization Code + PKCE for interactive user applications and Client Credentials for machine identities. Identity & Access must not expose a custom token-issuance endpoint or trust client-submitted permissions, organization or branch context. Exact claims and routes remain to be specified.
+Keycloak owns login and token issuance. Use Authorization Code + PKCE for interactive user applications and Client Credentials for machine identities. Identity & Access must not expose a custom token-issuance endpoint or trust client-submitted permissions, organization or branch context. Resource services must enforce their own resource authorization. For the accepted initial user-authz slice, see [ADR-013](../adr/ADR-013-identity-authoritative-user-authorization.md): the service validates its own audience and resolves the caller through this endpoint using a token that also has the `identity-service` audience. The first implemented permission is `account:read` with `scopeType=SELF` and `scopeId` equal to the mapped Party UUID; Account Service additionally compares that Party UUID with the account owner. Other permission scopes and the controlled grant-provisioning process remain open.
 
 ## Customer — Party / Customer
 

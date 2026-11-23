@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.banking.platform.account.AccountServiceApplication;
 import com.banking.platform.account.domain.AccountStatus;
+import com.banking.platform.account.domain.AccountResponse;
+import com.banking.platform.account.integration.IdentityGrant;
+import com.banking.platform.account.integration.IdentityPrincipal;
+import com.banking.platform.account.integration.IdentityPrincipalClient;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,8 @@ import static org.mockito.Mockito.when;
 class AccountEndpointIntegrationTests {
     @MockBean
     JwtDecoder jwtDecoder;
+    @MockBean
+    IdentityPrincipalClient identityPrincipalClient;
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.12")
@@ -43,6 +49,8 @@ class AccountEndpointIntegrationTests {
         registry.add("account.security.issuer-uri", () -> "https://issuer.example");
         registry.add("account.security.jwk-set-uri", () -> "https://issuer.example/jwks");
         registry.add("account.security.audience", () -> "account-service");
+        registry.add("account.identity.base-url", () -> "http://localhost:8080");
+        registry.add("account.identity.allow-http", () -> true);
     }
 
     @Autowired
@@ -79,6 +87,76 @@ class AccountEndpointIntegrationTests {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM account_schema.account_status_history",
                 Integer.class)).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    void customerCanReadOnlyAnAccountGrantedByIdentityService() {
+        UUID partyId = UUID.randomUUID();
+        Jwt jwt = staffJwt();
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        when(identityPrincipalClient.currentPrincipal("test-token"))
+                .thenReturn(new IdentityPrincipal(
+                        UUID.randomUUID(),
+                        partyId,
+                        List.of(new IdentityGrant("account:read", "SELF", partyId.toString()))));
+        HttpHeaders headers = bearerHeaders();
+        CreateAccountRequest request = new CreateAccountRequest(
+                partyId, "ACC-" + UUID.randomUUID().toString().substring(0, 8));
+
+        var created = rest.postForEntity("/v1/accounts",
+                new HttpEntity<>(request, headers), AccountResponse.class);
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        var read = rest.exchange(
+                "/v1/accounts/" + created.getBody().accountId(),
+                org.springframework.http.HttpMethod.GET,
+                new HttpEntity<>(headers),
+                AccountResponse.class,
+                new Object[0]);
+
+        assertThat(read.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(read.getBody().partyId()).isEqualTo(partyId);
+    }
+
+    @Test
+    void customerCannotReadAnAccountOutsideIdentityPartyScope() {
+        UUID ownerPartyId = UUID.randomUUID();
+        Jwt jwt = staffJwt();
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        when(identityPrincipalClient.currentPrincipal("test-token"))
+                .thenReturn(new IdentityPrincipal(
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        List.of(new IdentityGrant("account:read", "SELF", ownerPartyId.toString()))));
+        HttpHeaders headers = bearerHeaders();
+        CreateAccountRequest request = new CreateAccountRequest(
+                ownerPartyId, "ACC-" + UUID.randomUUID().toString().substring(0, 8));
+
+        var created = rest.postForEntity("/v1/accounts",
+                new HttpEntity<>(request, headers), AccountResponse.class);
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        var read = rest.exchange(
+                "/v1/accounts/" + created.getBody().accountId(),
+                org.springframework.http.HttpMethod.GET,
+                new HttpEntity<>(headers),
+                String.class);
+
+        assertThat(read.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    private Jwt staffJwt() {
+        return Jwt.withTokenValue("test-token")
+                .header("alg", "none")
+                .subject("staff-subject")
+                .claim("account_permissions", List.of("account:create"))
+                .build();
+    }
+
+    private HttpHeaders bearerHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("test-token");
+        return headers;
     }
 
     private record AccountStateResponse(UUID accountId, AccountStatus status) {}

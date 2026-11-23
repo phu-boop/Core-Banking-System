@@ -10,6 +10,7 @@ Read-only identity mapping and principal resolution for Phase 2. Keycloak owns i
 - The runtime database role is read-only. Mapping and grant provisioning requires a separately approved privileged process; that process and its audit trail are not implemented here.
 - This service does not store passwords, issue tokens, infer grants from client-supplied claims, or trust client-submitted organization/branch/permission context.
 - The initial grant scope types are `SELF`, `ORGANIZATION` and `BRANCH`; the permission catalog and detailed resource authorization remain open.
+- Account Service's initial self-service account-read slice consumes `account:read` with `scopeType=SELF` and `scopeId` equal to the mapped `partyId`. The service also compares that Party ID with the account owner. Other resource-service authorization paths are not yet migrated from their provisional JWT claim conventions; see [ADR-013](../../docs/adr/ADR-013-identity-authoritative-user-authorization.md).
 
 ## Configuration
 

@@ -48,3 +48,4 @@ replay_pid*
 
 # Graphify generated analysis output
 graphify-out/
+node_modules/

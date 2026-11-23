@@ -19,6 +19,9 @@ account:
     issuer-uri: ${KEYCLOAK_ISSUER_URI:}
     jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:}
     audience: ${ACCOUNT_TOKEN_AUDIENCE:}
+  identity:
+    base-url: ${IDENTITY_SERVICE_BASE_URL:}
+    allow-http: false
 management:
   endpoints:
     web:

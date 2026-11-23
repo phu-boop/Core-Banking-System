@@ -5,41 +5,59 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.banking.platform.account.domain.AccountResponse;
 import com.banking.platform.account.domain.AccountStatus;
+import com.banking.platform.account.integration.IdentityGrant;
+import com.banking.platform.account.integration.IdentityPrincipal;
+import com.banking.platform.account.integration.IdentityPrincipalClient;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AccountAuthorizationServiceTests {
-    private final AccountAuthorizationService service =
-            new AccountAuthorizationService();
+    private final IdentityPrincipalClient identityClient = mock(IdentityPrincipalClient.class);
+    private final AccountAuthorizationService service = new AccountAuthorizationService(identityClient);
 
     @Test
-    void selfPartyGrantCanReadOwnedAccount() {
+    void selfGrantFromIdentityCanReadOwnedAccount() {
         UUID partyId = UUID.randomUUID();
         AccountResponse account = account(partyId);
-        Jwt jwt = jwt(Map.of("party_grants", List.of(Map.of(
-                "permission", "party:self",
-                "scopeType", "PARTY",
-                "scopeId", partyId.toString()))));
+        when(identityClient.currentPrincipal("test")).thenReturn(principal(
+                partyId, new IdentityGrant("account:read", "SELF", partyId.toString())));
 
-        assertDoesNotThrow(() -> service.requireRead(jwt, account));
+        assertDoesNotThrow(() -> service.requireRead(jwt(), account));
     }
 
     @Test
-    void partyGrantCannotReadAnotherPartyAccount() {
+    void selfGrantCannotReadAnotherPartyAccount() {
         UUID partyId = UUID.randomUUID();
         AccountResponse account = account(UUID.randomUUID());
-        Jwt jwt = jwt(Map.of("party_grants", List.of(Map.of(
-                "permission", "party:self",
-                "scopeType", "PARTY",
-                "scopeId", partyId.toString()))));
+        when(identityClient.currentPrincipal("test")).thenReturn(principal(
+                partyId, new IdentityGrant("account:read", "SELF", partyId.toString())));
 
         assertThrows(AccessDeniedException.class,
-                () -> service.requireRead(jwt, account));
+                () -> service.requireRead(jwt(), account));
+    }
+
+    @Test
+    void partyLinkWithoutMatchingReadGrantCannotReadAccount() {
+        UUID partyId = UUID.randomUUID();
+        when(identityClient.currentPrincipal("test")).thenReturn(principal(
+                partyId, new IdentityGrant("account:manage", "SELF", partyId.toString())));
+
+        assertThrows(AccessDeniedException.class,
+                () -> service.requireRead(jwt(), account(partyId)));
+    }
+
+    @Test
+    void identityWithoutPartyLinkCannotReadCustomerAccount() {
+        when(identityClient.currentPrincipal("test")).thenReturn(principal(null));
+
+        assertThrows(AccessDeniedException.class,
+                () -> service.requireRead(jwt(), account(UUID.randomUUID())));
     }
 
     private AccountResponse account(UUID partyId) {
@@ -48,11 +66,14 @@ class AccountAuthorizationServiceTests {
                 partyId, "PAYMENT", AccountStatus.ACTIVE, "VND", now, now);
     }
 
-    private Jwt jwt(Map<String, Object> claims) {
+    private IdentityPrincipal principal(UUID partyId, IdentityGrant... grants) {
+        return new IdentityPrincipal(UUID.randomUUID(), partyId, List.of(grants));
+    }
+
+    private Jwt jwt() {
         return Jwt.withTokenValue("test")
                 .header("alg", "none")
                 .subject("tester")
-                .claims(values -> values.putAll(claims))
                 .build();
     }
 }

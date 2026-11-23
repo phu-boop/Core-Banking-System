@@ -1,6 +1,8 @@
 package com.banking.platform.account.application;
 
 import com.banking.platform.account.domain.AccountResponse;
+import com.banking.platform.account.integration.IdentityPrincipal;
+import com.banking.platform.account.integration.IdentityPrincipalClient;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
@@ -10,6 +12,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AccountAuthorizationService {
+    private final IdentityPrincipalClient identityPrincipalClient;
+
+    public AccountAuthorizationService(IdentityPrincipalClient identityPrincipalClient) {
+        this.identityPrincipalClient = identityPrincipalClient;
+    }
+
     public void requireCreate(Jwt jwt) {
         if (!hasGlobalPermission(jwt, "account:create")) {
             throw new AccessDeniedException("Account create permission is required");
@@ -17,7 +25,14 @@ public class AccountAuthorizationService {
     }
 
     public void requireRead(Jwt jwt, AccountResponse account) {
-        if (!canRead(jwt, account.partyId(), account.accountId())) {
+        IdentityPrincipal principal = identityPrincipalClient.currentPrincipal(jwt.getTokenValue());
+        UUID partyId = principal.partyId();
+        boolean hasSelfReadGrant = partyId != null
+                && principal.grants().stream().anyMatch(grant ->
+                        "account:read".equals(grant.permission())
+                                && "SELF".equals(grant.scopeType())
+                                && partyId.toString().equals(grant.scopeId()));
+        if (!hasSelfReadGrant || !partyId.equals(account.partyId())) {
             throw new AccessDeniedException("Account read permission is required");
         }
     }
@@ -28,12 +43,6 @@ public class AccountAuthorizationService {
                 && !hasScopedPartyPermission(jwt, account.partyId())) {
             throw new AccessDeniedException("Account manage permission is required");
         }
-    }
-
-    private boolean canRead(Jwt jwt, UUID partyId, UUID accountId) {
-        return hasGlobalPermission(jwt, "account:read")
-                || hasScopedPermission(jwt, "account:read", accountId)
-                || hasScopedPartyPermission(jwt, partyId);
     }
 
     private boolean hasGlobalPermission(Jwt jwt, String permission) {
