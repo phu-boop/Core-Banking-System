@@ -11,4 +11,11 @@ public interface IdentityMappingRepository {
     Optional<IdentityMapping> findByIssuerAndSubject(String issuer, String subject);
 
     List<ScopedGrant> findGrantsByUserId(UUID userId);
+
+    void recordResolutionAudit(
+            String actor,
+            String action,
+            String resourceId,
+            String result,
+            String correlationId);
 }

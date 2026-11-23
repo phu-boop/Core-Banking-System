@@ -13,7 +13,7 @@ Triển khai các bounded context nền cho danh tính và dữ liệu chủ: Id
 - **ACCEPTED:** Retail + Corporate banking, VND-only, multi-channel, multi-branch và configurable Corporate approval.
 - **ACCEPTED:** managing branch và transaction processing branch là hai khái niệm riêng; Teller bị giới hạn bởi branch permission.
 - **ACCEPTED theo ADR-012:** Keycloak/OIDC, REST synchronous cho first slice, RBAC + scoped grants + owner-side authorization, customer có một primary managing branch tại một thời điểm, Organization:Party 1:1 logical reference, PII soft-match/human review, idempotency policy và audit baseline.
-- **OPEN:** API Gateway, broker/event transport, full role/permission catalog, PII fields/matching thresholds, branch reassignment workflow, operation-specific idempotency scope, audit storage/retention enforcement, approval policy snapshot và production compliance details.
+- **OPEN:** API Gateway, broker/event transport, full role/permission catalog, PII fields/matching thresholds, branch reassignment workflow, operation-specific idempotency scope, audit storage/retention enforcement, approval thresholds, detailed role/mandate catalog/API and exact claim mapping, and production compliance details.
 - Phase 2 không triển khai Account, Ledger, Transfer, Payment hoặc Loan.
 
 Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banking.md), [ADR-003](../../adr/ADR-003-multi-channel.md), [ADR-009](../../adr/ADR-009-multi-branch-banking.md), [ADR-010](../../adr/ADR-010-phase-1-technical-baseline.md), [Open Decisions](../../architecture/OPEN-DECISIONS.md).
@@ -37,7 +37,7 @@ Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banki
 - Custom credential storage hoặc token issuer giả lập Identity Provider.
 - Account, balance, Ledger journal hoặc financial posting.
 - Retail transfer, teller deposit/withdrawal hoặc interbank integration.
-- Approval execution và policy snapshot chưa được duyệt.
+- Transfer-level approval enforcement/execution chưa thuộc Phase 2; Corporate Approval core behavior đã được chốt trong ADR-007, còn Membership/Mandate integration và exact claim mapping là prerequisites.
 - Notification, Reporting, production Gateway hoặc production cluster rollout.
 - Loan.
 
@@ -55,7 +55,7 @@ Các nền tảng liên quan: [ADR-002](../../adr/ADR-002-retail-corporate-banki
 | Role, permission và scope model | ACCEPTED baseline — ADR-012 | RBAC + scoped grants + resource-level checks; full roles, permissions and inheritance remain OPEN |
 | Idempotency | ACCEPTED baseline — ADR-012 | Actor + operation + business scope, default retention 24h; per-operation scope/format/storage remain to be defined |
 | Audit policy | ACCEPTED baseline — ADR-012 | Required actor/action/resource/result/time/correlation; 7-year project baseline subject to legal review; storage/access design OPEN |
-| Approval policy snapshot | OPEN | Chốt policy áp dụng khi policy thay đổi trong khi request chờ duyệt |
+| Approval policy version behavior | ACCEPTED — ADR-007 | Immutable policy version lúc submit; explicit activation; role/mandate scope; exact catalog/claims remain OPEN |
 
 Không triển khai phần phụ thuộc vào quyết định OPEN trước khi quyết định đó được chủ dự án duyệt.
 
@@ -87,7 +87,7 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 
 **Đầu ra:** identity subject và scoped authorization có thể kiểm thử; không lưu hoặc log secret/token.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** First slice đã triển khai trong `identity-service`: subject/issuer mapping, active identity resolution, scoped grants và `identity_audit` cho authentication/principal resolution. Lifecycle states và canonical claim mapping remain OPEN.
 
 ### 2.3 — Party / Customer
 
@@ -112,11 +112,11 @@ Không triển khai phần phụ thuộc vào quyết định OPEN trước khi 
 - Kiểm tra organization membership và mandate trong Corporate, không tin caller-supplied role.
 - Enforce Maker–Checker khi xử lý approval action; không cho maker tự duyệt nếu rule được duyệt.
 - Ghi policy version và approval history đủ để audit.
-- Chỉ snapshot/execute approval behavior sau khi quyết định policy snapshot được duyệt.
+- Áp dụng immutable policy version đã được duyệt trong ADR-007; không triển khai Transfer-level approval enforcement/execution trong Phase 2.
 
 **Đầu ra:** corporate onboarding và approval eligibility có thể kiểm thử; không thực hiện transfer hoặc Ledger posting.
 
-**Trạng thái:** Organization first slice đã triển khai trong `corporate-service`: tạo/đọc Organization, xác thực Party type qua owner API và giữ unique logical `partyId`. Legal profile, Membership, Mandate, ApprovalPolicy/history và approval execution chưa triển khai; các chi tiết role/policy còn OPEN.
+**Trạng thái:** Organization first slice đã triển khai trong `corporate-service`: tạo/đọc Organization, xác thực Party type qua owner API và giữ unique logical `partyId`. Approval V2/V3/V4 đã triển khai policy schema, policy administration, request submission, ordered decision state, append-only history, 24-hour decision idempotency, và Corporate-owned Membership/Mandate with active eligibility lookup. Canonical Keycloak claim mapping remains an integration/configuration decision, but eligible decisions no longer depend on caller-supplied role/mandate grants.
 
 Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–Checker và approval history; không bao gồm Transfer/Ledger execution) nằm tại [Corporate Approval implementation plan](./corporate-approval/plan.md). Membership/Mandate implementations hoặc owner interfaces đã duyệt, cùng các decision gate được liệt kê trong plan, là prerequisites trước khi triển khai workflow.
 
@@ -144,7 +144,7 @@ Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–C
 
 **Đầu ra:** authorization và correlation hoạt động nhất quán qua các service Phase 2.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** Owner-side authorization foundation đã triển khai ở Party, Corporate và Branch; correlation ID được forward qua synchronous HTTP boundary. Canonical Keycloak role/claim mapping và service identity grants remain OPEN.
 
 ### 2.7 — Audit foundation
 
@@ -157,7 +157,7 @@ Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–C
 
 **Đầu ra:** audit records chứng minh actor/action/resource/result và không chứa secret.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** Durable audit foundation đã triển khai trong Identity, Party, Corporate và Branch. Identity audit dùng opaque SHA-256 principal references; Party/Branch/Corporate audit record actor/action/resource/result/correlation/time. Storage retention, tamper evidence, read access matrix và archival remain OPEN.
 
 ### 2.8 — CI và kiểm thử Phase 2
 
@@ -171,7 +171,7 @@ Kế hoạch chi tiết cho Corporate Approval core (policy đa cấp, Maker–C
 
 **Đầu ra:** một lệnh verify lặp lại cho từng service và pipeline aggregate theo quy trình được duyệt.
 
-**Trạng thái:** Chưa bắt đầu.
+**Trạng thái:** GitHub Actions đã chạy riêng từng Phase 2 service, gồm Identity, Party, Branch và Corporate. Các verification job cho transfer/payment cũng được thêm để CI monorepo phát hiện migration hoặc permission regressions.
 
 ## Thứ tự và phụ thuộc
 
@@ -209,16 +209,16 @@ Không chọn API Gateway, broker, Identity Provider hoặc internal protocol ch
 
 ## Tiêu chí hoàn tất Phase 2
 
-- [ ] Identity Provider và authorization boundary đã được duyệt; không triển khai custom credential/token issuer chưa được chấp thuận.
-- [ ] Identity subject mapping, role và scoped grant hoạt động và được test.
-- [ ] Party/Customer API và migration thuộc `party_schema`; PII và audit được giới hạn.
-- [ ] Organization, membership, mandate và approval policy cơ sở thuộc `corporate_schema`.
-- [ ] Maker–Checker và organization/mandate authorization được kiểm thử.
-- [ ] Branch data thuộc `branch_schema`; managing/processing branch được phân biệt.
-- [ ] Không có cross-schema table access, cross-schema FK hoặc shared domain table.
-- [ ] Mỗi sensitive action có durable audit contract phù hợp và không log secret/token/PII không cần thiết.
-- [ ] API và event contracts liên quan đã được review và tài liệu trạng thái nhất quán.
-- [ ] CI chạy build/test/permission/migration checks cho các service Phase 2.
+- [x] Identity Provider và authorization boundary đã được duyệt; không triển khai custom credential/token issuer chưa được chấp thuận.
+- [x] Identity subject mapping, role và scoped grant hoạt động và được test.
+- [x] Party/Customer API và migration thuộc `party_schema`; PII và audit được giới hạn.
+- [x] Organization, membership, mandate và approval policy cơ sở thuộc `corporate_schema`.
+- [x] Maker–Checker và organization/mandate authorization được kiểm thử.
+- [x] Branch data thuộc `branch_schema`; managing/processing branch được phân biệt.
+- [x] Không có cross-schema table access, cross-schema FK hoặc shared domain table.
+- [x] Mỗi sensitive action có durable audit contract phù hợp và không log secret/token/PII không cần thiết.
+- [x] API và event contracts liên quan đã được review và tài liệu trạng thái nhất quán.
+- [x] CI chạy build/test/permission/migration checks cho các service Phase 2.
 - [ ] Không thêm Account, Ledger, Transfer, Payment hoặc Loan implementation.
 
 ## Rủi ro và cách kiểm soát
@@ -230,7 +230,7 @@ Không chọn API Gateway, broker, Identity Provider hoặc internal protocol ch
 | Organization/branch authorization chỉ nằm ở Gateway | Enforce owner-side authorization trong Identity/Party/Corporate/Branch |
 | Party và Organization bị trùng ownership | Party quản lý person/profile, Corporate quản lý organization/membership/mandate |
 | Corporate approval bị thực thi trong service sai | Approval eligibility/decision thuộc Corporate; execution/context chỉ ở transfer phase sau |
-| Policy snapshot semantics bị suy đoán | Không implement snapshot behavior trước khi quyết định được duyệt |
+| Approval behavior bị suy đoán | Tuân thủ ADR-007 cho lifecycle/snapshot/rejection/sequencing; chặn tích hợp khi Membership/Mandate APIs hoặc claim mapping chưa sẵn sàng |
 | Cross-service coupling qua direct DB | Schema roles, integration tests và API/event-only references |
 | Phase 2 mở rộng thành Account/Ledger | Giữ scope gate và chặn migration/API cho bounded context chưa được approved |
 

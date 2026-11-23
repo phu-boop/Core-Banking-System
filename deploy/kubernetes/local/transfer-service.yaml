@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transfer-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: transfer-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: transfer-service
+    spec:
+      containers:
+        - name: transfer-service
+          image: core-banking/transfer-service:ci
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: core-banking-runtime
+          env:
+            - name: SERVER_PORT
+              value: "8085"
+            - name: TRANSFER_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/core_banking
+            - name: TRANSFER_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: transfer-service-db-credentials
+                  key: username
+            - name: TRANSFER_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: transfer-service-db-credentials
+                  key: password
+            - name: TRANSFER_TOKEN_AUDIENCE
+              value: transfer-service
+            - name: TRANSFER_CORPORATE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: transfer-corporate-client-credentials
+                  key: client-id
+            - name: TRANSFER_CORPORATE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: transfer-corporate-client-credentials
+                  key: client-secret
+          ports:
+            - name: http
+              containerPort: 8085
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transfer-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: transfer-service
+  ports:
+    - name: http
+      port: 8085
+      targetPort: http

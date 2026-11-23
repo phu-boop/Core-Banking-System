@@ -1,0 +1,51 @@
+metadata:
+  generated: "2026-11-22"
+  source_spec: "docs/specs/phase-7-channels-operations/feature-spec.md"
+  target_plan: "docs/plan/phase/channels-operations/plan.md"
+
+summary:
+  total_requirements: 15
+  covered_requirements: 15
+  missing_requirements: 0
+  coverage_percentage: 100.0
+
+requirements:
+  - req_id: "REQ-001"
+    plan_items: ["P1.1", "P2.1"]
+  - req_id: "REQ-002"
+    plan_items: ["P2.1"]
+  - req_id: "REQ-003"
+    plan_items: ["P2.1"]
+  - req_id: "REQ-004"
+    plan_items: ["P1.1", "P2.1"]
+  - req_id: "REQ-005"
+    plan_items: ["P2.1"]
+  - req_id: "REQ-006"
+    plan_items: ["P1.1", "P3.1", "P6.1"]
+  - req_id: "REQ-007"
+    plan_items: ["P1.1", "P3.1"]
+  - req_id: "REQ-008"
+    plan_items: ["P1.1", "P3.1"]
+  - req_id: "REQ-009"
+    plan_items: ["P4.1"]
+  - req_id: "REQ-010"
+    plan_items: ["P4.1"]
+  - req_id: "REQ-011"
+    plan_items: ["P5.1"]
+  - req_id: "REQ-012"
+    plan_items: ["P5.1"]
+  - req_id: "REQ-013"
+    plan_items: ["P5.1"]
+  - req_id: "REQ-014"
+    plan_items: ["P6.1"]
+  - req_id: "REQ-015"
+    plan_items: ["P4.1", "P6.1"]
+
+missing_requirements: []
+orphan_plan_items: []
+
+validation:
+  passed: true
+  errors: []
+  warnings:
+    - "API Gateway, event broker and notification provider remain OPEN."

@@ -13,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class CorrelationIdFilter extends OncePerRequestFilter {
+    public static final String CORRELATION_ID_ATTRIBUTE = "correlationId";
     private static final Pattern VALID = Pattern.compile("[A-Za-z0-9._-]{1,64}");
 
     @Override
@@ -28,6 +29,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         }
         MDC.put("correlationId", correlationId);
         MDC.put("serviceName", "corporate-service");
+        request.setAttribute(CORRELATION_ID_ATTRIBUTE, correlationId);
         response.setHeader("X-Correlation-Id", correlationId);
         try {
             chain.doFilter(request, response);

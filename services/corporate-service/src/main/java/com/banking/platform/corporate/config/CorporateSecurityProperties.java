@@ -11,24 +11,27 @@ public record CorporateSecurityProperties(
         String partyServiceBaseUrl,
         String partyClientId,
         String partyClientSecret,
-        String tokenUri) {
+        String tokenUri,
+        boolean allowHttp) {
 
     public CorporateSecurityProperties {
-        issuerUri = requireHttps(issuerUri, "KEYCLOAK_ISSUER_URI");
-        jwkSetUri = requireHttps(jwkSetUri, "KEYCLOAK_JWK_SET_URI");
+        issuerUri = requireUri(issuerUri, "KEYCLOAK_ISSUER_URI", allowHttp);
+        jwkSetUri = requireUri(jwkSetUri, "KEYCLOAK_JWK_SET_URI", allowHttp);
         audience = requireValue(audience, "CORPORATE_TOKEN_AUDIENCE");
         partyServiceBaseUrl = requireHttpUrl(partyServiceBaseUrl, "PARTY_SERVICE_BASE_URL");
         partyClientId = requireValue(partyClientId, "CORPORATE_PARTY_CLIENT_ID");
         partyClientSecret = requireValue(partyClientSecret, "CORPORATE_PARTY_CLIENT_SECRET");
-        tokenUri = requireHttps(tokenUri, "KEYCLOAK_TOKEN_URI");
+        tokenUri = requireUri(tokenUri, "KEYCLOAK_TOKEN_URI", allowHttp);
     }
 
-    private static String requireHttps(String value, String name) {
+    private static String requireUri(String value, String name, boolean allowHttp) {
         String configured = requireValue(value, name);
         URI uri = parseUri(configured, name);
         if (!uri.isAbsolute() || uri.getHost() == null
-                || !"https".equalsIgnoreCase(uri.getScheme()) || uri.getUserInfo() != null) {
-            throw new IllegalStateException(name + " must be an absolute HTTPS URI");
+                || (!"https".equalsIgnoreCase(uri.getScheme())
+                        && !(allowHttp && "http".equalsIgnoreCase(uri.getScheme())))
+                || uri.getUserInfo() != null) {
+            throw new IllegalStateException(name + " must be an absolute " + (allowHttp ? "HTTP(S)" : "HTTPS") + " URI without credentials");
         }
         return configured;
     }

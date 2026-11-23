@@ -1,0 +1,38 @@
+spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/payment-service/.env[.properties]
+  application:
+    name: payment-service
+  datasource:
+    url: ${PAYMENT_DATASOURCE_URL}
+    username: ${PAYMENT_DATASOURCE_USERNAME}
+    password: ${PAYMENT_DATASOURCE_PASSWORD}
+  flyway:
+    enabled: true
+    schemas: payment_schema
+    default-schema: payment_schema
+
+payment:
+  security:
+    issuer-uri: ${KEYCLOAK_ISSUER_URI}
+    jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
+    audience: ${PAYMENT_TOKEN_AUDIENCE}
+
+server:
+  port: ${SERVER_PORT:8086}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+      show-details: never

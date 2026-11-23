@@ -1,0 +1,29 @@
+spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/ledger-service/.env[.properties]
+  application:
+    name: ledger-service
+  datasource:
+    url: ${LEDGER_DB_URL}
+    username: ${LEDGER_DB_USERNAME}
+    password: ${LEDGER_DB_PASSWORD}
+  flyway:
+    schemas: ledger_schema
+    default-schema: ledger_schema
+server:
+  port: ${SERVER_PORT:8086}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+      show-details: never

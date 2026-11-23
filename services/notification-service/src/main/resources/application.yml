@@ -1,0 +1,32 @@
+spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/notification-service/.env[.properties]
+  application:
+    name: notification-service
+  datasource:
+    url: ${NOTIFICATION_DATASOURCE_URL}
+    username: ${NOTIFICATION_DATASOURCE_USERNAME}
+    password: ${NOTIFICATION_DATASOURCE_PASSWORD}
+  flyway:
+    enabled: true
+    schemas: notification_schema
+    default-schema: notification_schema
+
+server:
+  port: ${SERVER_PORT:8088}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+      show-details: never

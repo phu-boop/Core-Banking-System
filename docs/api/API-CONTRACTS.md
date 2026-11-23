@@ -20,6 +20,7 @@
 - Common HTTP errors: `400` invalid input, `401` unauthenticated, `403` unauthorized, `404` resource absent/not visible, `409` state or idempotency conflict, `422` business validation failure, `429` rate limit, `5xx` transient/system failure. Exact mapping is PROPOSED.
 - Each service enforces authorization for its own resource and business operation. API Gateway must not be the only authorization layer.
 - For an API that uses idempotency, scope it by actor, operation and business scope; default retention is 24 hours. Same key/same payload replays the prior result; same key/different payload returns `409 Conflict`. Each command must state if idempotency applies and define its business scope; key format/storage are not prescribed. See [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branch.md).
+- Channel context is explicit in Phase 7 as `INTERNET_BANKING`, `ADMIN` or `TELLER`. Channel is not an authorization grant and must not replace account, organization, branch or resource scope.
 
 ## Authentication — Identity & Access
 
@@ -27,7 +28,7 @@
 |---|---|---|---|---|---|
 | `GET /v1/identity/me` | none → validated internal principal (`userId`, optional `partyId`, approved context) | Validate Keycloak OIDC token and resolve active `(issuer, subject)` mapping | Authenticated principal; only trusted grants/context returned | invalid/expired token, inactive identity, forbidden | Not applicable |
 
-Keycloak owns login and token issuance. Use Authorization Code + PKCE for interactive user applications and Client Credentials for machine identities. Identity & Access must not expose a custom token-issuance endpoint or trust client-submitted permissions, organization or branch context. Exact claims and routes remain to be specified.
+Keycloak owns login and token issuance. Use Authorization Code + PKCE for interactive user applications and Client Credentials for machine identities. Identity & Access must not expose a custom token-issuance endpoint or trust client-submitted permissions, organization or branch context. Resource services must enforce their own resource authorization. For the accepted initial user-authz slice, see [ADR-013](../adr/ADR-013-identity-authoritative-user-authorization.md): the service validates its own audience and resolves the caller through this endpoint using a token that also has the `identity-service` audience. The first implemented permission is `account:read` with `scopeType=SELF` and `scopeId` equal to the mapped Party UUID; Account Service additionally compares that Party UUID with the account owner. Other permission scopes and the controlled grant-provisioning process remain open.
 
 ## Customer — Party / Customer
 
@@ -42,10 +43,12 @@ Keycloak owns login and token issuance. Use Authorization Code + PKCE for intera
 | Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
 | `POST /v1/organizations` | `partyId` → `organizationId`, status | Party must be type `ORGANIZATION`; exactly one logical Party reference per Organization and one-to-one mapping; legal profile fields TBD | Corporate onboarding permission | invalid/missing Party, wrong Party type, duplicate organization, forbidden | If enabled, actor + operation + organization business scope; 24-hour default; exact scope and key storage are per-operation decisions |
-| `POST /v1/organizations/{organizationId}/members` | `userId`, membership role/scope → `membershipId`, status | Organization/user active; role/scope allowed by policy | Organization admin/mandate grant, checked by Corporate | org/user absent, duplicate membership, insufficient mandate, forbidden | Key recommended |
+| `POST /v1/organizations/{organizationId}/members` **(implemented)** | `subject`, `roleCode` → `membershipId`, status | Organization exists; subject and role code are required and valid | Organization-scoped `membership:manage` or `approval-policy:manage` | invalid data (`422`), duplicate active membership (`409`), organization absent (`404`), forbidden (`403`) | Not implemented |
+| `GET /v1/organizations/{organizationId}/members` **(implemented)** | none → Membership list | Organization exists | Organization-scoped `membership:manage` or `approval-policy:manage` | organization absent (`404`), forbidden (`403`) | Not applicable |
+| `POST /v1/organizations/{organizationId}/members/{membershipId}/mandates` **(implemented)** | `mandateScope` → `mandateId`, status | Membership belongs to organization and is active | Organization-scoped `membership:manage` or `approval-policy:manage` | invalid data (`422`), duplicate active mandate (`409`), membership absent (`404`), forbidden (`403`) | Not implemented |
 | `GET /v1/organizations/{organizationId}` | none → organization profile and status | Valid ID | Organization-level authorization | not found/not visible, forbidden | Not applicable |
 
-The Corporate Organization first slice currently implements only `partyId` and `ACTIVE` status; legal profile data, Membership, Mandate and ApprovalPolicy are excluded. Corporate validates the logical Party reference by calling Party's owner API with a Keycloak Client Credentials token. The service client must be configured for the Party API audience and `party:read`; exact Keycloak client/claim mapping remains OPEN.
+The Corporate Organization first slice implements `partyId` and `ACTIVE` status. Corporate also implements policy, Membership, Mandate, approval request/decision and history persistence. Corporate validates the logical Party reference by calling Party's owner API with a Keycloak Client Credentials token. The service client must be configured for the Party API audience and `party:read`; exact Keycloak client/claim mapping remains OPEN.
 
 ## Branch
 
@@ -94,17 +97,35 @@ Posting must be atomic inside Ledger. Posted entries are immutable; no update/de
 |---|---|---|---|---|---|
 | `POST /internal/payments` | `transferId`, destination reference, `amount`, `currency=VND`, `correlationId` → `paymentId`, submission status | Transfer is eligible for external submission; external fields per provider contract (OPEN) | Transfer service identity; Payment validates caller and operation | invalid request, provider rejection, unavailable provider, timeout/outcome unknown | Required; dedupe by business operation/provider submission scope |
 | `GET /internal/payments/{paymentId}` | none → status, external reference if present, timestamps | Valid ID | Authorized internal caller and transfer scope | not found, forbidden, unresolved external outcome | Not applicable |
+| `POST /internal/payments/{paymentId}/outcomes` | `outcome`, `outcomeSource`, optional `providerReference`, `correlationId` → payment status and provider reference | Outcome must be `UNRESOLVED`, `SETTLED`, or `FAILED`; settled/failed requires verified outcome source | Authorized reconciliation/provider callback service identity | stale/terminal conflict, invalid outcome, duplicate replay | Outcome is deduplicated by payment, outcome, source and provider reference |
 
 Provider/protocol-specific routes, callbacks and reconciliation API are intentionally unspecified. REST is the synchronous internal API default for the first implementation slice; event transport remains OPEN.
+The provider-neutral Payment statuses are `PENDING_SUBMISSION`, `UNRESOLVED`, `SETTLED`, and `FAILED`. A timeout or unavailable provider response MUST remain `UNRESOLVED`; it is not a definitive failure.
 
-## Approval — Corporate
+## Approval — Corporate core
+
+The Corporate Approval core accepts an opaque operation type/reference from the owning service and does not execute the operation. Policy writes require an organization-scoped `approval-policy:manage` grant represented by the existing provisional `corporate_grants` convention (`permission`, `scopeType: "ORGANIZATION"`, `scopeId`). Checker decisions require an active Membership and Mandate matching the current level's role/mandate scope. Canonical Keycloak claim mapping and the owner-service request permission remain subject to Identity integration review. Policy administration endpoints below are implemented; approval request, decision and history-read endpoints remain proposed.
+
+| Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
+|---|---|---|---|---|---|
+| `GET /v1/organizations/{organizationId}/approval-policies` **(implemented)** | optional `operationType` → policy/version list | Organization exists; operation type is an opaque non-whitespace value of 1–64 characters | Organization-scoped `approval-policy:manage` grant | organization not found, invalid filter, forbidden | Not applicable |
+| `POST /v1/organizations/{organizationId}/approval-policies` **(implemented)** | `operationType`, ordered `levels[]` → `policyId`, `version`, `status=DRAFT` | Operation type is opaque and 1–64 characters; at least one level with a valid role code and mandate scope; one active version per organization/operation type | Organization-scoped `approval-policy:manage` grant | invalid policy (`422`), forbidden (`403`), conflict (`409`), organization not found (`404`) | Not implemented |
+| `POST /v1/organizations/{organizationId}/approval-policies/{policyId}/activate` **(implemented)** | none → policy/version/status | Draft or inactive policy belongs to organization; activation replaces prior active version for that operation type; active policy version fields and levels are immutable | Organization-scoped `approval-policy:manage` grant | not found (`404`), invalid lifecycle transition (`409`), forbidden (`403`) | Repeated activation of the active version is idempotent |
+| `POST /v1/organizations/{organizationId}/approval-requests` **(implemented; owner principal mapping provisional)** | owner-supplied `operationType`, `operationReference` → `approvalId`, pinned `policyVersion`, status | Active policy exists for operation type; operation type and opaque reference are required | Organization-scoped `approval-request:submit` or `approval-policy:manage` | no active policy (`409`), invalid request (`422`), forbidden (`403`) | Not implemented for submission |
+| `GET /v1/organizations/{organizationId}/approval-requests/{approvalId}` **(implemented)** | none → request status, pinned policy version and current step | Request belongs to organization | Organization read/submit/policy-management scope | not found (`404`), forbidden (`403`) | Not applicable |
+| `POST /v1/organizations/{organizationId}/approval-requests/{approvalId}/decisions` **(implemented)** | `decision`, optional `reason`, optional body `idempotencyKey` → status, current level, history reference | Request pending; current level only; policy version is pinned; rejection is terminal | Maker–Checker enforced; Corporate queries an active Membership and active Mandate matching organization, exact subject, level role and mandate scope | not found (`404`), ineligible/self-approval (`403`), terminal/conflicting replay (`409`), missing key/invalid decision (`422`) | Required: `Idempotency-Key` header or body key; 24-hour same-key/same-payload replay; conflicting payload `409` |
+| `GET /v1/organizations/{organizationId}/approval-requests/{approvalId}/history` **(implemented)** | none → append-only decision history | Request belongs to organization | Organization read or policy-management scope | not found (`404`), forbidden (`403`) | Not applicable |
+
+Implemented policy creation and activation are audited in `organization_audit` in the same transaction. The database runtime role cannot update policy version fields or policy-level rows; it can only change a policy's lifecycle status and activation timestamp.
+
+The transfer-specific route below is a deferred integration proposal, not part of the current Corporate core implementation slice.
 
 | Method / endpoint | Request → response | Validation | Authorization | Error cases | Idempotency |
 |---|---|---|---|---|---|
 | `GET /v1/organizations/{organizationId}/approval-policies` | filters → policy/version summary | Organization exists; page/filter valid | Organization admin or authorized member | not found/not visible, forbidden | Not applicable |
-| `POST /v1/organizations/{organizationId}/transfers/{transferId}/approval-decisions` | `decision`, `reason`, optional `step` → `approvalId`, decision/status, history reference | Organization owns transfer; pending step exists; policy version selected; maker differs from checker where required; policy snapshot semantics OPEN | Corporate verifies organization membership, mandate, role, step and actor | organization/transfer mismatch, no pending approval, unauthorized actor, self-approval, stale policy, duplicate/conflicting decision | Required; duplicate same decision returns prior result; conflicting replay is `409` |
+| `POST /v1/organizations/{organizationId}/transfers/{transferId}/approval-decisions` | `decision`, `reason`, optional `step` → `approvalId`, decision/status, history reference | Organization owns transfer; pending step exists; request remains bound to policy version selected at submission; sequential levels; maker differs from checker | Corporate verifies organization membership, mandate, role, step and actor | organization/transfer mismatch, no pending step, unauthorized actor, self-approval, terminal rejection, duplicate/conflicting decision | Required; duplicate same decision returns prior result; conflicting replay is `409` |
 
-Approval decision is not itself a Ledger posting or settlement.
+Per [ADR-007](../adr/ADR-007-configurable-corporate-approval.md), approval levels are sequential and all required levels must approve; rejection is terminal, resubmission creates a new request ID, and expiry/delegation are excluded from the MVP. Requests pin the immutable policy version selected at submission. Policy lifecycle and approver eligibility remain subject to the feature-spec clarifications. Approval decision is not itself a Ledger posting or settlement; Transfer integration is outside the Corporate Approval core slice.
 
 ## Transaction
 
@@ -134,6 +155,22 @@ If audit persistence is mandatory for an action, caller must not report success 
 Reporting is a projection/read model, not an authoritative source for account balance or Ledger data.
 
 ## Cross-service contract requirements
+
+## Corporate Transfer Approval Enforcement
+
+The Transfer first slice exposes:
+
+| Route | Purpose |
+|---|---|
+| `POST /v1/transfers` | Create a transfer and synchronously submit it to Corporate Approval |
+| `GET /v1/transfers/{transferId}` | Read the Transfer-owned approval state |
+| `POST /v1/transfers/{transferId}/approval/refresh` | Refresh the stored state from the authoritative Corporate result |
+| `POST /v1/transfers/{transferId}/execute` | Reach the future execution adapter only when approval is `APPROVED` |
+| `POST /v1/transfers/{transferId}/cancel` | Explicitly reject cancellation in this slice |
+
+`POST /v1/transfers` requires organization-scoped authorization and an `Idempotency-Key`. The key is replayed only for the same actor, organization and operation payload. Corporate is called through `/v1/organizations/{organizationId}/approval-requests`; caller-supplied approval status is never trusted. Pending/rejected transfers cannot execute, and rejected approval is terminal.
+
+Ledger posting, Payment submission, provider callbacks, settlement and reversal are not implemented.
 
 - Service-to-service authentication and authorization are mandatory; protocol choice remains OPEN.
 - Forward `correlationId` through synchronous calls and events.

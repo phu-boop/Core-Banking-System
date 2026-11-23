@@ -1,5 +1,7 @@
 # Banking Clone — Lộ trình triển khai đề xuất
 
+> **Document status:** Historical roadmap summary. Use [PROJECT_ROADMAP.md](../../PROJECT_ROADMAP.md) for current phase status and [CURRENT_STATUS.md](../../CURRENT_STATUS.md) for the active task.
+
 Lộ trình dưới đây chia dự án thành các giai đoạn có thể kiểm chứng, từ thiết kế đến MVP và mở rộng. Đây là **đề xuất về thứ tự triển khai**, không thay đổi ADR đã được chấp nhận và không tự bổ sung business requirement. **Phase 1 — Technical Foundation** đã hoàn tất; dự án chuyển sang **Phase 2 — Identity, Party, Corporate and Branch**; chưa triển khai nghiệp vụ banking.
 
 ## Nguyên tắc chia giai đoạn
@@ -98,6 +100,9 @@ Kế hoạch triển khai chi tiết: [Phase 2 — Identity, Party, Corporate an
 
 ### Phase 7 — Kênh, Audit, Notification và Reporting
 
+- Tài liệu phase: [Phase 7 — Channels, Audit, Notification and Reporting](./phase/Phase-7-Channels-Audit-Notification-Reporting.md).
+- Implementation plan chi tiết: [channels-operations plan](./phase/channels-operations/plan.md).
+
 - Hoàn thiện Internet Banking, Admin và Teller theo scope được xác nhận.
 - Thực thi channel-, organization-, account- và branch-level authorization trong service sở hữu resource.
 - Hoàn thiện Audit trail, notification delivery và Reporting projections.
@@ -106,6 +111,11 @@ Kế hoạch triển khai chi tiết: [Phase 2 — Identity, Party, Corporate an
 **Hoàn tất khi:** kiểm thử quyền trên từng kênh và scope; sự kiện được xử lý idempotent; notification/report không làm thay đổi trạng thái tài chính.
 
 ### Phase 8 — Production readiness
+
+- Tài liệu:
+  - [Phase overview](./phase/Phase-8-Production-Readiness.md).
+  - [Feature spec](../specs/phase-8-production-readiness/feature-spec.md).
+  - [Implementation plan](./phase/production-readiness/plan.md).
 
 - Chạy unit, integration, contract, end-to-end, concurrency và load tests theo tiêu chí được duyệt.
 - Thực hiện threat/security review, secret management, kiểm tra audit và rà soát dữ liệu nhạy cảm trong log.

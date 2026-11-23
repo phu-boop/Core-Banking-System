@@ -1,0 +1,6 @@
+account:
+  security:
+    allow-http: false
+  identity:
+    base-url: ${IDENTITY_SERVICE_BASE_URL}
+    allow-http: false

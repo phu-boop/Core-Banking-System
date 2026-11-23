@@ -67,6 +67,8 @@ Producer/consumer mapping và payload đều là **PROPOSED**. Không phát payl
 - **Retry:** retry lỗi transient có backoff và giới hạn cấu hình; lỗi validation/permanent không retry vô hạn. Số lần, khoảng thời gian và policy cụ thể chưa chốt.
 - **Dead-letter:** chuyển message lỗi không thể xử lý sang dead-letter/quarantine sau policy retry; lưu nguyên nhân, correlation ID, event ID; hỗ trợ replay có kiểm soát và audit. Cơ chế broker-specific còn OPEN.
 - Event chứa outcome chưa xác định không được quy thành `TransferFailed` chỉ vì timeout.
+  - Interbank timeout and unavailable provider response remain `UNRESOLVED`, not a failed event.
+  - `PaymentSettled` and `TransferFailed` require a verified outcome source; stale/duplicate outcomes are not reapplied.
 - PII, retention, encryption, schema registry, partition keys và replay authorization cần thiết kế trước triển khai.
 
 ## Event-specific notes

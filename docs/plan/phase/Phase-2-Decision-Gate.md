@@ -53,7 +53,7 @@ Use RBAC with `SELF`, `ORGANIZATION` and `BRANCH` scoped grants. Resource owners
 
 - Identity: resolve the Keycloak-validated external subject to an active internal `userId` and approved principal context. Token issuance and login stay in Keycloak.
 - Party: create/read/update a customer Party and only approved individual profile fields, with resource-level authorization and optimistic version checks for updates. The first implementation is available in `party-service`; PII fields and match thresholds remain OPEN.
-- Corporate: create/read an Organization and manage membership/mandate under organization-scoped permissions. The Organization first slice is available in `corporate-service`; Membership/Mandate remain unimplemented, and approval execution is excluded.
+- Corporate: create/read an Organization and manage membership/mandate under organization-scoped permissions. The Organization first slice is available in `corporate-service`; Membership/Mandate remain unimplemented. Corporate Approval core behavior is specified by ADR-007; Transfer-level enforcement/execution is excluded from this slice.
 - Branch: create/read/list branch records and enforce branch-administration permissions. The first implementation is available in `branch-service`; claim mapping and lifecycle transitions remain OPEN.
 - Events: `PartyCreated` remains a proposed event. Do not select or implement event transport until broker approval; synchronous owner APIs may be used where required by an approved flow.
 - Each command API states whether it uses idempotency and defines its business scope. When used, apply actor + operation + business scope, 24-hour default retention, same-payload replay and different-payload `409` behavior. Key format/storage are not prescribed.
@@ -76,7 +76,8 @@ Exact routes, request/response fields, error mapping and event payloads remain s
 | Audit storage, tamper-evidence, read access matrix, retention enforcement and archival | OPEN | Durable audit implementation and production operations |
 | Exact routes, DTOs, error codes, versioning and per-operation audit requirements | OPEN | Corresponding API implementation |
 | Event broker, event transport, `PartyCreated` payload and Outbox publication | OPEN | Event-driven integration |
-| Approval execution/policy snapshot and all Account/Ledger/Transfer behavior | OPEN / out of this slice | Later domain implementation |
+| Approval thresholds, detailed role/mandate catalog, Membership/Mandate API contracts and exact Keycloak claim mapping | OPEN | Production approval authorization and integration |
+| Transfer-level approval enforcement/execution and all Account/Ledger/Transfer behavior | OPEN / out of this slice | Later domain implementation |
 
 ## Gate outcome
 

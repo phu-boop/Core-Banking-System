@@ -1,10 +1,14 @@
 spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/branch-service/.env[.properties]
   application:
     name: branch-service
   datasource:
-    url: ${BRANCH_DATASOURCE_URL:}
-    username: ${BRANCH_DATASOURCE_USERNAME:}
-    password: ${BRANCH_DATASOURCE_PASSWORD:}
+    url: ${BRANCH_DATASOURCE_URL}
+    username: ${BRANCH_DATASOURCE_USERNAME}
+    password: ${BRANCH_DATASOURCE_PASSWORD}
   flyway:
     enabled: false
 

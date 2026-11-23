@@ -70,4 +70,31 @@ class CorrelationIdFilterTests {
 
         assertThat(MDC.get("correlationId")).isNull();
     }
+
+    @Test
+    void doesNotLogAuthorizationHeaderOrPasswordParameter() throws Exception {
+        String bearerToken = "test-bearer-token";
+        String password = "test-password";
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setMethod("POST");
+        request.addHeader("Authorization", "Bearer " + bearerToken);
+        request.setParameter("password", password);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        Logger logger = (Logger) LoggerFactory.getLogger(CorrelationIdFilter.class);
+        appender.start();
+        logger.addAppender(appender);
+
+        try {
+            filter.doFilter(request, response, (servletRequest, servletResponse) -> {});
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
+
+        assertThat(appender.list).isNotEmpty().allSatisfy(event -> {
+            String loggedValues = event.getFormattedMessage() + event.getMDCPropertyMap();
+            assertThat(loggedValues).doesNotContain(bearerToken, password);
+        });
+    }
 }

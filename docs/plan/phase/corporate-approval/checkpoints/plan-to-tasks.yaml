@@ -62,36 +62,40 @@ orphan_tasks: []
 
 upstream_trace:
   - plan_item: "P1.1"
-    source_requirements: ["REQ-APR-001", "REQ-APR-002", "REQ-APR-003", "REQ-APR-004", "REQ-APR-005"]
+    source_requirements: ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-010"]
     tasks: ["T001"]
-    full_trace: "ADR-007 / Business Rules → REQ-APR-* → P1.1 → T001"
+    full_trace: "Approval feature spec → REQ-001..010 → P1.1 → T001"
   - plan_item: "P1.2"
-    source_requirements: ["REQ-APR-001", "REQ-APR-003", "REQ-APR-005"]
+    source_requirements: ["REQ-001", "REQ-002", "REQ-003", "REQ-008", "REQ-009", "REQ-010"]
     tasks: ["T002"]
-    full_trace: "ADR-007 / API Contracts / ERD → REQ-APR-* → P1.2 → T002"
+    full_trace: "Approval feature spec → REQ-001,002,003,008,009,010 → P1.2 → T002"
   - plan_item: "P2.1"
-    source_requirements: ["REQ-APR-001", "REQ-APR-003", "REQ-APR-005"]
+    source_requirements: ["REQ-001", "REQ-002", "REQ-008"]
     tasks: ["T003", "T004", "T005"]
-    full_trace: "Approved design → REQ-APR-* → P2.1 → T003,T004,T005"
+    full_trace: "Approval feature spec → REQ-001,002,008 → P2.1 → T003,T004,T005"
   - plan_item: "P3.1"
-    source_requirements: ["REQ-APR-001", "REQ-APR-005"]
+    source_requirements: ["REQ-001", "REQ-002"]
     tasks: ["T006", "T007", "T008"]
-    full_trace: "Approved policy lifecycle → REQ-APR-* → P3.1 → T006,T007,T008"
+    full_trace: "Approval feature spec → REQ-001,002 → P3.1 → T006,T007,T008"
   - plan_item: "P4.1"
-    source_requirements: ["REQ-APR-001", "REQ-APR-002", "REQ-APR-003", "REQ-APR-004", "REQ-APR-005"]
+    source_requirements: ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-010"]
     tasks: ["T009", "T010", "T011"]
-    full_trace: "Approved workflow → REQ-APR-* → P4.1 → T009,T010,T011"
+    full_trace: "Approval feature spec → REQ-001..010 → P4.1 → T009,T010,T011"
   - plan_item: "P4.2"
-    source_requirements: ["REQ-APR-002", "REQ-APR-003", "REQ-APR-004"]
+    source_requirements: ["REQ-003", "REQ-004", "REQ-005", "REQ-007", "REQ-008", "REQ-009", "REQ-010"]
     tasks: ["T012", "T013"]
-    full_trace: "Approved API/security contract → REQ-APR-* → P4.2 → T012,T013"
+    full_trace: "Approval feature spec → REQ-003,004,005,007,008,009,010 → P4.2 → T012,T013"
   - plan_item: "P5.1"
-    source_requirements: ["REQ-APR-001", "REQ-APR-002", "REQ-APR-003", "REQ-APR-004", "REQ-APR-005"]
+    source_requirements: ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-010"]
     tasks: ["T014", "T015"]
-    full_trace: "Approved acceptance criteria → REQ-APR-* → P5.1 → T014,T015"
+    full_trace: "Approval feature spec → REQ-001..010 → P5.1 → T014,T015"
 
 validation:
   passed: true
+  plan_items_total: 7
+  plan_items_covered: 7
+  coverage_percentage: 100.0
   errors: []
   warnings:
-    - "Traceability is complete against the plan-local requirements; feature-spec approval is still a prerequisite."
+    - severity: "MEDIUM"
+      message: "Membership/Mandate implementation and exact Identity claim mapping remain prerequisites for production approver authorization."

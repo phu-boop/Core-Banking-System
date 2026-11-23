@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: payment-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: core-banking/payment-service:ci
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: core-banking-runtime
+          env:
+            - name: SERVER_PORT
+              value: "8086"
+            - name: PAYMENT_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/core_banking
+            - name: PAYMENT_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: payment-service-db-credentials
+                  key: username
+            - name: PAYMENT_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payment-service-db-credentials
+                  key: password
+            - name: PAYMENT_TOKEN_AUDIENCE
+              value: payment-service
+          ports:
+            - name: http
+              containerPort: 8086
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: payment-service
+  ports:
+    - name: http
+      port: 8086
+      targetPort: http

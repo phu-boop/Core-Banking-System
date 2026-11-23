@@ -42,6 +42,12 @@ class DatabaseConfigurationTests {
     })
     void missingRequiredDatabaseEnvironmentVariableFailsFast(
             String missingVariable, CapturedOutput output) {
+        var missingProperty = switch (missingVariable) {
+            case "SPRING_DATASOURCE_URL" -> "url";
+            case "SPRING_DATASOURCE_USERNAME" -> "username";
+            case "SPRING_DATASOURCE_PASSWORD" -> "password";
+            default -> throw new IllegalArgumentException("Unexpected database variable: " + missingVariable);
+        };
         var originalValues = new HashMap<String, String>();
         DATABASE_ENVIRONMENT.forEach((key, value) -> {
             if (!key.equals(missingVariable)) {
@@ -59,7 +65,8 @@ class DatabaseConfigurationTests {
             failure = catchStartupFailure(
                     application,
                     "--spring.main.banner-mode=off",
-                    "--spring.main.web-application-type=none");
+                    "--spring.main.web-application-type=none",
+                    "--service-template.database." + missingProperty + "=");
         } finally {
             originalValues.forEach((key, value) -> {
                 if (value == null) {

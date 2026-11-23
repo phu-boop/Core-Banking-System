@@ -1,0 +1,77 @@
+metadata:
+  generated: "2026-11-21"
+  source_tasks: "docs/plan/phase/corporate-transfer/checkpoints/plan-to-tasks.yaml"
+  last_updated: "2026-11-21"
+
+summary:
+  total_tasks: 14
+  completed_tasks: 14
+  in_progress_tasks: 0
+  pending_tasks: 0
+  completion_percentage: 100.0
+
+tasks:
+  - task_id: "T001"
+    status: "completed"
+  - task_id: "T002"
+    status: "completed"
+  - task_id: "T003"
+    status: "completed"
+  - task_id: "T004"
+    status: "completed"
+  - task_id: "T005"
+    status: "completed"
+  - task_id: "T006"
+    status: "completed"
+  - task_id: "T007"
+    status: "completed"
+  - task_id: "T008"
+    status: "completed"
+  - task_id: "T009"
+    status: "completed"
+  - task_id: "T010"
+    status: "completed"
+  - task_id: "T011"
+    status: "completed"
+  - task_id: "T012"
+    status: "completed"
+  - task_id: "T013"
+    status: "completed"
+  - task_id: "T014"
+    status: "completed"
+
+pending_tasks: []
+untracked_changes: []
+traceability_chain:
+  - chain_id: "TRACE-TRANSFER-001"
+    requirement: "REQ-001"
+    plan_item: "P2.1-P4.1"
+    tasks: ["T003", "T004", "T005", "T006", "T007", "T008"]
+    status: "complete"
+  - chain_id: "TRACE-TRANSFER-002"
+    requirement: "REQ-003"
+    plan_item: "P3.1-P5.1"
+    tasks: ["T005", "T008", "T010"]
+    status: "complete"
+  - chain_id: "TRACE-TRANSFER-003"
+    requirement: "REQ-006"
+    plan_item: "P5.1"
+    tasks: ["T009"]
+    status: "complete"
+  - chain_id: "TRACE-TRANSFER-004"
+    requirement: "REQ-008"
+    plan_item: "P1.1-P5.1"
+    tasks: ["T001", "T002", "T010"]
+    status: "complete"
+  - chain_id: "TRACE-TRANSFER-005"
+    requirement: "REQ-001-007"
+    plan_item: "P6.1"
+    tasks: ["T012", "T013"]
+    status: "complete"
+
+validation:
+  passed: true
+  errors: []
+  warnings:
+    - "Ledger, Payment, provider settlement and reversal adapters remain deferred."
+  blocking_issues: []

@@ -4,8 +4,12 @@ import com.banking.platform.identity.domain.IdentityMapping;
 import com.banking.platform.identity.domain.IdentityStatus;
 import com.banking.platform.identity.domain.ScopeType;
 import com.banking.platform.identity.domain.ScopedGrant;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -57,5 +61,31 @@ public class JdbcIdentityMappingRepository implements IdentityMappingRepository 
     @Override
     public List<ScopedGrant> findGrantsByUserId(UUID userId) {
         return jdbcTemplate.query(FIND_GRANTS_SQL, SCOPED_GRANT_ROW_MAPPER, userId);
+    }
+
+    @Override
+    public void recordResolutionAudit(
+            String actor,
+            String action,
+            String resourceId,
+            String result,
+            String correlationId) {
+        jdbcTemplate.update("""
+                INSERT INTO identity_schema.identity_audit
+                    (audit_id, actor, action, resource_type, resource_id, result,
+                     occurred_at, correlation_id)
+                VALUES (?, ?, ?, 'IDENTITY_PRINCIPAL', ?, ?, CURRENT_TIMESTAMP, ?)
+                """,
+                UUID.randomUUID(), actor, action, resourceId, result, correlationId);
+    }
+
+    public static String opaquePrincipalReference(String issuer, String subject) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] value = digest.digest((issuer + "\n" + subject).getBytes(StandardCharsets.UTF_8));
+            return "sha256:" + HexFormat.of().formatHex(value);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
     }
 }

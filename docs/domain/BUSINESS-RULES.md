@@ -64,9 +64,16 @@ Status dưới đây phân biệt requirement được xác nhận với thiết
 - **ACCEPTED:** approval policy có cấu hình và hỗ trợ nhiều cấp duyệt.
 - **ACCEPTED:** áp dụng Maker–Checker.
 - **ACCEPTED:** lưu approval history.
-- **OPEN:** policy snapshot/version khi tạo giao dịch và xử lý policy change trong lúc chờ duyệt.
+- **ACCEPTED per ADR-007 (2026-11-20):** request giữ immutable policy version được chọn lúc submit; policy version mới không thay đổi request đang chờ.
+- **ACCEPTED per ADR-007:** các level chạy tuần tự; request chỉ approved khi tất cả level bắt buộc đều approve; reject ở bất kỳ level nào là terminal cho request đó.
+- **ACCEPTED per ADR-007:** resubmit sau reject tạo request ID mới và giữ nguyên request/history cũ.
+- **ACCEPTED per ADR-007:** không hỗ trợ expiry hoặc delegation trong MVP.
 - **MANDATORY control:** người tạo không tự phê duyệt giao dịch của chính mình nếu đó là Maker–Checker action; quyền phải được kiểm tra bởi service thực thi nghiệp vụ.
-- **PROPOSED:** ghi actor, role/scope, step, decision, timestamp và policy reference trong history để audit; quy tắc rejection, expiry, delegation và resubmission chưa được xác nhận.
+- **ACCEPTED audit baseline:** history ghi actor, action, resource, result, timestamp và correlation ID; approval history additionally identifies level, decision and applied policy version.
+- **ACCEPTED per ADR-007:** policy management requires organization-scoped `approval-policy:manage`; activation is explicit; at most one policy version per organization and operation type may be active.
+- **ACCEPTED per ADR-007:** each level defines a role/mandate scope and Corporate checks the actor's active Membership and Mandate at decision time. The owner-side authorization boundary is mandatory; detailed role/mandate catalogs and APIs remain OPEN.
+- **ACCEPTED per ADR-007:** an owner service supplies opaque operation type/reference; Corporate records approval but does not execute the operation.
+- **OPEN:** approval thresholds, exact role/mandate catalog, Membership/Mandate API contracts, and Keycloak claim mapping.
 
 ## Branch
 

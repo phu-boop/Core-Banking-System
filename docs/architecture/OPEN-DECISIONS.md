@@ -6,7 +6,7 @@ Các mục có trạng thái **OPEN** dưới đây chưa được chủ dự á
 |---|---|---|
 | 1 | External interbank network / provider / protocol | OPEN |
 | 2 | Managing branch cardinality của customer | RESOLVED — ADR-012 |
-| 3 | Approval policy snapshot và policy change trong khi giao dịch chờ duyệt | OPEN |
+| 3 | Approval policy snapshot và policy change trong khi giao dịch chờ duyệt | RESOLVED — ADR-007 (2026-11-20) |
 | 4 | API Gateway technology | OPEN |
 | 5 | Identity Provider | RESOLVED — ADR-012 |
 | 6 | Kafka hay RabbitMQ | OPEN |
@@ -33,12 +33,13 @@ Các mục có trạng thái **OPEN** dưới đây chưa được chủ dự á
 - Thời điểm phải gán branch, reassignment workflow/effective date và cross-branch operations vẫn OPEN; xem mục 9.
 
 ### 3. Approval policy snapshot
-
-- **Mô tả:** Chưa xác định policy version nào áp dụng nếu policy đổi khi transfer đang chờ duyệt.
-- **Ảnh hưởng:** Approval eligibility, auditability, replay và quyết định có cần đánh giá lại giao dịch đang chờ.
-- **Lựa chọn:** Snapshot policy/version tại lúc tạo; dùng policy mới tại mỗi lần duyệt; hoặc quy tắc chuyển tiếp được chủ dự án định nghĩa.
-- **Recommendation (PROPOSED):** Lưu policy/version và dữ liệu quyết định có thể audit; chính sách áp dụng phải được chủ dự án duyệt.
-- **Status:** OPEN.
+- **Status:** RESOLVED by [ADR-007](../adr/ADR-007-configurable-corporate-approval.md), approved 2026-11-20.
+- Each request is bound to the immutable policy version selected at submission; a later version does not change pending requests.
+- Approval levels run sequentially and all required levels must approve. Rejection is terminal; resubmission creates a new request and preserves prior history.
+- Expiry and delegation are excluded from the MVP.
+- Policy management uses organization-scoped `approval-policy:manage`; activation is explicit, and only one policy version per organization/operation type may be active.
+- Each level declares role/mandate scope; Corporate checks active Membership and Mandate. The owner service supplies an opaque operation type/reference; Corporate does not execute the operation.
+- Detailed thresholds, role/mandate catalogs, Membership/Mandate API contracts, and exact Keycloak claim mapping remain OPEN and are tracked in the Approval feature spec.
 
 ### 4. API Gateway technology
 
@@ -93,11 +94,12 @@ Các mục có trạng thái **OPEN** dưới đây chưa được chủ dự á
 
 ### 11. Production external secret store and workload identity
 
-- **Mô tả:** Hướng production đã thống nhất là external secret store qua External Secrets Operator. Chưa chọn AWS Secrets Manager hay Vault; workload identity và cách cấp quyền trên provider cụ thể cũng chưa được thiết kế.
+- **Đã chấp nhận theo ADR-011:** External Secrets Operator là mẫu tích hợp secret store cho production; đây không phải quyết định chọn nhà cung cấp.
+- **OPEN:** Chưa chọn AWS Secrets Manager hay Vault. Cơ chế workload identity và cách cấp quyền phụ thuộc Kubernetes provider tại mục 8 và chưa được thiết kế.
 - **Ảnh hưởng:** Workload identity, secret synchronization, encryption at rest, IAM/RBAC, vận hành và chi phí.
 - **Lựa chọn:** AWS Secrets Manager hoặc Vault; cách tích hợp workload identity/RBAC phụ thuộc Kubernetes provider đã chọn trong quyết định 8.
 - **Recommendation (PROPOSED):** Chọn theo môi trường triển khai thực tế; trước production cần xác định encryption at rest, workload identity và policy truy cập tối thiểu.
-- **Status:** OPEN cho external store và chi tiết workload identity. Hướng tích hợp và yêu cầu IAM/RBAC đã được ghi nhận tại [ADR-011](../adr/ADR-011-phase-based-secret-management.md).
+- **Status:** OPEN cho provider external secret store và chi tiết workload identity. Hướng tích hợp đã được ghi nhận tại [ADR-011](../adr/ADR-011-phase-based-secret-management.md); IAM/RBAC cụ thể vẫn cần chọn theo provider.
 
 ## Phase 2 implementation details still OPEN
 
@@ -111,7 +113,8 @@ The decisions in [ADR-012](../adr/ADR-012-phase-2-identity-party-corporate-branc
 - Audit storage, tamper-evidence, read access matrix, retention enforcement and archival.
 - Exact API routes, DTOs, error codes, versioning and per-operation audit requirements.
 - Event broker/transport, `PartyCreated` payload and Outbox publication.
-- Approval execution/policy snapshot and all Account/Ledger/Transfer behavior.
+- Approval thresholds, role/mandate catalog, Membership/Mandate API contracts and exact Keycloak claim mapping; Transfer-level approval enforcement/execution and all Account/Ledger/Transfer behavior.
+- Corporate Transfer MVP: account/balance/limit eligibility, interbank routing/provider, cancellation/reversal, fees/cutoff rules, timeout reconciliation, settlement and Ledger/Payment execution remain OPEN. The independent Transfer service may only store approval state and guard a future execution adapter.
 
 ## Khác biệt cần giữ rõ
 

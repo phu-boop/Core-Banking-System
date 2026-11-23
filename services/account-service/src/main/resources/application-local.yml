@@ -1,0 +1,6 @@
+account:
+  security:
+    allow-http: true
+  identity:
+    base-url: ${IDENTITY_SERVICE_BASE_URL:http://localhost:8080}
+    allow-http: true

@@ -1,0 +1,32 @@
+metadata:
+  generated: "2026-11-22"
+  source_plan: "docs/plan/phase/channels-operations/plan.md"
+
+completed_tasks:
+  - "T001"
+  - "T002"
+  - "T003"
+  - "T004"
+  - "T005"
+  - "T006"
+  - "T007"
+  - "T008"
+  - "T009"
+  - "T010"
+  - "T011"
+  - "T012"
+  - "T013"
+  - "T014"
+  - "T015"
+  - "T016"
+  - "T017"
+  - "T018"
+  - "T019"
+  - "T020"
+
+blocked_tasks: []
+
+validation:
+  passed: true
+  workspace_verify: "passed"
+  blocking_issues: []
