@@ -1,4 +1,8 @@
 spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/branch-service/.env[.properties]
   application:
     name: branch-service
   datasource:

@@ -1,4 +1,8 @@
 spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/notification-service/.env[.properties]
   application:
     name: notification-service
   datasource:

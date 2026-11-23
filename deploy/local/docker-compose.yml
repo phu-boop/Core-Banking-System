@@ -1,0 +1,72 @@
+name: core-banking-local
+
+services:
+  postgres:
+    image: postgres:17.12
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: core_banking
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?Set POSTGRES_SUPERUSER_PASSWORD in deploy/local/.env}
+      IDENTITY_SERVICE_MIGRATOR_PASSWORD: ${IDENTITY_SERVICE_MIGRATOR_PASSWORD:?Set identity database password}
+      IDENTITY_SERVICE_APP_PASSWORD: ${IDENTITY_SERVICE_APP_PASSWORD:?Set identity database password}
+      PARTY_SERVICE_MIGRATOR_PASSWORD: ${PARTY_SERVICE_MIGRATOR_PASSWORD:?Set party database password}
+      PARTY_SERVICE_APP_PASSWORD: ${PARTY_SERVICE_APP_PASSWORD:?Set party database password}
+      BRANCH_SERVICE_MIGRATOR_PASSWORD: ${BRANCH_SERVICE_MIGRATOR_PASSWORD:?Set branch database password}
+      BRANCH_SERVICE_APP_PASSWORD: ${BRANCH_SERVICE_APP_PASSWORD:?Set branch database password}
+      CORPORATE_SERVICE_MIGRATOR_PASSWORD: ${CORPORATE_SERVICE_MIGRATOR_PASSWORD:?Set corporate database password}
+      CORPORATE_SERVICE_APP_PASSWORD: ${CORPORATE_SERVICE_APP_PASSWORD:?Set corporate database password}
+      ACCOUNT_SERVICE_MIGRATOR_PASSWORD: ${ACCOUNT_SERVICE_MIGRATOR_PASSWORD:?Set account database password}
+      ACCOUNT_SERVICE_APP_PASSWORD: ${ACCOUNT_SERVICE_APP_PASSWORD:?Set account database password}
+      LEDGER_SERVICE_MIGRATOR_PASSWORD: ${LEDGER_SERVICE_MIGRATOR_PASSWORD:?Set ledger database password}
+      LEDGER_SERVICE_APP_PASSWORD: ${LEDGER_SERVICE_APP_PASSWORD:?Set ledger database password}
+      TRANSFER_SERVICE_MIGRATOR_PASSWORD: ${TRANSFER_SERVICE_MIGRATOR_PASSWORD:?Set transfer database password}
+      TRANSFER_SERVICE_APP_PASSWORD: ${TRANSFER_SERVICE_APP_PASSWORD:?Set transfer database password}
+      PAYMENT_SERVICE_MIGRATOR_PASSWORD: ${PAYMENT_SERVICE_MIGRATOR_PASSWORD:?Set payment database password}
+      PAYMENT_SERVICE_APP_PASSWORD: ${PAYMENT_SERVICE_APP_PASSWORD:?Set payment database password}
+      AUDIT_SERVICE_MIGRATOR_PASSWORD: ${AUDIT_SERVICE_MIGRATOR_PASSWORD:?Set audit database password}
+      AUDIT_SERVICE_APP_PASSWORD: ${AUDIT_SERVICE_APP_PASSWORD:?Set audit database password}
+      NOTIFICATION_SERVICE_MIGRATOR_PASSWORD: ${NOTIFICATION_SERVICE_MIGRATOR_PASSWORD:?Set notification database password}
+      NOTIFICATION_SERVICE_APP_PASSWORD: ${NOTIFICATION_SERVICE_APP_PASSWORD:?Set notification database password}
+      REPORTING_SERVICE_MIGRATOR_PASSWORD: ${REPORTING_SERVICE_MIGRATOR_PASSWORD:?Set reporting database password}
+      REPORTING_SERVICE_APP_PASSWORD: ${REPORTING_SERVICE_APP_PASSWORD:?Set reporting database password}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Set Keycloak database password}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_SUPERUSER:-postgres} -d core_banking"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.3
+    restart: unless-stopped
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Set KEYCLOAK_ADMIN_PASSWORD in deploy/local/.env}
+      KC_HEALTH_ENABLED: "true"
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Set Keycloak database password}
+      KC_HOSTNAME: "http://localhost:${KEYCLOAK_HOST_PORT:-8180}"
+    ports:
+      - "${KEYCLOAK_HOST_PORT:-8180}:8080"
+    volumes:
+      - ./keycloak/realm-core-banking.json:/opt/keycloak/data/import/realm-core-banking.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080; printf \"GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200\" <&3'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  postgres-data:

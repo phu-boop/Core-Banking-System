@@ -3,9 +3,9 @@ kind: ConfigMap
 metadata:
   name: core-banking-runtime
 data:
-  KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/core-banking
-  KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/core-banking/protocol/openid-connect/certs
-  KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/core-banking/protocol/openid-connect/token
+  KEYCLOAK_ISSUER_URI: http://keycloak:8180/realms/core-banking
+  KEYCLOAK_JWK_SET_URI: http://keycloak:8180/realms/core-banking/protocol/openid-connect/certs
+  KEYCLOAK_TOKEN_URI: http://keycloak:8180/realms/core-banking/protocol/openid-connect/token
   CORPORATE_APPROVAL_BASE_URL: http://corporate-service:8083
   PARTY_SERVICE_BASE_URL: http://party-service:8081
   LEDGER_BASE_URL: http://ledger-service:8086

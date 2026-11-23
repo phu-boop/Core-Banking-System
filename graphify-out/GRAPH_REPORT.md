@@ -1,17 +1,17 @@
 # Graph Report - Core-Banking-System  (2026-11-23)
 
 ## Corpus Check
-- 407 files · ~95,387 words
+- 430 files · ~97,304 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 31 file(s) not represented in the graph (top: .example 14, (none) 14, .jar 1)
+- Unclassified: 33 file(s) not represented in the graph (top: .example 16, (none) 14, .jar 1)
 
 ## Summary
-- 4073 nodes · 7625 edges · 253 communities (199 shown, 54 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 307 edges (avg confidence: 0.85)
+- 4275 nodes · 7822 edges · 263 communities (221 shown, 42 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 308 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2b984937`
+- Built from commit: `d709f1ad`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,7 +32,7 @@
 - plan-to-tasks.yaml
 - branch-service/src/main/resources/application.yml
 - files_changed
-- org.junit.jupiter.api.Test
+- identity/web/CorrelationIdFilterTests.java
 - BranchService
 - spec-to-plan.yaml
 - tasks-to-impl.yaml
@@ -69,7 +69,7 @@
 - spring
 - Service Template
 - .submit
-- ApprovalPolicyRepository.java
+- ApprovalPolicyService
 - Phase 2 — Decision Gate
 - payment-service/src/main/resources/application.yml
 - audit-service/src/main/resources/application.yml
@@ -87,7 +87,7 @@
 - ADR-002: Retail + Corporate Banking
 - ADR-003: Multi-channel Banking
 - ADR-004: Shared PostgreSQL, Schema-per-service
-- JournalResponse
+- LedgerServiceTests.java
 - ADR-009: Multi-branch Banking
 - ADR-011: Phase-based Configuration and Secret Management
 - T012
@@ -95,7 +95,7 @@
 - T013
 - Branch Service
 - management
-- party-service
+- CorporateApprovalClient.java
 - Party Service
 - Event Contracts
 - traceability
@@ -115,7 +115,7 @@
 - T008
 - T012
 - T014
-- org.springframework.transaction.annotation.Transactional
+- PartyService
 - Transfer Service
 - com.banking.platform:transfer-service
 - validation
@@ -124,7 +124,7 @@
 - TransferExceptions
 - api-documentation/checkpoints/batch-report.yaml
 - Centralized API Documentation Repository Audit
-- RetailTransferServiceTests.java
+- uuid
 - Migration Summary Report
 - uuid
 - traceability
@@ -138,7 +138,7 @@
 - channels-operations/checkpoints/tasks-to-impl.yaml
 - spring
 - AccountResponse
-- AccountResponse
+- org.springframework.security.oauth2.jwt.Jwt
 - 6. Implementation tasks
 - spring
 - spring
@@ -148,13 +148,13 @@
 - reporting-service/src/main/resources/application.yml
 - channels-operations/checkpoints/spec-to-plan.yaml
 - Phase 4 - Retail Internal Transfer va Teller
-- ENVIRONMENT_SETUP.md
+- postgres
 - IdentitySecurityProperties
 - Implementation Plan: Channels, Audit, Notification and Reporting
 - services
 - org.springframework.boot.context.properties.ConfigurationProperties
 - OrganizationEndpointIntegrationTests.java
-- CURRENT_STATUS.md
+- environment
 - TransferController
 - Phase 6 - Provider-Neutral Interbank Transfer
 - ADR-010: Phase 1 Technical Baseline
@@ -167,12 +167,11 @@
 - com.banking.platform:account-service
 - com.banking.platform:ledger-service
 - com.banking.platform:audit-service
-- AccountAuthorizationService
 - containers
 - 12. Recommended Phase 2 decision options
 - 4. Required configuration
 - files_changed
-- BranchSecurityProperties
+- PaymentSecurityProperties
 - OidcPartyReferenceClientTests.java
 - command.md
 - summary
@@ -181,18 +180,18 @@
 - validation
 - Centralized API Documentation Implementation Report
 - Implementation Plan: Production Readiness
-- DatabaseConfigurationTests.java
+- BranchStatus
 - Phase 7 - Channels, Audit, Notification and Reporting
 - channels-operations/checkpoints/batch-report.yaml
 - production-readiness/checkpoints/spec-to-plan.yaml
 - com.banking.platform:api-docs-service
 - BranchEndpointIntegrationTests
-- IdentityPrincipalServiceTests.java
-- AccountSecurityProperties
-- io.swagger.v3.oas.annotations.security.SecurityScheme
-- OidcPartyReferenceClient.java
+- JdbcIdentityMappingRepository.java
+- CorrelationIdFilter
+- PartyService
+- Service postgres
 - ChannelContext
-- IdentityPrincipalEndpointIntegrationTests
+- TransferSecurityProperties
 - com.banking.platform:notification-service
 - Phase 7 Smoke Test Verdict
 - test_results
@@ -200,12 +199,12 @@
 - containers
 - validation
 - containers
-- TransferServiceApplication.java
+- AuditRecord
 - account_service
 - notification_service
 - containers
-- PartySecurityConfiguration
-- DatabaseOwnershipIntegrationTests
+- PartyEndpointIntegrationTests
+- CorrelationIdFilter
 - containers
 - Phase 8 Release Checklist
 - containers
@@ -217,63 +216,73 @@
 - containers
 - containers
 - containers
-- AuditRecord
-- AuditSecurityPropertiesTests.java
+- OrganizationService
+- org.junit.jupiter.api.Test
 - data
-- map
-- TransferRecord
-- CorporateApprovalClient
-- org.springframework.boot.context.properties.EnableConfigurationProperties
-- TransferRepository
-- PartyService
-- PartySecurityConfiguration.java
-- ChannelAuthorizationServiceTests
-- CorporatePartyClientConfiguration.java
-- org.springframework.context.annotation.Bean
-- kustomization.yaml
-- production/README.md
-- production-readiness/checkpoints/batch-report.yaml
-- .recordOutcome
-- ApprovalEnforcedTransferServiceTests
+- IdentityPrincipalEndpointIntegrationTests
+- environment
+- keycloak
+- BranchAuthorizationService
+- ledger_replay
+- healthcheck
+- local_kustomize
 - PaymentSubmissionClient
+- OidcPartyReferenceClient.java
+- account
+- kustomization.yaml
+- Override
+- production-readiness/checkpoints/batch-report.yaml
+- account
+- audit
+- PaymentExceptionHandler.java
 - api_docs_module
 - docker_images
 - focused_log_redaction
-- PartyType
+- CURRENT_STATUS.md
 - test_results
 - workspace
-- .create
+- audit
 - workspace-smoke.sh
 - module_counts
 - production-readiness/checkpoints/tasks-to-impl.yaml
 - module_counts
-- API Documentation
+- 10-create-service-roles.sh
 - DR_DEPENDENCY_SMOKE_TEST_PLAN.md
-- PartyReferenceResponse
+- branch
 - ledger_service
 - evidence
 - workspace_smoke
-- PartyStatus
-- Alert Response Runbook
+- branch
+- corporate
 - Outbox Backlog, Retry, and Replay Runbook
-- Service Recovery Runbook
-- Backup and Restore Rehearsal
-- TransferSecurityProperties
-- Disaster Recovery and Dependency-Failure Smoke Test Plan
-- Independent Service Rollback Rehearsal
-- Phase 8 Security, Recovery, and Rollback Evidence
+- corporate
+- setup-minikube-local.sh
+- identity
+- identity
+- PartyType
+- PartyStatus
+- party
+- party
+- payment
+- payment
+- reporting
+- production/README.md
+- reporting
+- transfer
+- transfer
+- metadata
 
 ## God Nodes (most connected - your core abstractions)
 1. `OrganizationEndpointIntegrationTests` - 46 edges
 2. `NotificationRecord` - 28 edges
 3. `TransferStatus` - 28 edges
-4. `files_changed` - 23 edges
-5. `ApprovalRepository` - 22 edges
-6. `BranchEndpointIntegrationTests` - 21 edges
-7. `PartyService` - 20 edges
-8. `TransferRecord` - 20 edges
-9. `OrganizationAuthorizationService` - 20 edges
-10. `IdentityPrincipalEndpointIntegrationTests` - 20 edges
+4. `environment` - 27 edges
+5. `files_changed` - 23 edges
+6. `ApprovalRepository` - 22 edges
+7. `BranchEndpointIntegrationTests` - 21 edges
+8. `PartyService` - 20 edges
+9. `TransferRecord` - 20 edges
+10. `OrganizationAuthorizationService` - 20 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Step 6: Expose approval APIs and enforce command safety` --references--> `CorporateExceptionHandler`  [INFERRED]
@@ -282,27 +291,31 @@
   docs/api-documentation/README.md → services/api-docs-service/src/main/java/com/banking/platform/apidocs/config/ApiDocsProperties.java
 - `Authorization` --references--> `ApproverEligibilityClient`  [INFERRED]
   services/corporate-service/README.md → services/corporate-service/src/main/java/com/banking/platform/corporate/application/ApproverEligibilityClient.java
-- `JdbcAccountRepository` --implements--> `AccountRepository`  [EXTRACTED]
-  services/account-service/src/main/java/com/banking/platform/account/persistence/JdbcAccountRepository.java → services/account-service/src/main/java/com/banking/platform/account/persistence/AccountRepository.java
-- `AccountServiceTests` --references--> `AccountRepository`  [EXTRACTED]
-  services/account-service/src/test/java/com/banking/platform/account/application/AccountServiceTests.java → services/account-service/src/main/java/com/banking/platform/account/persistence/AccountRepository.java
+- `AccountServiceApplication` --references--> `AccountSecurityProperties`  [EXTRACTED]
+  services/account-service/src/main/java/com/banking/platform/account/AccountServiceApplication.java → services/account-service/src/main/java/com/banking/platform/account/config/AccountSecurityProperties.java
+- `AuditController` --references--> `AuditService`  [EXTRACTED]
+  services/audit-service/src/main/java/com/banking/platform/audit/web/AuditController.java → services/audit-service/src/main/java/com/banking/platform/audit/application/AuditService.java
 
 ## Import Cycles
 - None detected.
 
-## Communities (253 total, 54 thin omitted)
+## Communities (263 total, 42 thin omitted)
 
 ### Community 0 - "jakarta.servlet.http.HttpServletRequest"
-Cohesion: 0.05
-Nodes (17): AccountExceptionHandler, BranchNotFoundException, DuplicateBranchCodeException, InvalidBranchException, InvalidPageRequestException, BranchExceptionHandler, CorporateExceptionHandler, IdentityExceptionHandler (+9 more)
+Cohesion: 0.07
+Nodes (11): AccountExceptionHandler, BranchExceptionHandler, CorporateExceptionHandler, IdentityExceptionHandler, LedgerExceptionHandler, InvalidPartyException, PartyNotFoundException, StalePartyVersionException (+3 more)
 
 ### Community 1 - "OpenApiProxyControllerTests.java"
-Cohesion: 0.18
-Nodes (5): ApiDocsProperties, OpenApiProxyController, OpenApiProxyControllerTests, HttpLedgerExecutionClient, LedgerJournalResponse
+Cohesion: 0.10
+Nodes (12): Add a microservice, API Documentation, Authenticate in Swagger UI, Kubernetes local, Local development, Troubleshooting, ApiDocsConfiguration, ApiDocsProperties (+4 more)
+
+### Community 2 - "org.springframework.context.annotation.Bean"
+Cohesion: 0.17
+Nodes (6): AccountSecurityConfiguration, AuditSecurityConfiguration, BranchSecurityConfiguration, CorporateSecurityConfiguration, PartySecurityConfiguration, ReportingSecurityConfiguration
 
 ### Community 3 - "org.springframework.stereotype.Component"
-Cohesion: 0.09
-Nodes (7): CorrelationIdFilter, CorrelationIdFilter, CorrelationIdFilter, CorrelationIdFilterTests, CorrelationIdFilter, CorrelationIdFilter, CorrelationIdFilter
+Cohesion: 0.23
+Nodes (4): CorrelationIdFilter, CorrelationIdFilter, CorrelationIdFilter, CorrelationIdFilter
 
 ### Community 4 - "containers"
 Cohesion: 0.04
@@ -313,12 +326,12 @@ Cohesion: 0.05
 Nodes (48): env, image, imagePullPolicy, livenessProbe, name, ports, readinessProbe, startupProbe (+40 more)
 
 ### Community 6 - "NotificationRecord"
-Cohesion: 0.09
+Cohesion: 0.10
 Nodes (15): NotificationService, NotificationAttempt, NotificationRecord, NotificationRequest, NotificationStatus, DELIVERED, FAILED, REQUESTED (+7 more)
 
 ### Community 7 - "service-template/src/main/resources/application.yml"
 Cohesion: 0.05
-Nodes (40): name, password, url, username, password, url, username, health (+32 more)
+Nodes (42): name, import, password, url, username, password, url, username (+34 more)
 
 ### Community 8 - "socialpilot-ai-frontend"
 Cohesion: 0.05
@@ -326,11 +339,11 @@ Nodes (39): 1. Architecture, 1. Design for creators, not designers only, 2. Prio
 
 ### Community 9 - "identity-service/src/main/resources/application.yml"
 Cohesion: 0.05
-Nodes (38): name, password, url, username, password, url, username, health (+30 more)
+Nodes (41): name, import, password, url, username, password, url, username (+33 more)
 
 ### Community 10 - "party-service/src/main/resources/application.yml"
 Cohesion: 0.05
-Nodes (38): name, password, url, username, password, url, username, health (+30 more)
+Nodes (41): name, import, password, url, username, password, url, username (+33 more)
 
 ### Community 13 - "SocialPilot AI design system"
 Cohesion: 0.05
@@ -341,16 +354,16 @@ Cohesion: 0.06
 Nodes (35): description, item_id, notes, tasks, metadata, generated, source_plan, target_tasks (+27 more)
 
 ### Community 15 - "branch-service/src/main/resources/application.yml"
-Cohesion: 0.06
-Nodes (34): name, branch, security, password, url, username, health, web (+26 more)
+Cohesion: 0.05
+Nodes (37): name, branch, security, import, password, url, username, health (+29 more)
 
 ### Community 16 - "files_changed"
 Cohesion: 0.15
 Nodes (13): files_changed, T001, T002, T003, T007, T008, T014, T015 (+5 more)
 
 ### Community 18 - "BranchService"
-Cohesion: 0.12
-Nodes (10): BranchAuthorizationService, BranchService, BranchPage, BranchResponse, BranchStatus, ACTIVE, INACTIVE, BranchRepository (+2 more)
+Cohesion: 0.15
+Nodes (8): BranchService, BranchNotFoundException, DuplicateBranchCodeException, InvalidBranchException, BranchResponse, BranchRepository, BranchController, CreateBranchRequest
 
 ### Community 19 - "spec-to-plan.yaml"
 Cohesion: 0.09
@@ -365,20 +378,20 @@ Cohesion: 0.06
 Nodes (60): runs-on, steps, runs-on, steps, runs-on, steps, runs-on, steps (+52 more)
 
 ### Community 22 - "org.springframework.security.oauth2.jwt.Jwt"
-Cohesion: 0.09
-Nodes (16): ApprovalWorkflowService, OrganizationAuthorizationService, ApprovalDecision, APPROVE, REJECT, ApprovalDecisionResponse, ApprovalHistoryResponse, ApprovalRequestResponse (+8 more)
+Cohesion: 0.10
+Nodes (15): ApprovalWorkflowService, OrganizationAuthorizationService, ApprovalDecision, APPROVE, REJECT, ApprovalDecisionResponse, ApprovalHistoryResponse, ApprovalRequestResponse (+7 more)
 
 ### Community 23 - "TransferStatus"
-Cohesion: 0.11
-Nodes (13): TransferStatus, ACCEPTED, APPROVED, EXECUTION_REQUESTED, FAILED, INTERBANK_FAILED, INTERBANK_SETTLED, PENDING_APPROVAL (+5 more)
+Cohesion: 0.08
+Nodes (22): ApprovalEnforcedTransferService, ExecutionAdapter, DeferredExecutionAdapter, CorporateApprovalResponse, SubmitTransferRequest, TransferRecord, TransferStatus, ACCEPTED (+14 more)
 
 ### Community 24 - "Phase 1 — Technical Foundation"
 Cohesion: 0.10
 Nodes (20): 1.1 — Chốt technical baseline, 1.2 — Tạo service template tối thiểu, 1.3 — Thiết lập database ownership, 1.4 — Cấu hình, secrets và security boundary, 1.5 — Reliability foundations, 1.6 — Logging và observability, 1.7 — CI và kiểm thử nền tảng, Bao gồm (+12 more)
 
 ### Community 25 - "org.springframework.web.bind.annotation.PostMapping"
-Cohesion: 0.19
-Nodes (6): OrganizationController, IdentityPrincipalResponse, IdentityPrincipalController, ReversalRequest, LedgerController, NotificationController
+Cohesion: 0.20
+Nodes (4): ApprovalPolicyController, IdentityPrincipalResponse, IdentityPrincipalController, NotificationController
 
 ### Community 26 - "Feature Specification: Channels, Audit, Notification and Reporting"
 Cohesion: 0.11
@@ -393,8 +406,8 @@ Cohesion: 0.14
 Nodes (9): MembershipService, MembershipNotFoundException, MembershipValidationException, MandateResponse, MembershipResponse, MembershipRepository, CreateMandateRequest, CreateMembershipRequest (+1 more)
 
 ### Community 30 - "Override"
-Cohesion: 0.11
-Nodes (10): ReportingAuthorizationService, ReportingService, ExportJob, ExportRequest, ReportRequest, ReportResponse, ReportingRepository, ReportingController (+2 more)
+Cohesion: 0.10
+Nodes (11): ReportingAuthorizationService, ReportingService, ExportJob, ExportRequest, ReportRequest, ReportResponse, JdbcReportingRepository, ReportingRepository (+3 more)
 
 ### Community 31 - "Rules"
 Cohesion: 0.12
@@ -402,7 +415,7 @@ Nodes (16): 10. Performance conventions, 1. App Router by default, 2. Server-fir
 
 ### Community 32 - "corporate"
 Cohesion: 0.05
-Nodes (38): name, base-url, client-id, client-secret, token-uri, password, url, username (+30 more)
+Nodes (41): name, import, base-url, client-id, client-secret, token-uri, password, url (+33 more)
 
 ### Community 33 - "Chi tiết quyết định"
 Cohesion: 0.13
@@ -470,27 +483,27 @@ Nodes (18): Applied Guidelines, Complexity Tracking, Constitution Check, Deferre
 
 ### Community 49 - ".submit"
 Cohesion: 0.15
-Nodes (11): RetailTransferService, RetailTransferRecord, RetailTransferRequest, RetailTransferType, DEPOSIT, INTERNAL, WITHDRAWAL, LedgerExecutionClient (+3 more)
+Nodes (7): RetailTransferService, RetailTransferRecord, RetailTransferRequest, LedgerExecutionClient, RetailTransferRepository, RetailIdempotencyRecord, RetailTransferServiceTests
 
 ### Community 50 - "corporate-service/src/main/resources/application.yml"
 Cohesion: 0.22
 Nodes (8): corporate, console, logging, structured, server, port, shutdown, format
 
 ### Community 51 - "spring"
-Cohesion: 0.22
-Nodes (9): name, password, url, username, enabled, spring, application, datasource (+1 more)
+Cohesion: 0.18
+Nodes (11): name, import, password, url, username, enabled, spring, application (+3 more)
 
 ### Community 52 - "Service Template"
-Cohesion: 0.20
+Cohesion: 0.22
 Nodes (9): Baseline, Build and run in local Kubernetes, Build and test, Configuration and secrets, Database ownership proof, Logging and local observability, Reliability foundation proof, Run locally (+1 more)
 
 ### Community 53 - ".submit"
 Cohesion: 0.07
-Nodes (16): PaymentService, PaymentOutcomeRequest, PaymentRecord, PaymentStatus, FAILED, PENDING_SUBMISSION, SETTLED, UNRESOLVED (+8 more)
+Nodes (17): PaymentService, PaymentOutcomeRequest, PaymentRecord, PaymentStatus, FAILED, PENDING_SUBMISSION, SETTLED, UNRESOLVED (+9 more)
 
-### Community 54 - "ApprovalPolicyRepository.java"
-Cohesion: 0.09
-Nodes (15): ApprovalPolicyService, ApprovalPolicyConflictException, ApprovalPolicyNotFoundException, InvalidApprovalPolicyException, ApprovalPolicyLevel, ApprovalPolicyResponse, ApprovalPolicyStatus, ACTIVE (+7 more)
+### Community 54 - "ApprovalPolicyService"
+Cohesion: 0.08
+Nodes (15): ApprovalPolicyService, ApprovalPolicyConflictException, ApprovalPolicyNotFoundException, InvalidApprovalPolicyException, OrganizationNotFoundException, ApprovalPolicyLevel, ApprovalPolicyResponse, ApprovalPolicyStatus (+7 more)
 
 ### Community 55 - "Phase 2 — Decision Gate"
 Cohesion: 0.25
@@ -498,15 +511,15 @@ Nodes (8): API and event scope — exact contracts remain open, Approved authori
 
 ### Community 56 - "payment-service/src/main/resources/application.yml"
 Cohesion: 0.06
-Nodes (31): name, password, url, username, health, web, include, default-schema (+23 more)
+Nodes (34): name, import, password, url, username, health, web, include (+26 more)
 
 ### Community 57 - "audit-service/src/main/resources/application.yml"
 Cohesion: 0.06
-Nodes (31): name, audit, security, password, url, username, health, web (+23 more)
+Nodes (34): name, audit, security, import, password, url, username, health (+26 more)
 
 ### Community 58 - "security"
-Cohesion: 0.25
-Nodes (8): security, audience, issuer-uri, jwk-set-uri, party-client-id, party-client-secret, party-service-base-url, token-uri
+Cohesion: 0.22
+Nodes (9): security, allow-http, audience, issuer-uri, jwk-set-uri, party-client-id, party-client-secret, party-service-base-url (+1 more)
 
 ### Community 59 - "ADR-001: Microservices Architecture"
 Cohesion: 0.33
@@ -533,8 +546,8 @@ Cohesion: 0.22
 Nodes (9): files_changed, T005, T011, change_type, description, file, change_type, description (+1 more)
 
 ### Community 65 - "client"
-Cohesion: 0.29
-Nodes (7): provider, registration, token-uri, client, keycloak, oauth2, security
+Cohesion: 0.15
+Nodes (13): provider, registration, token-uri, client, authorization-grant-type, client-id, client-secret, provider (+5 more)
 
 ### Community 66 - "health"
 Cohesion: 0.29
@@ -560,8 +573,8 @@ Nodes (6): ADR-003: Multi-channel Banking, Alternatives, Consequences, Context, 
 Cohesion: 0.33
 Nodes (6): ADR-004: Shared PostgreSQL, Schema-per-service, Alternatives, Consequences, Context, Decision, Dependencies
 
-### Community 73 - "JournalResponse"
-Cohesion: 0.07
+### Community 73 - "LedgerServiceTests.java"
+Cohesion: 0.08
 Nodes (17): LedgerService, InvalidJournalException, JournalAlreadyReversedException, JournalNotFoundException, UnbalancedJournalException, BalanceResponse, EntrySide, CREDIT (+9 more)
 
 ### Community 74 - "ADR-009: Multi-branch Banking"
@@ -592,9 +605,9 @@ Nodes (5): Authorization claim boundary, Branch Service, Build and tests, Config
 Cohesion: 0.33
 Nodes (6): web, include, management, endpoint, endpoints, exposure
 
-### Community 81 - "party-service"
-Cohesion: 0.33
-Nodes (6): authorization-grant-type, client-id, client-secret, provider, scope, party-service
+### Community 81 - "CorporateApprovalClient.java"
+Cohesion: 0.22
+Nodes (3): CorporateApprovalClient, CreateApprovalRequest, CorporateApprovalClientTests
 
 ### Community 82 - "Party Service"
 Cohesion: 0.33
@@ -644,6 +657,10 @@ Nodes (4): T012, change_type, description, file
 Cohesion: 0.50
 Nodes (4): T014, change_type, description, file
 
+### Community 102 - "PartyService"
+Cohesion: 0.18
+Nodes (3): PartyResponse, PartyController, UpdatePartyRequest
+
 ### Community 103 - "Transfer Service"
 Cohesion: 0.40
 Nodes (4): Run, Scope, Transfer Service, Verification
@@ -672,13 +689,13 @@ Nodes (27): command, failed, passed, skipped, batch_id, blocked_tasks, completed
 Cohesion: 0.14
 Nodes (12): 10. Dependency compatibility, 11. Blockers and unresolved decisions, 13. Audit conclusion, 1. Service inventory, 2. Technology stack, 4. Existing Springdoc / Swagger / OpenAPI, 5. API Gateway and routing, 6. Authentication and authorization (+4 more)
 
+### Community 111 - "uuid"
+Cohesion: 0.13
+Nodes (5): SubmitPaymentRequest, RetailTransferType, DEPOSIT, INTERNAL, WITHDRAWAL
+
 ### Community 112 - "Migration Summary Report"
 Cohesion: 0.13
 Nodes (13): Checkpoint Validation Summary, Consistency, Constitution Compliance, End-to-End Traceability Matrix, Findings, Metrics Summary, Migration Summary Report, Testing Evidence (+5 more)
-
-### Community 113 - "uuid"
-Cohesion: 0.08
-Nodes (4): JdbcApproverEligibilityClient, PartyRepository, SubmitPaymentRequest, JdbcReportingRepository
 
 ### Community 114 - "traceability"
 Cohesion: 0.29
@@ -705,8 +722,8 @@ Cohesion: 0.33
 Nodes (5): Completeness, Constitution Alignment, Requirement ID Coverage, Requirements Quality Checklist, Testability
 
 ### Community 120 - "org.springframework.boot.autoconfigure.SpringBootApplication"
-Cohesion: 0.16
-Nodes (7): AccountServiceApplication, ApiDocsServiceApplication, CorporateServiceApplication, LedgerServiceApplication, NotificationServiceApplication, PartyServiceApplication, ReportingServiceApplication
+Cohesion: 0.07
+Nodes (15): AccountServiceApplication, ApiDocsServiceApplication, AuditServiceApplication, BranchServiceApplication, CorporateServiceApplication, IdentityServiceApplication, LedgerServiceApplication, NotificationServiceApplication (+7 more)
 
 ### Community 122 - "channels-operations/checkpoints/tasks-to-impl.yaml"
 Cohesion: 0.20
@@ -714,15 +731,15 @@ Nodes (9): blocked_tasks, completed_tasks, metadata, generated, source_plan, val
 
 ### Community 123 - "spring"
 Cohesion: 0.07
-Nodes (26): name, password, url, username, health, web, include, default-schema (+18 more)
+Nodes (28): name, import, password, url, username, health, web, include (+20 more)
 
 ### Community 124 - "AccountResponse"
-Cohesion: 0.17
-Nodes (7): AccountService, AccountNotFoundException, DuplicateAccountException, InvalidAccountException, InvalidAccountTransitionException, AccountRepository, StateChangeRequest
+Cohesion: 0.10
+Nodes (15): AccountService, AccountNotFoundException, DuplicateAccountException, InvalidAccountException, InvalidAccountTransitionException, AccountResponse, AccountStatus, ACTIVE (+7 more)
 
-### Community 125 - "AccountResponse"
-Cohesion: 0.23
-Nodes (6): AccountResponse, AccountStatus, ACTIVE, BLOCKED, CLOSED, JdbcAccountRepository
+### Community 125 - "org.springframework.security.oauth2.jwt.Jwt"
+Cohesion: 0.11
+Nodes (5): AccountAuthorizationService, AccountController, AccountAuthorizationServiceTests, AuditAuthorizationService, AuditController
 
 ### Community 126 - "6. Implementation tasks"
 Cohesion: 0.17
@@ -730,11 +747,11 @@ Nodes (12): 6. Implementation tasks, T001 — Add dependency management, T002 �
 
 ### Community 127 - "spring"
 Cohesion: 0.06
-Nodes (30): account, security, name, password, url, username, health, web (+22 more)
+Nodes (33): account, security, name, import, password, url, username, health (+25 more)
 
 ### Community 129 - "spring"
-Cohesion: 0.08
-Nodes (25): name, password, url, username, health, web, include, default-schema (+17 more)
+Cohesion: 0.07
+Nodes (27): name, import, password, url, username, health, web, include (+19 more)
 
 ### Community 130 - "Payment Service"
 Cohesion: 0.50
@@ -746,7 +763,7 @@ Nodes (10): 3. Existing endpoint inventory, Account, Audit, Branch, Corporate, I
 
 ### Community 135 - "reporting-service/src/main/resources/application.yml"
 Cohesion: 0.06
-Nodes (31): name, password, url, username, health, web, include, default-schema (+23 more)
+Nodes (34): name, import, password, url, username, health, web, include (+26 more)
 
 ### Community 136 - "channels-operations/checkpoints/spec-to-plan.yaml"
 Cohesion: 0.11
@@ -756,8 +773,12 @@ Nodes (18): metadata, generated, source_spec, target_plan, missing_requirements,
 Cohesion: 0.40
 Nodes (4): Acceptance, API, Phase 4 - Retail Internal Transfer va Teller, Scope
 
+### Community 138 - "postgres"
+Cohesion: 0.15
+Nodes (11): name, image, ports, restart, volumes, services, postgres, volumes (+3 more)
+
 ### Community 139 - "IdentitySecurityProperties"
-Cohesion: 0.21
+Cohesion: 0.18
 Nodes (3): IdentitySecurityConfiguration, IdentitySecurityProperties, IdentitySecurityConfigurationTests
 
 ### Community 140 - "Implementation Plan: Channels, Audit, Notification and Reporting"
@@ -766,19 +787,23 @@ Nodes (17): Applied Guidelines, Constitution Check, Deferred Decisions, Executio
 
 ### Community 141 - "services"
 Cohesion: 0.05
-Nodes (36): api-docs, services, name, health, web, include, readiness, group (+28 more)
+Nodes (38): api-docs, services, name, import, health, web, include, readiness (+30 more)
 
 ### Community 142 - "org.springframework.boot.context.properties.ConfigurationProperties"
-Cohesion: 0.11
-Nodes (5): AuditSecurityProperties, CorporateSecurityProperties, IdentityDatabaseProperties, PaymentSecurityConfiguration, PaymentSecurityProperties
+Cohesion: 0.07
+Nodes (6): AccountSecurityProperties, AuditSecurityProperties, BranchSecurityProperties, CorporateSecurityProperties, IdentityDatabaseProperties, PartySecurityProperties
 
 ### Community 143 - "OrganizationEndpointIntegrationTests.java"
-Cohesion: 0.09
-Nodes (7): AccountEndpointIntegrationTests, AuditRepositoryIntegrationTests, LedgerEndpointIntegrationTests, NotificationRepositoryIntegrationTests, PartyEndpointIntegrationTests, PaymentRepositoryIntegrationTests, TransferRepositoryIntegrationTests
+Cohesion: 0.13
+Nodes (7): AccountEndpointIntegrationTests, AccountStateResponse, AuditRepositoryIntegrationTests, LedgerEndpointIntegrationTests, NotificationRepositoryIntegrationTests, PaymentRepositoryIntegrationTests, TransferRepositoryIntegrationTests
 
-### Community 144 - "CURRENT_STATUS.md"
-Cohesion: 0.25
-Nodes (6): Blockers, Completed evidence, Current phase, Current task, Incomplete work, Working tree
+### Community 144 - "environment"
+Cohesion: 0.07
+Nodes (27): ACCOUNT_SERVICE_APP_PASSWORD, ACCOUNT_SERVICE_MIGRATOR_PASSWORD, AUDIT_SERVICE_APP_PASSWORD, AUDIT_SERVICE_MIGRATOR_PASSWORD, BRANCH_SERVICE_APP_PASSWORD, BRANCH_SERVICE_MIGRATOR_PASSWORD, CORPORATE_SERVICE_APP_PASSWORD, CORPORATE_SERVICE_MIGRATOR_PASSWORD (+19 more)
+
+### Community 145 - "TransferController"
+Cohesion: 0.14
+Nodes (3): ChannelAuthorizationService, TransferController, ChannelAuthorizationServiceTests
 
 ### Community 146 - "Phase 6 - Provider-Neutral Interbank Transfer"
 Cohesion: 0.40
@@ -812,10 +837,6 @@ Nodes (5): Completeness, Constitution Alignment, Requirement ID Coverage, Requir
 Cohesion: 0.33
 Nodes (6): 8. Testing strategy, Centralized checks, Dependency and build checks, Docker/Kubernetes checks, Per-service checks, Security checks
 
-### Community 157 - "AccountAuthorizationService"
-Cohesion: 0.22
-Nodes (3): AccountAuthorizationService, AccountController, AccountAuthorizationServiceTests
-
 ### Community 158 - "containers"
 Cohesion: 0.06
 Nodes (37): env, envFrom, image, imagePullPolicy, livenessProbe, name, ports, readinessProbe (+29 more)
@@ -845,7 +866,7 @@ Cohesion: 0.17
 Nodes (10): Acceptance, Decisions Still Open, Phase 8 - Production Readiness, Scope, Status, Feature Specification: Production Readiness, Functional Requirements, NEEDS CLARIFICATION (+2 more)
 
 ### Community 167 - "org.springframework.transaction.annotation.Transactional"
-Cohesion: 0.08
+Cohesion: 0.09
 Nodes (5): ApprovalRequestConflictException, ApprovalRequestNotFoundException, ApprovalRequestValidationException, IneligibleApproverException, MakerCheckerException
 
 ### Community 168 - "validation"
@@ -860,9 +881,9 @@ Nodes (8): Centralized API Documentation Implementation Report, Documentation UR
 Cohesion: 0.12
 Nodes (16): Applied Guidelines, Constitution Check, Deferred Decisions, Implementation Plan: Production Readiness, Implementation Steps, Project Structure, Requirement Mapping, Step 1: Release and CI gate (+8 more)
 
-### Community 171 - "DatabaseConfigurationTests.java"
-Cohesion: 0.16
-Nodes (3): DatabaseConnectionProperties, ServiceTemplateApplication, DatabaseConfigurationTests
+### Community 171 - "BranchStatus"
+Cohesion: 0.23
+Nodes (5): InvalidPageRequestException, BranchPage, BranchStatus, ACTIVE, INACTIVE
 
 ### Community 172 - "Phase 7 - Channels, Audit, Notification and Reporting"
 Cohesion: 0.17
@@ -876,13 +897,17 @@ Nodes (7): batch_id, blocked_tasks, completed_tasks, protocol_violation, warning
 Cohesion: 0.10
 Nodes (19): metadata, generated, source_spec, target_plan, missing_requirements, orphan_plan_items, items, requirements (+11 more)
 
-### Community 177 - "IdentityPrincipalServiceTests.java"
+### Community 177 - "JdbcIdentityMappingRepository.java"
 Cohesion: 0.11
 Nodes (13): IdentityPrincipalService, IdentityMapping, IdentityStatus, ACTIVE, DISABLED, ScopedGrant, ScopeType, BRANCH (+5 more)
 
-### Community 179 - "io.swagger.v3.oas.annotations.security.SecurityScheme"
-Cohesion: 0.23
-Nodes (3): AuditServiceApplication, BranchServiceApplication, PaymentServiceApplication
+### Community 179 - "PartyService"
+Cohesion: 0.21
+Nodes (7): PartyService, IdempotencyConflictException, IdempotencyInProgressException, IdempotencyRecord, PartyRepository, CreatePartyRequest, IndividualProfileRequest
+
+### Community 180 - "Service postgres"
+Cohesion: 0.14
+Nodes (17): Service postgres, Service keycloak, name, name, port, protocol, apiVersion, kind (+9 more)
 
 ### Community 181 - "ChannelContext"
 Cohesion: 0.40
@@ -905,12 +930,16 @@ Cohesion: 0.06
 Nodes (37): env, envFrom, image, imagePullPolicy, livenessProbe, name, ports, readinessProbe (+29 more)
 
 ### Community 188 - "validation"
-Cohesion: 0.12
-Nodes (16): command, failed, passed, command, failed, passed, skipped, command (+8 more)
+Cohesion: 0.29
+Nodes (7): command, failed, passed, validation, ledger_container, passed, workspace_verify
 
 ### Community 189 - "containers"
 Cohesion: 0.06
 Nodes (37): env, envFrom, image, imagePullPolicy, livenessProbe, name, ports, readinessProbe (+29 more)
+
+### Community 190 - "AuditRecord"
+Cohesion: 0.18
+Nodes (6): AuditService, AuditRecord, AuditRecordRequest, AuditRepository, JdbcAuditRepository, AuditServiceTests
 
 ### Community 191 - "account_service"
 Cohesion: 0.40
@@ -964,33 +993,49 @@ Nodes (36): env, image, imagePullPolicy, livenessProbe, name, ports, readinessPr
 Cohesion: 0.06
 Nodes (36): env, image, imagePullPolicy, livenessProbe, name, ports, readinessProbe, securityContext (+28 more)
 
-### Community 207 - "AuditRecord"
-Cohesion: 0.07
-Nodes (20): AuditAuthorizationService, AuditService, AuditRecord, AuditRecordRequest, AuditRepository, JdbcAuditRepository, AuditController, AuditServiceTests (+12 more)
+### Community 207 - "OrganizationService"
+Cohesion: 0.13
+Nodes (11): OrganizationService, DuplicateOrganizationPartyException, InvalidOrganizationException, OrganizationResponse, OrganizationStatus, ACTIVE, INACTIVE, PartyReferenceClient (+3 more)
 
-### Community 208 - "AuditSecurityPropertiesTests.java"
-Cohesion: 0.19
-Nodes (3): AuditSecurityPropertiesTests, PaymentSecurityPropertiesTests, TransferSecurityPropertiesTests
+### Community 208 - "org.junit.jupiter.api.Test"
+Cohesion: 0.12
+Nodes (5): AuditSecurityPropertiesTests, PaymentSecurityPropertiesTests, ServiceTemplateApplicationTests, CorrelationIdFilterTests, TransferSecurityPropertiesTests
 
 ### Community 209 - "data"
 Cohesion: 0.09
 Nodes (22): apiVersion, data, ACCOUNT_OPENAPI_URL, AUDIT_OPENAPI_URL, BRANCH_OPENAPI_URL, CORPORATE_APPROVAL_BASE_URL, CORPORATE_OPENAPI_URL, IDENTITY_OPENAPI_URL (+14 more)
 
-### Community 211 - "TransferRecord"
-Cohesion: 0.20
-Nodes (4): ApprovalEnforcedTransferService, ExecutionAdapter, DeferredExecutionAdapter, TransferRecord
-
-### Community 212 - "CorporateApprovalClient"
+### Community 211 - "environment"
 Cohesion: 0.22
-Nodes (3): CorporateApprovalClient, CreateApprovalRequest, CorporateApprovalClientTests
+Nodes (9): KC_BOOTSTRAP_ADMIN_PASSWORD, KC_BOOTSTRAP_ADMIN_USERNAME, KC_DB, KC_DB_PASSWORD, KC_DB_URL, KC_DB_USERNAME, KC_HEALTH_ENABLED, KC_HOSTNAME (+1 more)
 
-### Community 214 - "TransferRepository"
-Cohesion: 0.26
-Nodes (3): SubmitTransferRequest, TransferRepository, IdempotencyRecord
+### Community 212 - "keycloak"
+Cohesion: 0.22
+Nodes (9): postgres, command, depends_on, image, ports, restart, volumes, condition (+1 more)
 
-### Community 215 - "PartyService"
+### Community 214 - "ledger_replay"
+Cohesion: 0.40
+Nodes (5): command, failed, passed, skipped, ledger_replay
+
+### Community 215 - "healthcheck"
+Cohesion: 0.53
+Nodes (6): interval, retries, test, timeout, healthcheck, healthcheck
+
+### Community 216 - "local_kustomize"
+Cohesion: 0.50
+Nodes (4): command, failed, passed, local_kustomize
+
+### Community 217 - "PaymentSubmissionClient"
 Cohesion: 0.24
-Nodes (7): PartyService, IdempotencyConflictException, IdempotencyInProgressException, IdempotencyRecord, InvalidPartyException, CreatePartyRequest, IndividualProfileRequest
+Nodes (3): PaymentSubmissionResponse, PaymentSubmissionClient, SubmitPaymentRequest
+
+### Community 218 - "OidcPartyReferenceClient.java"
+Cohesion: 0.14
+Nodes (3): CorporatePartyClientConfiguration, OidcPartyReferenceClient, PartyServiceUnavailableException
+
+### Community 219 - "account"
+Cohesion: 0.50
+Nodes (3): account, security, allow-http
 
 ### Community 220 - "kustomization.yaml"
 Cohesion: 0.50
@@ -1000,9 +1045,17 @@ Nodes (3): apiVersion, kind, resources
 Cohesion: 0.25
 Nodes (7): batch_id, blocked_tasks, completed_tasks, protocol_violation, warnings, message, severity
 
-### Community 225 - "PaymentSubmissionClient"
-Cohesion: 0.28
-Nodes (3): PaymentSubmissionResponse, PaymentSubmissionClient, SubmitPaymentRequest
+### Community 223 - "account"
+Cohesion: 0.50
+Nodes (3): account, security, allow-http
+
+### Community 224 - "audit"
+Cohesion: 0.50
+Nodes (3): audit, security, allow-http
+
+### Community 225 - "PaymentExceptionHandler.java"
+Cohesion: 0.29
+Nodes (3): PaymentExceptions, ConflictException, NotFoundException
 
 ### Community 226 - "api_docs_module"
 Cohesion: 0.40
@@ -1016,9 +1069,9 @@ Nodes (5): command, failed, passed, skipped, docker_images
 Cohesion: 0.40
 Nodes (5): command, failed, passed, skipped, focused_log_redaction
 
-### Community 229 - "PartyType"
+### Community 229 - "CURRENT_STATUS.md"
 Cohesion: 0.25
-Nodes (4): IndividualProfileResponse, PartyType, INDIVIDUAL, ORGANIZATION
+Nodes (6): Blockers, Completed evidence, Current phase, Current task, Incomplete work, Working tree
 
 ### Community 230 - "test_results"
 Cohesion: 0.15
@@ -1028,21 +1081,29 @@ Nodes (13): command, failed, passed, reason, skipped, status, test_results, kube
 Cohesion: 0.40
 Nodes (5): workspace, command, failed, passed, skipped
 
+### Community 232 - "audit"
+Cohesion: 0.50
+Nodes (3): audit, security, allow-http
+
 ### Community 234 - "module_counts"
 Cohesion: 0.14
 Nodes (14): account-service, api-docs-service, audit-service, branch-service, corporate-service, identity-service, ledger-service, notification-service (+6 more)
 
 ### Community 235 - "production-readiness/checkpoints/tasks-to-impl.yaml"
-Cohesion: 0.14
-Nodes (12): Not verified or blocked, Phase 8 Smoke Test Verdict, Release decision, Verified, blocked_reasons, T023, blocked_tasks, completed_tasks (+4 more)
+Cohesion: 0.18
+Nodes (9): Not verified or blocked, Phase 8 Smoke Test Verdict, Release decision, Verified, blocked_reasons, T023, blocked_tasks, completed_tasks (+1 more)
 
 ### Community 236 - "module_counts"
 Cohesion: 0.14
 Nodes (14): module_counts, account-service, api-docs-service, audit-service, branch-service, corporate-service, identity-service, ledger-service (+6 more)
 
-### Community 237 - "API Documentation"
-Cohesion: 0.29
-Nodes (6): Add a microservice, API Documentation, Authenticate in Swagger UI, Kubernetes local, Local development, Troubleshooting
+### Community 238 - "DR_DEPENDENCY_SMOKE_TEST_PLAN.md"
+Cohesion: 0.06
+Nodes (31): Alert Response Runbook, First response, Owner inputs required, Resolution and handoff, Response and recovery, Triage, Backup and Restore Rehearsal, Before the rehearsal (+23 more)
+
+### Community 239 - "branch"
+Cohesion: 0.50
+Nodes (3): branch, security, allow-http
 
 ### Community 240 - "ledger_service"
 Cohesion: 0.40
@@ -1056,57 +1117,93 @@ Nodes (5): command, tests_failed, tests_passed, tests_skipped, evidence
 Cohesion: 0.50
 Nodes (4): workspace_smoke, command, failed, passed
 
-### Community 243 - "PartyStatus"
+### Community 243 - "branch"
 Cohesion: 0.50
-Nodes (3): PartyStatus, ACTIVE, INACTIVE
+Nodes (3): branch, security, allow-http
 
-### Community 244 - "Alert Response Runbook"
-Cohesion: 0.33
-Nodes (6): Alert Response Runbook, First response, Owner inputs required, Resolution and handoff, Response and recovery, Triage
+### Community 244 - "corporate"
+Cohesion: 0.50
+Nodes (3): corporate, security, allow-http
 
 ### Community 245 - "Outbox Backlog, Retry, and Replay Runbook"
 Cohesion: 0.33
 Nodes (6): Assess a backlog, Controlled replay, Implementation prerequisites, Outbox Backlog, Retry, and Replay Runbook, Restore normal delivery, Scope and guardrails
 
-### Community 246 - "Service Recovery Runbook"
-Cohesion: 0.33
-Nodes (6): Diagnose, Environment-specific details to approve, Recover, Safety checks, Service Recovery Runbook, Verify and hand off
-
-### Community 247 - "Backup and Restore Rehearsal"
-Cohesion: 0.40
-Nodes (5): Backup and Restore Rehearsal, Before the rehearsal, Complete and clean up, Rehearse restore, Service-specific cautions
-
-### Community 250 - "Disaster Recovery and Dependency-Failure Smoke Test Plan"
+### Community 246 - "corporate"
 Cohesion: 0.50
-Nodes (4): Disaster Recovery and Dependency-Failure Smoke Test Plan, Exit criteria, Scenarios, Test controls
+Nodes (3): corporate, security, allow-http
 
-### Community 251 - "Independent Service Rollback Rehearsal"
+### Community 248 - "identity"
 Cohesion: 0.50
-Nodes (4): Evidence and cleanup, Independent Service Rollback Rehearsal, Preconditions, Rehearse
+Nodes (3): identity, security, allow-http
 
-### Community 252 - "Phase 8 Security, Recovery, and Rollback Evidence"
+### Community 249 - "identity"
 Cohesion: 0.50
-Nodes (4): Additional local evidence, Phase 8 Security, Recovery, and Rollback Evidence, Recovery and rollback, Security
+Nodes (3): identity, security, allow-http
+
+### Community 250 - "PartyType"
+Cohesion: 0.25
+Nodes (4): IndividualProfileResponse, PartyType, INDIVIDUAL, ORGANIZATION
+
+### Community 251 - "PartyStatus"
+Cohesion: 0.50
+Nodes (3): PartyStatus, ACTIVE, INACTIVE
+
+### Community 252 - "party"
+Cohesion: 0.50
+Nodes (3): party, security, allow-http
+
+### Community 254 - "party"
+Cohesion: 0.50
+Nodes (3): party, security, allow-http
+
+### Community 255 - "payment"
+Cohesion: 0.50
+Nodes (3): payment, security, allow-http
+
+### Community 256 - "payment"
+Cohesion: 0.50
+Nodes (3): payment, security, allow-http
+
+### Community 257 - "reporting"
+Cohesion: 0.50
+Nodes (3): reporting, security, allow-http
+
+### Community 259 - "reporting"
+Cohesion: 0.50
+Nodes (3): reporting, security, allow-http
+
+### Community 260 - "transfer"
+Cohesion: 0.50
+Nodes (3): allow-http, transfer, security
+
+### Community 261 - "transfer"
+Cohesion: 0.50
+Nodes (3): allow-http, transfer, security
+
+### Community 262 - "metadata"
+Cohesion: 0.67
+Nodes (3): metadata, generated, source_plan
 
 ## Knowledge Gaps
-- **67 isolated node(s):** `ACTIVE`, `INACTIVE`, `INDIVIDUAL`, `ORGANIZATION`, `com.banking.platform:transfer-service` (+62 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1854 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **54 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **67 isolated node(s):** `ACTIVE`, `INACTIVE`, `com.banking.platform:transfer-service`, `com.banking.platform:core-banking-system`, `ACTIVE` (+62 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1970 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **42 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `ApproverEligibilityClient` connect `ApprovalRepository` to `uuid`?**
-  _High betweenness centrality (0.062) - this node is a cross-community bridge._
-- **What connects `ACTIVE`, `INACTIVE`, `INDIVIDUAL` to the rest of the system?**
+- **Why does `CorporateExceptionHandler` connect `jakarta.servlet.http.HttpServletRequest` to `Implementation Plan: Corporate Approval Core`?**
+  _High betweenness centrality (0.049) - this node is a cross-community bridge._
+- **What connects `ACTIVE`, `INACTIVE`, `com.banking.platform:transfer-service` to the rest of the system?**
   _67 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `jakarta.servlet.http.HttpServletRequest` be split into smaller, more focused modules?**
-  _Cohesion score 0.0537714712471994 - nodes in this community are weakly interconnected._
-- **Should `org.springframework.stereotype.Component` be split into smaller, more focused modules?**
-  _Cohesion score 0.09155844155844156 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06568986568986569 - nodes in this community are weakly interconnected._
+- **Why does `Step 6: Expose approval APIs and enforce command safety` connect `Implementation Plan: Corporate Approval Core` to `jakarta.servlet.http.HttpServletRequest`?**
+  _High betweenness centrality (0.049) - this node is a cross-community bridge._
+- **Should `OpenApiProxyControllerTests.java` be split into smaller, more focused modules?**
+  _Cohesion score 0.10114942528735632 - nodes in this community are weakly interconnected._
 - **Should `containers` be split into smaller, more focused modules?**
   _Cohesion score 0.04421768707482993 - nodes in this community are weakly interconnected._
 - **Should `containers` be split into smaller, more focused modules?**
   _Cohesion score 0.045068027210884355 - nodes in this community are weakly interconnected._
-- **Should `NotificationRecord` be split into smaller, more focused modules?**
-  _Cohesion score 0.09285714285714286 - nodes in this community are weakly interconnected._

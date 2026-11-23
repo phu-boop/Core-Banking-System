@@ -1,0 +1,3 @@
+audit:
+  security:
+    allow-http: false

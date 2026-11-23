@@ -1,4 +1,8 @@
 spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/audit-service/.env[.properties]
   application:
     name: audit-service
   datasource:

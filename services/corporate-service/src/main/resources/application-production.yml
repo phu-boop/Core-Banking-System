@@ -1,0 +1,3 @@
+corporate:
+  security:
+    allow-http: false

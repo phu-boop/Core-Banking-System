@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - runtime-config.yaml
+  - external-infrastructure.yaml
   - identity-service.yaml
   - party-service.yaml
   - branch-service.yaml

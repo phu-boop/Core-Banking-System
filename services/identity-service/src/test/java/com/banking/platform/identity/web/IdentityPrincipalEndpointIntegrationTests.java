@@ -172,6 +172,14 @@ class IdentityPrincipalEndpointIntegrationTests {
     }
 
     @Test
+    void exposesOpenApiDocumentWithoutAuthentication() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/v3/api-docs", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("\"openapi\"");
+    }
+
+    @Test
     void returnsOnlyTheProvisionedPrincipalAndItsScopedGrants() throws Exception {
         ResponseEntity<String> response = getPrincipal("active-token");
 

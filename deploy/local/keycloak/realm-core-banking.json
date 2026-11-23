@@ -1,0 +1,29 @@
+{
+  "realm": "core-banking",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "requiredCredentials": ["password"],
+  "clients": [
+    {
+      "clientId": "corporate-party-client",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "secret": "local-corporate-party-secret"
+    },
+    {
+      "clientId": "transfer-corporate-client",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "secret": "local-transfer-corporate-secret"
+    }
+  ]
+}

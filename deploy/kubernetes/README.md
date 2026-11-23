@@ -64,6 +64,24 @@ Never commit Secret resources or secret values. Provision these through a local 
 
 ## Deploy locally
 
+PostgreSQL and Keycloak can run on Docker Compose while Spring services run in Minikube:
+
+```bash
+cp deploy/local/.env.example deploy/local/.env
+# Replace every replace-with-* password with a local value.
+docker compose --env-file deploy/local/.env -f deploy/local/docker-compose.yml up -d
+minikube start
+kubectl apply -k deploy/kubernetes/local
+```
+
+For a repeatable setup that generates missing local passwords, creates Kubernetes DB/client Secrets, builds images and deploys the overlay:
+
+```bash
+bash deploy/local/setup-minikube-local.sh
+```
+
+Compose exposes PostgreSQL on `localhost:5432` and Keycloak on `localhost:8180`. The Minikube overlay uses `postgres` and `keycloak` ExternalName services to reach the host. The current local HTTP issuer URLs require reconciliation with services that enforce HTTPS before a full local stack can start. Do not use this setup as production configuration.
+
 After a Minikube cluster, PostgreSQL, Keycloak, and the required Secrets are ready:
 
 ```bash

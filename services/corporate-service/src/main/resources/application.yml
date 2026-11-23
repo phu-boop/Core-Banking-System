@@ -1,4 +1,8 @@
 spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/corporate-service/.env[.properties]
   application:
     name: corporate-service
   datasource:

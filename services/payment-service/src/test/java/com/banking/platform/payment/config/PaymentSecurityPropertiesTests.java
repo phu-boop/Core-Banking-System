@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test;
 class PaymentSecurityPropertiesTests {
     @Test
     void requiresIssuerJwkSetAndAudience() {
-        assertMissing(() -> new PaymentSecurityProperties("", "https://idp.example/jwks", "payment"));
+        assertMissing(() -> new PaymentSecurityProperties("", "https://idp.example/jwks", "payment", false));
         assertMissing(() -> new PaymentSecurityProperties(
-                "https://idp.example", " ", "payment"));
+                "https://idp.example", " ", "payment", false));
         assertMissing(() -> new PaymentSecurityProperties(
-                "https://idp.example", "https://idp.example/jwks", ""));
+                "https://idp.example", "https://idp.example/jwks", "", false));
     }
 
     private void assertMissing(Runnable construction) {

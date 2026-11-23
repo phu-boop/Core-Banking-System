@@ -1,0 +1,3 @@
+account:
+  security:
+    allow-http: true

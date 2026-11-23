@@ -13,7 +13,17 @@ Read-only identity mapping and principal resolution for Phase 2. Keycloak owns i
 
 ## Configuration
 
-All settings below are required. The OIDC issuer and JWKS URLs must use HTTPS. Configure the issuer and JWKS URL for the same Keycloak realm; the audience must be present in issued access tokens.
+When the service starts, Spring Boot automatically imports `services/identity-service/.env` when invoked from the repository root, or `.env` when invoked from the service directory. The file is optional and ignored by Git; operating-system environment variables and explicit Spring command-line arguments can still override its values. There is no need to `source` the file first.
+
+Run from the repository root:
+
+```sh
+./mvnw -f services/identity-service/pom.xml spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+All settings below are required at runtime. The `local` profile allows absolute HTTP or HTTPS OIDC issuer and JWKS URLs for local Keycloak; the default and `production` profiles require HTTPS. All profiles reject relative URLs and URLs containing credentials. Configure issuer and JWKS URLs for the same Keycloak realm; the audience must be present in issued access tokens.
+
+Also set the database username/password in `.env` to match a provisioned database role; placeholder values are not usable credentials.
 
 | Environment variable | Purpose |
 |---|---|
@@ -62,4 +72,4 @@ Package the service, then build the image:
 docker build -t identity-service:local services/identity-service
 ```
 
-No local Keycloak realm, audience/client configuration or deployment manifest is included; those environment-specific settings remain to be approved and supplied.
+The local Keycloak realm and Minikube deployment scaffolding are under `deploy/local/` and `deploy/kubernetes/local/`. They are development-only and do not replace production identity-provider decisions.

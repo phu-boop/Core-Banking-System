@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test;
 class AuditSecurityPropertiesTests {
     @Test
     void requiresIssuerAndJwkSet() {
-        assertMissing(() -> new AuditSecurityProperties("", "https://idp.example/jwks", "audit"));
+        assertMissing(() -> new AuditSecurityProperties("", "https://idp.example/jwks", "audit", false));
         assertMissing(() -> new AuditSecurityProperties(
-                "https://idp.example", " ", "audit"));
+                "https://idp.example", " ", "audit", false));
     }
 
     private void assertMissing(Runnable construction) {
