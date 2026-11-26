@@ -1,6 +1,6 @@
 # Logical ERD — Banking Clone
 
-Đây là logical design **PROPOSED**, chưa phải database schema đã triển khai. Không tạo SQL hoặc migration trong tài liệu này.
+Đây là logical design cho các bounded context; nhiều context còn là **PROPOSED**. Identity Role/Permission Catalog entities marked implemented below are present in migrations V3/V4. Không tạo SQL hoặc migration trong tài liệu này.
 
 ## Database boundaries
 
@@ -31,6 +31,12 @@ Các connector trong diagram mô tả quan hệ nghiệp vụ/reference. Chỉ q
 
 ```mermaid
 erDiagram
+  USER ||--o{ AUTHORIZATION_GRANT : "legacy scoped grants; preserved"
+  USER ||--o{ ROLE_ASSIGNMENT : "role grant provenance"
+  ROLE ||--o{ ROLE_VERSION : "version history"
+  ROLE_VERSION ||--o{ ROLE_VERSION_PERMISSION : "permission set"
+  PERMISSION ||--o{ ROLE_VERSION_PERMISSION : "catalog reference"
+  ROLE_VERSION ||--o{ ROLE_ASSIGNMENT : "assigned version"
   PARTY ||--o| ORGANIZATION : "logical party reference; Organization requires one ORGANIZATION Party"
   PARTY ||--o{ ACCOUNT : "logical owner reference"
   USER ||--o{ MEMBERSHIP : "identity reference"
@@ -50,14 +56,22 @@ erDiagram
 
 `USER`, `ACCOUNT`, `BRANCH`, `TRANSFER` references in other schemas are IDs only. `JOURNAL` → `JOURNAL_ENTRY` is same-schema; the exact relationship cardinality and account-entry model remain subject to Ledger design review.
 
+Identity tables shown above are implemented by migrations V1-V4. `authorization_grant` retains legacy user/permission/scope tuples; Role-derived grants are resolved from each `role_assignment` and are not materialized into that table. Duplicate effective tuples are deduplicated at read time, so revoking one assignment does not discard a tuple supported by another active assignment. Corporate Membership and Mandate remain Corporate-owned and are not replaced by Identity Roles.
+
 ## Entity and constraint proposal
 
 All IDs below are opaque identifiers; UUID is a **PROPOSED** implementation choice, not an accepted decision. Constraint and index names are illustrative.
 
 | Schema / table | Core columns and key rules (PROPOSED) | Suggested indexes |
 |---|---|---|
-| `identity_schema.user_identity` | `user_id` PK; `issuer`, `subject`; UNIQUE `(issuer, subject)`; `status`; optional logical `party_id` reference (no FK) | `(status)` |
-| `identity_schema.role`, `user_role` | `role_id` PK; `user_role` PK `(user_id, role_id, scope_type, scope_id)`; initial scope vocabulary `SELF`, `ORGANIZATION`, `BRANCH`; scope IDs are references | `(user_id)`, `(scope_type, scope_id)` |
+| `identity_schema.user_identity` (implemented) | `user_id` PK; `issuer`, `subject`; UNIQUE `(issuer, subject)`; status `ACTIVE`/`DISABLED`; optional logical `party_id` reference (no FK) | `(status)` |
+| `identity_schema.authorization_grant` (implemented) | PK `(user_id, permission, scope_type, scope_id)`; scope values `SELF`, `ORGANIZATION`, `BRANCH`; no source or validity tracking yet | `(user_id)` |
+| `identity_schema.identity_audit` (implemented) | `audit_id` PK; actor/action/resource/result/time/correlation ID; current use includes principal-resolution audit | `(actor, occurred_at)`, `(resource_type, resource_id, occurred_at)` |
+| `identity_schema.permission_catalog` (implemented) | `permission_code` PK; lifecycle status `ACTIVE`/`PENDING_IMPLEMENTATION`/`RESTRICTED`; description and creation time | PK |
+| `identity_schema.role_catalog` (implemented) | Stable `role_code` PK; display name, category, description, `ACTIVE`/`INACTIVE` status | PK |
+| `identity_schema.role_version` (implemented) | `role_version_id` PK; role FK; version; `DRAFT`/`PUBLISHED`; creation/publication actor and time; published versions immutable | UNIQUE `(role_code, version)` |
+| `identity_schema.role_version_permission` (implemented) | Composite PK `(role_version_id, permission_code)`; FKs to Role Version and Permission; mapping immutable after publication | Permission lookup index |
+| `identity_schema.role_assignment` (implemented) | `assignment_id` PK; `user_id`; published Role Version; scope `SELF`/`ORGANIZATION`/`BRANCH`; `scope_id`; `ACTIVE`/`REVOKED`; `assigned_by`, effective/expiry and revocation fields | `(user_id, status, valid_from, expires_at)` |
 | `party_schema.party` | `party_id` PK; `party_type`; `status`; optional logical `managing_branch_id` reference (no FK); created timestamps | `(party_type, status)`, `(managing_branch_id, status)` |
 | `party_schema.individual_profile` | `party_id` PK and same-schema FK to `party`; profile fields subject to PII design | PII searches only if approved |
 | `corporate_schema.organization` | `organization_id` PK; required `party_id` UNIQUE logical reference to exactly one Party of type `ORGANIZATION`; `status` | `(status)` |

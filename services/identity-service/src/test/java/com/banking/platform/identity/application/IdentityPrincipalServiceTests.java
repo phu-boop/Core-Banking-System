@@ -29,7 +29,7 @@ class IdentityPrincipalServiceTests {
 
     @Test
     void resolvesActiveMappingAndItsScopedGrants() {
-        var grants = List.of(new ScopedGrant("customer:read", ScopeType.SELF, USER_ID.toString()));
+        var grants = List.of(new ScopedGrant("account:read", ScopeType.SELF, PARTY_ID.toString()));
         when(repository.findByIssuerAndSubject(ISSUER, SUBJECT))
                 .thenReturn(Optional.of(new IdentityMapping(USER_ID, PARTY_ID, IdentityStatus.ACTIVE)));
         when(repository.findGrantsByUserId(USER_ID)).thenReturn(grants);

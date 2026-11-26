@@ -2,6 +2,7 @@ package com.banking.platform.account.integration;
 
 import com.banking.platform.account.config.IdentityClientProperties;
 import java.time.Duration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -16,6 +17,7 @@ public class IdentityPrincipalClient {
 
     private final RestClient restClient;
 
+    @Autowired
     public IdentityPrincipalClient(
             RestClient.Builder builder,
             IdentityClientProperties properties) {

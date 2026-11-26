@@ -28,8 +28,43 @@ public class JdbcIdentityMappingRepository implements IdentityMappingRepository 
 
     private static final String FIND_GRANTS_SQL = """
             SELECT permission, scope_type, scope_id
-            FROM identity_schema.authorization_grant
-            WHERE user_id = ?
+            FROM (
+                SELECT permission, scope_type, scope_id
+                FROM identity_schema.authorization_grant
+                WHERE user_id = ?
+                  AND EXISTS (
+                      SELECT 1
+                      FROM identity_schema.permission_catalog
+                      WHERE permission_code = authorization_grant.permission
+                        AND status = 'ACTIVE'
+                  )
+                UNION
+                SELECT permission_catalog.permission_code AS permission,
+                       role_assignment.scope_type,
+                       role_assignment.scope_id
+                FROM identity_schema.role_assignment
+                JOIN identity_schema.user_identity
+                  ON user_identity.user_id = role_assignment.user_id
+                JOIN identity_schema.role_version
+                  ON role_version.role_version_id = role_assignment.role_version_id
+                JOIN identity_schema.role_catalog
+                  ON role_catalog.role_code = role_version.role_code
+                JOIN identity_schema.role_version_permission
+                  ON role_version_permission.role_version_id = role_version.role_version_id
+                JOIN identity_schema.permission_catalog
+                  ON permission_catalog.permission_code =
+                     role_version_permission.permission_code
+                WHERE role_assignment.user_id = ?
+                  AND user_identity.status = 'ACTIVE'
+                  AND role_assignment.status = 'ACTIVE'
+                  AND role_assignment.valid_from <= CURRENT_TIMESTAMP
+                  AND (role_assignment.expires_at IS NULL
+                       OR CURRENT_TIMESTAMP < role_assignment.expires_at)
+                  AND role_assignment.revoked_at IS NULL
+                  AND role_version.status = 'PUBLISHED'
+                  AND role_catalog.status = 'ACTIVE'
+                  AND permission_catalog.status = 'ACTIVE'
+            ) effective_grants
             ORDER BY permission, scope_type, scope_id
             """;
 
@@ -60,7 +95,7 @@ public class JdbcIdentityMappingRepository implements IdentityMappingRepository 
 
     @Override
     public List<ScopedGrant> findGrantsByUserId(UUID userId) {
-        return jdbcTemplate.query(FIND_GRANTS_SQL, SCOPED_GRANT_ROW_MAPPER, userId);
+        return jdbcTemplate.query(FIND_GRANTS_SQL, SCOPED_GRANT_ROW_MAPPER, userId, userId);
     }
 
     @Override

@@ -3,6 +3,7 @@ import Keycloak from "next-auth/providers/keycloak";
 import { validateSecureUrl } from "@/lib/secure-url.mjs";
 
 const issuer = process.env.AUTH_KEYCLOAK_ISSUER;
+const secret = process.env.AUTH_SECRET;
 const isProduction = process.env.NODE_ENV === "production";
 
 if (issuer) {
@@ -13,6 +14,7 @@ if (process.env.AUTH_URL) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret,
   useSecureCookies: process.env.NODE_ENV === "production",
   providers: [
     Keycloak({

@@ -99,7 +99,14 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const token = await getToken({ req: { headers: await headers() } });
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error("AUTH_SECRET must be set in the frontend environment.");
+  }
+  const token = await getToken({
+    req: { headers: await headers() },
+    secret,
+  });
   const identity: IdentityLookup = token?.accessToken
     ? await loadCurrentPrincipal(token.accessToken)
     : { status: "unauthorized" };

@@ -3,8 +3,11 @@ package com.banking.platform.account.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.banking.platform.account.application.AccountAuthorizationService;
 import java.util.UUID;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,6 +21,23 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class IdentityPrincipalClientTests {
+
+    @Test
+    void springInjectsIdentityClientAndAuthorizationServiceUsingTheirConstructors() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.registerBean("restClientBuilder", RestClient.Builder.class,
+                    (Supplier<RestClient.Builder>) () -> RestClient.builder());
+            context.registerBean("identityClientProperties", IdentityClientProperties.class,
+                    () -> new IdentityClientProperties("http://localhost:8080", true));
+            context.registerBean(IdentityPrincipalClient.class);
+            context.registerBean(AccountAuthorizationService.class);
+
+            context.refresh();
+
+            assertThat(context.getBean(IdentityPrincipalClient.class)).isNotNull();
+            assertThat(context.getBean(AccountAuthorizationService.class)).isNotNull();
+        }
+    }
 
     @Test
     void forwardsTheValidatedAccessTokenAndReadsIdentityPrincipal() {
