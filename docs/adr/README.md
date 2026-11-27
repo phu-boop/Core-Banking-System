@@ -16,7 +16,9 @@ Các ADR dưới đây ghi nhận quyết định đã được chủ dự án x
 | [ADR-010](./ADR-010-phase-1-technical-baseline.md) | Phase 1 Technical Baseline | ACCEPTED |
 | [ADR-011](./ADR-011-phase-based-secret-management.md) | Phase-based Configuration and Secret Management | ACCEPTED; exact production providers OPEN |
 | [ADR-012](./ADR-012-phase-2-identity-party-corporate-branch.md) | Phase 2 Identity, Party, Corporate and Branch Decisions | ACCEPTED; implementation details remain bounded by the ADR |
+| [ADR-013](./ADR-013-identity-authoritative-user-authorization.md) | Identity-Authoritative User Authorization | ACCEPTED for the first customer account-read slice |
+| [ADR-014](./ADR-014-role-permission-and-identity-grant-framework.md) | Role, Permission and Identity Grant Framework | ACCEPTED and implemented for the initial shared catalog; management/provisioning APIs remain deferred |
 
 Decision details remain intentionally bounded by the recorded decision. Implementation options are not approved merely because they appear in design documents.
 
-Xem [architecture overview](../architecture/BANKING_ARCHITECTURE.md) và [open decisions](../architecture/OPEN-DECISIONS.md).
+Xem [architecture overview](../architecture/BANKING_ARCHITECTURE.md), [open decisions](../architecture/OPEN-DECISIONS.md), [logical ERD](../database/ERD.md) và [authorization data dictionary](../database/AUTHORIZATION-DATA-DICTIONARY.md).

@@ -1,3 +1,6 @@
 identity:
   security:
     allow-http: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

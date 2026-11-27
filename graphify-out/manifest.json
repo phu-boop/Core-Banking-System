@@ -474,9 +474,9 @@
     "semantic_hash": ""
   },
   "services/identity-service/src/main/java/com/banking/platform/identity/persistence/JdbcIdentityMappingRepository.java": {
-    "mtime": 1795268965.6122358,
-    "seen": 1795270576.2504141,
-    "ast_hash": "8f053673bec9980e05fb6cf186576d14",
+    "mtime": 1795662354.4291172,
+    "seen": 1795662703.9118636,
+    "ast_hash": "d3c42568f458f1203863bd4f0a1c784b",
     "semantic_hash": ""
   },
   "services/identity-service/src/main/java/com/banking/platform/identity/web/CorrelationIdFilter.java": {
@@ -498,9 +498,9 @@
     "semantic_hash": ""
   },
   "services/identity-service/src/test/java/com/banking/platform/identity/application/IdentityPrincipalServiceTests.java": {
-    "mtime": 1795109944.7183855,
-    "seen": 1795231215.63183,
-    "ast_hash": "6cec58d74a7f3e83673a23b603bb1a2c",
+    "mtime": 1795662377.888148,
+    "seen": 1795662703.9122536,
+    "ast_hash": "a08d35fd890aca2c80461d69c722321c",
     "semantic_hash": ""
   },
   "services/identity-service/src/test/java/com/banking/platform/identity/config/IdentitySecurityConfigurationTests.java": {
@@ -516,9 +516,9 @@
     "semantic_hash": ""
   },
   "services/identity-service/src/test/java/com/banking/platform/identity/web/IdentityPrincipalEndpointIntegrationTests.java": {
-    "mtime": 1795422228.7815075,
-    "seen": 1795422554.394499,
-    "ast_hash": "7706a06ce9ee6a14a79c4096d7d9cd05",
+    "mtime": 1795662397.4111738,
+    "seen": 1795662703.9124022,
+    "ast_hash": "e2b77f480478e4a7b7fb5387c17f33ca",
     "semantic_hash": ""
   },
   "services/party-service/pom.xml": {
@@ -780,9 +780,9 @@
     "semantic_hash": ""
   },
   "docs/adr/README.md": {
-    "mtime": 1795107014.5609858,
-    "seen": 1795231215.6318858,
-    "ast_hash": "9a9ea38070c54a827b89f40153bf0017",
+    "mtime": 1795662627.1454704,
+    "seen": 1795662703.9209049,
+    "ast_hash": "816b70cb8610a38123308a15196752b9",
     "semantic_hash": ""
   },
   "docs/api/API-CONTRACTS.md": {
@@ -810,9 +810,9 @@
     "semantic_hash": ""
   },
   "docs/database/ERD.md": {
-    "mtime": 1795245715.5450857,
-    "seen": 1795248815.6818285,
-    "ast_hash": "ede7303e9babdeba3e57202125aa147a",
+    "mtime": 1795662676.9365215,
+    "seen": 1795662703.9211826,
+    "ast_hash": "fcd9cf01626a97acb19f7e9207dbfcea",
     "semantic_hash": ""
   },
   "docs/domain/BOUNDED_CONTEXTS.md": {
@@ -876,9 +876,9 @@
     "semantic_hash": ""
   },
   "services/identity-service/README.md": {
-    "mtime": 1795431484.5812082,
-    "seen": 1795432359.1104228,
-    "ast_hash": "30bb95e520be12bb27b78be843646f6b",
+    "mtime": 1795662544.5033674,
+    "seen": 1795662703.9226935,
+    "ast_hash": "390a7f8f989ae318ac0bb51448e74a00",
     "semantic_hash": ""
   },
   "services/party-service/README.md": {
@@ -1686,9 +1686,9 @@
     "semantic_hash": ""
   },
   "command.md": {
-    "mtime": 1795415243.12453,
-    "seen": 1795416347.064045,
-    "ast_hash": "421ecfc99223f097422639ef7c557476",
+    "mtime": 1795495557.3583782,
+    "seen": 1795495810.9790862,
+    "ast_hash": "c7d8ecdb5c2a60e81c65eb6d04deec15",
     "semantic_hash": ""
   },
   "docs/api-documentation/AUDIT.md": {
@@ -2436,15 +2436,15 @@
     "semantic_hash": ""
   },
   "frontend/src/app/layout.tsx": {
-    "mtime": 1795424386.121893,
-    "seen": 1795424885.3187978,
-    "ast_hash": "3274260d716271e8680f108a1a59d1db",
+    "mtime": 1795662853.086702,
+    "seen": 1795663511.674971,
+    "ast_hash": "feb63abfcd30a64302a23b4072d9ad23",
     "semantic_hash": ""
   },
   "frontend/src/app/page.tsx": {
-    "mtime": 1795426308.839316,
-    "seen": 1795426865.8802967,
-    "ast_hash": "5bd8f0a396a2820e6e7acd0532bf5368",
+    "mtime": 1795496697.891074,
+    "seen": 1795496760.5147948,
+    "ast_hash": "a88aea0c073686520eb04525aca35e45",
     "semantic_hash": ""
   },
   "frontend/src/components/icon.tsx": {
@@ -2532,9 +2532,9 @@
     "semantic_hash": ""
   },
   "frontend/src/auth.ts": {
-    "mtime": 1795426652.4377337,
-    "seen": 1795426865.8802981,
-    "ast_hash": "06551a04297d0c93b87655aa51273ff4",
+    "mtime": 1795496697.876074,
+    "seen": 1795496760.514799,
+    "ast_hash": "378d34deb46b6cec4894f9bd8db830c1",
     "semantic_hash": ""
   },
   "frontend/src/lib/identity-api-core.d.mts": {
@@ -2616,9 +2616,9 @@
     "semantic_hash": ""
   },
   "services/account-service/src/main/java/com/banking/platform/account/integration/IdentityPrincipalClient.java": {
-    "mtime": 1795431380.676107,
-    "seen": 1795432359.0928338,
-    "ast_hash": "2ac0dfbd560c65b1e8f7b1c0f7244abc",
+    "mtime": 1795495591.673422,
+    "seen": 1795495810.9639332,
+    "ast_hash": "f25392b0384e29f6fd19792066f3e101",
     "semantic_hash": ""
   },
   "services/account-service/src/main/java/com/banking/platform/account/integration/IdentityServiceUnavailableException.java": {
@@ -2628,15 +2628,27 @@
     "semantic_hash": ""
   },
   "services/account-service/src/test/java/com/banking/platform/account/integration/IdentityPrincipalClientTests.java": {
-    "mtime": 1795431440.5787995,
-    "seen": 1795432359.0931792,
-    "ast_hash": "284474deedb6ea3659ac821331c895b2",
+    "mtime": 1795495776.3795407,
+    "seen": 1795495810.9648004,
+    "ast_hash": "2b0af686746bef30e1a780cadd8be223",
     "semantic_hash": ""
   },
   "docs/adr/ADR-013-identity-authoritative-user-authorization.md": {
     "mtime": 1795431484.552208,
     "seen": 1795432359.108428,
     "ast_hash": "2960a1540c6e44fcad22b82b4ca58355",
+    "semantic_hash": ""
+  },
+  "docs/adr/ADR-014-role-permission-and-identity-grant-framework.md": {
+    "mtime": 1795662685.4125302,
+    "seen": 1795662703.920903,
+    "ast_hash": "5a4b9263b08951df423b67a6ae9d636a",
+    "semantic_hash": ""
+  },
+  "docs/database/AUTHORIZATION-DATA-DICTIONARY.md": {
+    "mtime": 1795662652.5674965,
+    "seen": 1795662703.9211807,
+    "ast_hash": "ee59c57e3bdebcb8f059fb5305e855b7",
     "semantic_hash": ""
   },
   "frontend/package-lock.json": {
