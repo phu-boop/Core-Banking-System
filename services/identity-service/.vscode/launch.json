@@ -1,0 +1,23 @@
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+
+
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "IdentityServiceApplication",
+            "request": "launch",
+            "mainClass": "com.banking.platform.identity.IdentityServiceApplication",
+            "projectName": "identity-service",
+            "vmArgs": "-Dspring.profiles.active=local"
+        }
+    ]
+}
